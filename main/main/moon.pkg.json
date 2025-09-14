@@ -1,8 +1,7 @@
 {
-  "is-main": true,
   "link": {
     "js": {
-      "exports": ["foo","logo"]
+      "exports": ["start_menu"]
     }
   },
   "import": [{ "path": "FrenchPicnic/threejs", "alias": "three" }]

@@ -1,3 +1,3 @@
-import { foo } from './main.js'
+import { start_menu } from "./main.js";
 
-foo()
+start_menu();

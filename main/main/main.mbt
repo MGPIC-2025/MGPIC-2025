@@ -1,15 +1,10 @@
 ///|
-fn main {
+pub fn start_menu() -> Unit {
   logo()
 }
 
 ///|
-pub fn foo() -> Unit {
-  println("Hello, World!")
-}
-
-///|
-pub fn logo() -> Unit {
+fn logo() -> Unit {
   let a = @three.GLTFLoader::new()
   let light = @three.DirectionalLight::new("white", 12.5)
   light.set_position(5, 5, 5)
