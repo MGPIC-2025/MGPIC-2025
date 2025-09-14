@@ -1,13 +1,52 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>MGPIC 2025</title>
-  </head>
-  <body>
-    <div id="app"></div>
-    <script type="module" src="/src/glue.js"></script>
-  </body>
+
+<head>
+  <meta charset="UTF-8" />
+  <!-- <link rel="icon" type="image/svg+xml" href="/vite.svg" /> -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MGPIC 2025</title>
+  <style>
+    html,
+    body {
+      height: 100%;
+      width: 100%;
+      margin: 0;
+      padding: 0;
+    }
+
+    #c {
+      width: 100%;
+      height: 100%;
+      display: block;
+      margin: 0 auto;
+      padding: 0;
+    }
+  </style>
+  <script type="importmap">{
+	"imports": {
+		"three": "https://threejs.org/build/three.module.js",
+        "game": "/src/main.js",
+        "three/addons/": "https://threejs.org/examples/jsm/"
+        }
+    }
+    </script>
+  <script type="module">
+    // 导入three并挂载到全局
+    import * as THREE from 'three';
+    import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+    import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
+        window.THREE = THREE;
+        window.GLTFLoader = GLTFLoader;
+        window.DRACOLoader = DRACOLoader;
+
+    // 动态导入main.js并执行
+    const mainModule = await import('game');
+  </script>
+</head>
+
+<body>
+  <canvas id="c"></canvas>
+</body>
+
 </html>

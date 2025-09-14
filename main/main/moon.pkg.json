@@ -1,7 +1,9 @@
 {
+  "is-main": true,
   "link": {
     "js": {
-      "exports": ["foo"]
+      "exports": ["foo","logo"]
     }
-  }
+  },
+  "import": [{ "path": "FrenchPicnic/threejs", "alias": "three" }]
 }
