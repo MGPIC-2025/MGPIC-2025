@@ -4,5 +4,8 @@
       "exports": ["start_menu"]
     }
   },
-  "import": [{ "path": "FrenchPicnic/threejs", "alias": "three" }]
+  "import": [
+    { "path": "FrenchPicnic/threejs", "alias": "three" },
+    { "path": "FrenchPicnic/threejs/math", "alias": "tmath" }
+  ]
 }
