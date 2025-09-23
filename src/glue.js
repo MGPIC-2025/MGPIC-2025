@@ -1,3 +1,1 @@
-import { start_menu } from "./main.js";
-
-start_menu();
+import { core } from "./main.js";

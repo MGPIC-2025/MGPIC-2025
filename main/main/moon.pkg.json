@@ -1,11 +1,7 @@
 {
   "link": {
     "js": {
-      "exports": ["start_menu"]
+      "exports": ["core"]
     }
-  },
-  "import": [
-    { "path": "FrenchPicnic/threejs", "alias": "three" },
-    { "path": "FrenchPicnic/threejs/math", "alias": "tmath" }
-  ]
+  }
 }

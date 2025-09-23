@@ -23,21 +23,14 @@
       padding: 0;
     }
   </style>
-  <script type="module">
-    import * as THREE from 'three';
-    import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
-    import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js';
-    import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
-        window.OrbitControls = OrbitControls;
-        window.THREE = THREE;
-        window.GLTFLoader = GLTFLoader;
-        window.DRACOLoader = DRACOLoader;
-    const mainModule = await import('/src/glue.js');
-  </script>
 </head>
 
 <body>
   <canvas id="c"></canvas>
+  <script type="module">
+    import { startMenu } from "/src/startMenu.js";
+    startMenu();
+  </script>
 </body>
 
 </html>
