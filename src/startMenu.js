@@ -43,20 +43,20 @@ export function startMenu() {
   let animationId = null;
 
   let logoObject = null;
-  
+
   loader.load("/assets/logo.glb", (gltf) => {
     gltf.scene.position.set(0, 0, 0);
     scene.add(gltf.scene);
     const box = new THREE.Box3().setFromObject(gltf.scene);
     const center = box.getCenter(new THREE.Vector3());
     gltf.scene.position.set(-center.x, -center.y, -center.z);
-    
+
     logoObject = gltf.scene;
   });
 
   function animate() {
     animationId = requestAnimationFrame(animate);
-    
+
     if (logoObject) {
       const time = Date.now() * 0.001;
       logoObject.position.y = Math.sin(time * 0.8) * 0.1;
@@ -64,7 +64,7 @@ export function startMenu() {
       const scale = 1 + Math.sin(time * 1.2) * 0.05;
       logoObject.scale.setScalar(scale);
     }
-    
+
     renderer.render(scene, camera);
   }
 
@@ -85,13 +85,13 @@ export function startMenu() {
     handleResize,
     pause() {
       if (animationId) {
-        cancelAnimationFrame(animationId)
-        animationId = null
+        cancelAnimationFrame(animationId);
+        animationId = null;
       }
     },
     resume() {
       if (!animationId) {
-        animationId = requestAnimationFrame(animate)
+        animationId = requestAnimationFrame(animate);
       }
     },
     destroy() {
@@ -118,26 +118,33 @@ export function startMenu() {
       } catch (_) {}
 
       // 清空并释放渲染器
-      try { renderer.clear(true, true, true); } catch (_) {}
-      try { renderer.dispose(); } catch (_) {}
+      try {
+        renderer.clear(true, true, true);
+      } catch (_) {}
+      try {
+        renderer.dispose();
+      } catch (_) {}
 
       // 主动丢失 WebGL 上下文，防止显存泄漏
       try {
         const gl = renderer.getContext && renderer.getContext();
-        const lose = gl && gl.getExtension && gl.getExtension('WEBGL_lose_context');
+        const lose =
+          gl && gl.getExtension && gl.getExtension("WEBGL_lose_context");
         if (lose && lose.loseContext) lose.loseContext();
       } catch (_) {}
 
       // 从 DOM 移除画布（需求：点击时通过 destroy 完成所有清理）
       try {
-        const canvasEl = renderer.domElement || document.getElementById('c');
+        const canvasEl = renderer.domElement || document.getElementById("c");
         if (canvasEl && canvasEl.parentNode) {
           canvasEl.parentNode.removeChild(canvasEl);
         }
       } catch (_) {}
 
       // 最后清空场景并置空实例
-      try { scene.clear(); } catch (_) {}
+      try {
+        scene.clear();
+      } catch (_) {}
       sceneInstance = null;
     },
   };
