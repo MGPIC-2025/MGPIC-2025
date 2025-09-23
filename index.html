@@ -27,7 +27,13 @@
 
 <body>
   <canvas id="c"></canvas>
-  <script type="module" src="/src/glue.js"></script>
+  <button id="start-btn" aria-label="开始" style="position: fixed; left: 50%; top: 70%; transform: translate(-50%, -50%); z-index: 10000; padding: 12px 20px; border-radius: 10px; border: 1px solid #e5e7eb; background: #111827; color: #fff; font-size: 16px; cursor: pointer; box-shadow: 0 10px 24px rgba(0,0,0,0.18);">开始</button>
+  <script type="module">
+    import { startMenu } from "/src/startMenu.js";
+    import { setupUI } from "/src/ui.js";
+    const scene = startMenu();
+    setupUI(scene);
+  </script>
 </body>
 
 </html>
