@@ -83,14 +83,61 @@ export function startMenu() {
     renderer,
     animationId,
     handleResize,
+    pause() {
+      if (animationId) {
+        cancelAnimationFrame(animationId)
+        animationId = null
+      }
+    },
+    resume() {
+      if (!animationId) {
+        animationId = requestAnimationFrame(animate)
+      }
+    },
     destroy() {
+      // 停止渲染循环与事件
       if (animationId) {
         cancelAnimationFrame(animationId);
         animationId = null;
       }
       window.removeEventListener("resize", handleResize);
-      renderer.dispose();
-      scene.clear();
+
+      // 释放场景资源（几何体/材质/灯光等）
+      try {
+        scene.traverse((obj) => {
+          if (obj.isMesh) {
+            if (obj.geometry && obj.geometry.dispose) obj.geometry.dispose();
+            const mat = obj.material;
+            if (Array.isArray(mat)) {
+              mat.forEach((m) => m && m.dispose && m.dispose());
+            } else if (mat && mat.dispose) {
+              mat.dispose();
+            }
+          }
+        });
+      } catch (_) {}
+
+      // 清空并释放渲染器
+      try { renderer.clear(true, true, true); } catch (_) {}
+      try { renderer.dispose(); } catch (_) {}
+
+      // 主动丢失 WebGL 上下文，防止显存泄漏
+      try {
+        const gl = renderer.getContext && renderer.getContext();
+        const lose = gl && gl.getExtension && gl.getExtension('WEBGL_lose_context');
+        if (lose && lose.loseContext) lose.loseContext();
+      } catch (_) {}
+
+      // 从 DOM 移除画布（需求：点击时通过 destroy 完成所有清理）
+      try {
+        const canvasEl = renderer.domElement || document.getElementById('c');
+        if (canvasEl && canvasEl.parentNode) {
+          canvasEl.parentNode.removeChild(canvasEl);
+        }
+      } catch (_) {}
+
+      // 最后清空场景并置空实例
+      try { scene.clear(); } catch (_) {}
       sceneInstance = null;
     },
   };
@@ -99,6 +146,13 @@ export function startMenu() {
 }
 
 export function destroyStartMenu() {
+  if (sceneInstance) {
+    sceneInstance.destroy();
+  }
+}
+
+// 结束开场：对外暴露的便捷 API（等价于销毁）
+export function finishStartMenu() {
   if (sceneInstance) {
     sceneInstance.destroy();
   }
