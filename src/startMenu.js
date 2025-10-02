@@ -43,6 +43,7 @@ export function startMenu() {
   let animationId = null;
 
   let logoObject = null;
+  let baseScale = 1.2;
 
   loader.load("/assets/logo.glb", (gltf) => {
     gltf.scene.position.set(0, 0, 0);
@@ -50,6 +51,8 @@ export function startMenu() {
     const box = new THREE.Box3().setFromObject(gltf.scene);
     const center = box.getCenter(new THREE.Vector3());
     gltf.scene.position.set(-center.x, -center.y, -center.z);
+    // 增大基础缩放，让 Logo 更醒目
+    try { gltf.scene.scale.setScalar(baseScale); } catch (_) {}
 
     logoObject = gltf.scene;
   });
@@ -61,7 +64,7 @@ export function startMenu() {
       const time = Date.now() * 0.001;
       logoObject.position.y = Math.sin(time * 0.8) * 0.1;
       logoObject.rotation.y = Math.sin(time * 0.6) * 0.1;
-      const scale = 1 + Math.sin(time * 1.2) * 0.05;
+      const scale = baseScale + Math.sin(time * 1.2) * 0.04;
       logoObject.scale.setScalar(scale);
     }
 
@@ -77,12 +80,55 @@ export function startMenu() {
   window.addEventListener("resize", handleResize);
   animate();
 
+  // ---- 覆盖层 UI（标题 + 按钮）----
+  let uiRoot = null;
+  let uiStyle = null;
+  const ensureIntroUI = () => {
+    // 样式注入（仅一次）
+    if (!document.getElementById('startmenu-style')) {
+      uiStyle = document.createElement('style');
+      uiStyle.id = 'startmenu-style';
+      uiStyle.textContent = `
+      .startmenu-ui{position:fixed;left:50%;top:72%;transform:translate(-50%,-50%);z-index:10000;display:flex;flex-direction:column;align-items:center;gap:28px;pointer-events:none}
+      .startmenu-btn{pointer-events:auto;padding:20px 64px;border-radius:20px;border:none;background:#2a1a0f;color:#fff;font-size:32px;font-weight:800;cursor:pointer;box-shadow:0 12px 28px rgba(0,0,0,0.35);width:min(560px,64vw);min-height:72px;transition:transform .12s ease,box-shadow .12s ease}
+      .startmenu-btn:hover{transform:translateY(-1px);box-shadow:0 16px 36px rgba(0,0,0,0.32)}
+      .startmenu-btn:active{transform:translateY(0)}
+      @media (max-width:900px){.startmenu-ui{top:70%}.startmenu-btn{width:86vw;padding:16px 0;font-size:26px;border-radius:16px;min-height:64px}}
+      `;
+      document.head.appendChild(uiStyle);
+    }
+    // 根容器
+    uiRoot = document.getElementById('startmenu-ui');
+    if (!uiRoot) {
+      uiRoot = document.createElement('div');
+      uiRoot.id = 'startmenu-ui';
+      uiRoot.className = 'startmenu-ui';
+      // 仅保留按钮（标题交由 Three 背景模型呈现）
+      const startBtn = document.createElement('button');
+      startBtn.id = 'start-btn';
+      startBtn.className = 'startmenu-btn';
+      startBtn.setAttribute('aria-label','开始');
+      startBtn.textContent = '开始';
+      const settingsBtn = document.createElement('button');
+      settingsBtn.id = 'settings-btn';
+      settingsBtn.className = 'startmenu-btn';
+      settingsBtn.setAttribute('aria-label','设置');
+      settingsBtn.textContent = '设置';
+      uiRoot.appendChild(startBtn);
+      uiRoot.appendChild(settingsBtn);
+      document.body.appendChild(uiRoot);
+    }
+  };
+  ensureIntroUI();
+
   sceneInstance = {
     scene,
     camera,
     renderer,
     animationId,
     handleResize,
+    uiRoot,
+    uiStyle,
     pause() {
       if (animationId) {
         cancelAnimationFrame(animationId);
@@ -139,6 +185,16 @@ export function startMenu() {
         if (canvasEl && canvasEl.parentNode) {
           canvasEl.parentNode.removeChild(canvasEl);
         }
+      } catch (_) {}
+
+      // 移除覆盖层 UI 与样式
+      try {
+        const root = document.getElementById('startmenu-ui');
+        if (root && root.parentNode) root.parentNode.removeChild(root);
+      } catch (_) {}
+      try {
+        const style = document.getElementById('startmenu-style');
+        if (style && style.parentNode) style.parentNode.removeChild(style);
       } catch (_) {}
 
       // 最后清空场景并置空实例

@@ -12,27 +12,31 @@ function openEncyclopedia() { emit('openEncyclopedia') }
 <template>
   <div class="menu">
     <button class="tile tile--start" @click="startGame">
-      <div class="tile__caption">
+      <div class="tile__mask"></div>
+      <div class="tile__caption tile__caption--bottom">
         <div class="tile__title">开始游戏</div>
-        <div class="tile__subtitle"></div>
+        <div class="tile__subtitle">Start Game</div>
       </div>
     </button>
-    <button class="tile tile--lobby" @click="openWarehouse">
-      <div class="tile__caption">
+    <button class="tile tile--warehouse" @click="openWarehouse">
+      <div class="tile__mask"></div>
+      <div class="tile__caption tile__caption--top">
         <div class="tile__title">铜偶仓库</div>
         <div class="tile__subtitle">Copper Warehouse</div>
       </div>
     </button>
-    <button class="tile tile--workshop" @click="openTutorial">
-      <div class="tile__caption">
-        <div class="tile__title">新手教程</div>
-        <div class="tile__subtitle">Tutorial</div>
+    <button class="tile tile--wiki" @click="openEncyclopedia">
+      <div class="tile__mask"></div>
+      <div class="tile__caption tile__caption--bottom">
+        <div class="tile__title">游戏百科</div>
+        <div class="tile__subtitle">Game Wiki</div>
       </div>
     </button>
-    <button class="tile tile--home" @click="openEncyclopedia">
-      <div class="tile__caption">
-        <div class="tile__title">游戏百科</div>
-        <div class="tile__subtitle">Game Encyclopedia</div>
+    <button class="tile tile--tutorial" @click="openTutorial">
+      <div class="tile__mask"></div>
+      <div class="tile__caption tile__caption--top">
+        <div class="tile__title">新手教程</div>
+        <div class="tile__subtitle">Tutorial</div>
       </div>
     </button>
   </div>
@@ -44,40 +48,49 @@ function openEncyclopedia() { emit('openEncyclopedia') }
   left: 50%;
   top: 52%;
   transform: translate(-50%, -50%);
-  width: min(1400px, 96vw);
-  height: min(620px, 80vh);
+  width: min(1500px, 96vw);
+  height: min(560px, 80vh);
   display: grid;
-  grid-template-columns: repeat(4, 1fr); 
-  grid-template-rows: 1fr; 
-  gap: 18px;
+  grid-template-columns: repeat(4, 1fr);
+  grid-template-rows: 1fr;
+  gap: 36px;
   pointer-events: auto;
 }
 .tile {
   position: relative;
-  border-radius: 12px;
+  border-radius: 16px;
   overflow: hidden;
-  border: 1px solid rgba(0,0,0,0.08);
-  background: linear-gradient(135deg, #ffe08a, #facc15);
-  box-shadow: 0 10px 24px rgba(0,0,0,0.18);
+  border: 1px solid rgba(0,0,0,0.12);
+  background-size: cover;
+  background-position: center;
+  box-shadow: 0 14px 32px rgba(0,0,0,0.22);
   cursor: pointer;
   height: 100%;
 }
-.tile--start { background: linear-gradient(135deg, #fbbf24, #f59e0b); }
-.tile--lobby { background: linear-gradient(135deg, #60a5fa, #2563eb); }
-.tile--workshop { background: linear-gradient(135deg, #94a3b8, #64748b); }
-.tile--home { background: linear-gradient(135deg, #fda4af, #f43f5e); }
-.tile__title {
-  position: absolute;
-  left: 18px;
-  bottom: 14px;
-  color: #fff;
-  font-weight: 700;
-  font-size: 28px;
-  text-shadow: 0 2px 8px rgba(0,0,0,0.35);
+.tile__mask {
+  position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(180deg, rgba(0,0,0,0.20) 0%, rgba(0,0,0,0.05) 30%, rgba(0,0,0,0.35) 100%);
 }
-.tile__caption { position: absolute; left: 18px; right: 18px; bottom: 14px; color: #fff; text-shadow: 0 2px 8px rgba(0,0,0,0.35); }
-.tile__subtitle { margin-top: 6px; font-size: 14px; font-weight: 500; opacity: 0.95; }
+.tile--start { background-image: url('/assets/img/hall/start_game.png'); }
+.tile--warehouse { background-image: url('/assets/img/hall/warehouse.png'); }
+.tile--wiki { background-image: url('/assets/img/hall/wiki.png'); }
+.tile--tutorial { background-image: url('/assets/img/hall/tutorial.png'); }
+
+.tile__caption {
+  position: absolute; left: 18px; right: 18px; color: #fff;
+  text-shadow: 0 2px 10px rgba(0,0,0,0.45);
+}
+.tile__caption--bottom { bottom: 16px; }
+.tile__caption--top { top: 16px; }
+
+.tile__title { font-weight: 800; font-size: 28px; }
+.tile__subtitle { margin-top: 6px; font-size: 14px; font-weight: 600; opacity: 0.95; }
 .tile:active { transform: translateY(1px); }
+
+@media (max-width: 1200px) {
+  .menu { width: 94vw; gap: 18px; }
+  .tile__title { font-size: 24px; }
+}
 </style>
 
 
