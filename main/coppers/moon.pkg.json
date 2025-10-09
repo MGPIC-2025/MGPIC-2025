@@ -1,0 +1,8 @@
+{
+  "import": [
+    "Lampese/MGPIC_2025/attribute",
+    "Lampese/MGPIC_2025/equipment",
+    "Lampese/MGPIC_2025/global_msg",
+    "Lampese/MGPIC_2025/resource"
+  ]
+}
