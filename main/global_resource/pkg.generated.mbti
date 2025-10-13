@@ -1,0 +1,21 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "Lampese/MGPIC_2025/global_resource"
+
+import(
+  "Lampese/MGPIC_2025/resource"
+)
+
+// Values
+
+// Errors
+
+// Types and methods
+type GlobalResource
+fn GlobalResource::consume_resource(Self, @resource.ResourceType, Int) -> Unit
+fn GlobalResource::get_resource(Self, @resource.ResourceType) -> Int
+fn GlobalResource::new() -> Self
+
+// Type aliases
+
+// Traits
+

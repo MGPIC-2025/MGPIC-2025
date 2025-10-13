@@ -1,0 +1,17 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "Lampese/MGPIC_2025/attribute"
+
+// Values
+
+// Errors
+
+// Types and methods
+type Attribute
+fn Attribute::merge(Self, Self) -> Self
+fn Attribute::new(health~ : Float, attack~ : Float, defense~ : Float, dodge~ : Float) -> Self
+impl ToJson for Attribute
+
+// Type aliases
+
+// Traits
+

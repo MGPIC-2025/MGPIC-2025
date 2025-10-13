@@ -3,7 +3,7 @@ struct EquipmentSlot {
   slot1 : @equipment.Equipment?
   slot2 : @equipment.Equipment?
   is_slot2_locked : Bool
-}
+} derive(ToJson)
 
 ///|
 pub fn EquipmentSlot::new() -> EquipmentSlot {

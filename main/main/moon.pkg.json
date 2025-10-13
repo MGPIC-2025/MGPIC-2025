@@ -1,7 +1,16 @@
 {
+  "import": ["Lampese/MGPIC_2025/global", "Lampese/MGPIC_2025/global_msg"],
   "link": {
     "js": {
-      "exports": ["core"]
+      "format": "esm",
+      "exports": [
+        "get_global",
+        "global_get_resource",
+        "global_get_copper_list",
+        "global_gacha",
+        "get_global_info",
+        "global_info_subscribe"
+      ]
     }
   }
 }

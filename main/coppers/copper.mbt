@@ -8,7 +8,7 @@ pub(all) struct Copper {
   copper_type : CopperType
   equipment_slot : EquipmentSlot
   copper_info : CopperInfo
-}
+} derive(ToJson)
 
 ///|
 pub struct CopperInfo {
@@ -18,4 +18,4 @@ pub struct CopperInfo {
   icon_url : String
   model_url : String
   skill : Skill?
-}
+} derive(ToJson)

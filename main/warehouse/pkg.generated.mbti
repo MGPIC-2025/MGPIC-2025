@@ -1,0 +1,26 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "Lampese/MGPIC_2025/warehouse"
+
+import(
+  "Lampese/MGPIC_2025/coppers"
+  "Lampese/MGPIC_2025/global_resource"
+  "moonbitlang/core/immut/hashmap"
+)
+
+// Values
+fn gacha(@global_resource.GlobalResource) -> @coppers.Copper?
+
+// Errors
+
+// Types and methods
+pub struct Warehouse {
+  coppers : @hashmap.HashMap[Int, @coppers.Copper]
+}
+fn Warehouse::add_copper(Self, @coppers.Copper) -> Self
+fn Warehouse::get_copper_list(Self) -> Array[@coppers.Copper]
+fn Warehouse::new() -> Self
+
+// Type aliases
+
+// Traits
+

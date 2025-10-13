@@ -31,7 +31,6 @@ pub fn GlobalInfo::subscribe(
 }
 
 ///|
-///
 pub fn GlobalInfo::broadcast(
   global_info : GlobalInfo,
   information : InformationBase,

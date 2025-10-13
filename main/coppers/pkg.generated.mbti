@@ -1,0 +1,66 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "Lampese/MGPIC_2025/coppers"
+
+import(
+  "Lampese/MGPIC_2025/attribute"
+  "Lampese/MGPIC_2025/equipment"
+  "Lampese/MGPIC_2025/resource"
+)
+
+// Values
+let copper_info_list : FixedArray[CopperInfo]
+
+fn get_default_attribute(CopperType) -> @attribute.Attribute
+
+fn get_upgrade_cost(Int) -> @resource.ResourceCost
+
+fn get_upgrade_effect(Copper) -> @attribute.Attribute
+
+// Errors
+
+// Types and methods
+pub(all) struct Copper {
+  id : Int
+  level : Int
+  suffix : Int
+  live_left : Int
+  attribute : @attribute.Attribute
+  copper_type : CopperType
+  equipment_slot : EquipmentSlot
+  copper_info : CopperInfo
+}
+fn Copper::upgrade(Self) -> Self
+impl ToJson for Copper
+
+pub struct CopperInfo {
+  name : String
+  copper_type : CopperType
+  description : String
+  icon_url : String
+  model_url : String
+  skill : Skill?
+}
+impl ToJson for CopperInfo
+
+pub enum CopperType {
+  IronWall
+  Arcanist
+  CraftsMan
+  Mechanic
+  Resonator
+}
+impl ToJson for CopperType
+
+type EquipmentSlot
+fn EquipmentSlot::equip(Self, @equipment.Equipment) -> (Self, Bool)
+fn EquipmentSlot::new() -> Self
+fn EquipmentSlot::unlock_slot2(Self) -> Self
+impl ToJson for EquipmentSlot
+
+type Skill
+impl ToJson for Skill
+
+// Type aliases
+
+// Traits
+

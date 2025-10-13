@@ -4,7 +4,7 @@ struct Attribute {
   attack : Float
   defense : Float
   dodge : Float
-}
+} derive(ToJson)
 
 ///|
 pub fn Attribute::new(

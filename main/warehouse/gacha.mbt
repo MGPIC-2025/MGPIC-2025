@@ -29,10 +29,11 @@ fn summon_copper() -> @coppers.Copper {
 }
 
 ///|
-pub fn gacha() -> @coppers.Copper? {
-  if @global.global.get_resource(@resource.SpiritalSpark) > 10 {
-    @global.global.consume_resource(@resource.SpiritalSpark, 10)
-    Some(summon_copper())
+pub fn gacha(global : @global_resource.GlobalResource) -> @coppers.Copper? {
+  if global.get_resource(@resource.SpiritalSpark) > 10 {
+    global.consume_resource(@resource.SpiritalSpark, 10)
+    let copper = summon_copper()
+    Some(copper)
   } else {
     @global_msg.msg_info.broadcast({
       type_msg: "resource_not_enough",
