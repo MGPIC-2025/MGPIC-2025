@@ -13,7 +13,14 @@ function getResourceBaseUrl() {
     if (customDomain) {
       return customDomain;
     } else if (publicUrl) {
-      return publicUrl;
+      // 确保 URL 格式正确，移除可能的凭据信息
+      let url = publicUrl;
+      if (url.includes('@')) {
+        // 如果 URL 包含 @ 符号，说明格式错误，暂时使用本地路径
+        console.warn('R2 URL 格式错误，使用本地路径');
+        return '/assets';
+      }
+      return url;
     } else {
       // 默认使用 GitHub Pages 路径
       return '/MGPIC-2025/assets';
