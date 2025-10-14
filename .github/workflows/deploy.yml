@@ -41,7 +41,7 @@ jobs:
           echo "$HOME/.moon/bin" >> $GITHUB_PATH
           
           # 验证安装
-          $HOME/.moon/bin/moon --version
+          $HOME/.moon/bin/moon help
 
       - name: Install dependencies
         run: npm ci
