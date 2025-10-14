@@ -45,7 +45,9 @@ export function startMenu() {
   let logoObject = null;
   let baseScale = 1.2;
 
-  loader.load("/assets/logo.glb", (gltf) => {
+  // 使用资源加载器获取正确的 URL
+  const logoUrl = window.getAssetUrl ? window.getAssetUrl("logo.glb") : "/assets/logo.glb";
+  loader.load(logoUrl, (gltf) => {
     gltf.scene.position.set(0, 0, 0);
     scene.add(gltf.scene);
     const box = new THREE.Box3().setFromObject(gltf.scene);

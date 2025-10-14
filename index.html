@@ -30,6 +30,11 @@
     <script type="module">
       import { startMenu } from "/src/startMenu.js";
       import { setupUI } from "/src/ui.js";
+      import { getAssetUrl } from "/src/utils/resourceLoader.js";
+      
+      // 将资源加载器暴露到全局，供其他模块使用
+      window.getAssetUrl = getAssetUrl;
+      
       const scene = startMenu();
       setupUI(scene);
     </script>

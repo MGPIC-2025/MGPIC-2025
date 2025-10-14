@@ -5,9 +5,23 @@ import { resolve } from 'path'
 import { watch } from 'chokidar'
 
 export default defineConfig({
+  base: process.env.NODE_ENV === 'production' ? '/MGPIC-2025/' : '/',
   server: {
     port: 3000,
     open: true
+  },
+  build: {
+    outDir: 'dist',
+    assetsDir: 'assets',
+    sourcemap: false,
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          'three': ['three'],
+          'vue': ['vue']
+        }
+      }
+    }
   },
   plugins: [
     vue(),
