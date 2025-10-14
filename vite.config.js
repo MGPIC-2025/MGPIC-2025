@@ -52,20 +52,23 @@ export default defineConfig(({ mode }) => ({
         
         buildMoon()
         
-        const watcher = watch('main/main/**/*', {
-          ignored: /node_modules/,
-          persistent: true
-        })
-        
-        watcher.on('change', (path) => {
-          console.log(`MoonBit 文件变化: ${path}`)
-          buildMoon()
-        })
-        
-        watcher.on('add', (path) => {
-          console.log(`新增 MoonBit 文件: ${path}`)
-          buildMoon()
-        })
+        // 只在开发模式下启用文件监听
+        if (process.env.NODE_ENV !== 'production') {
+          const watcher = watch('main/main/**/*', {
+            ignored: /node_modules/,
+            persistent: true
+          })
+          
+          watcher.on('change', (path) => {
+            console.log(`MoonBit 文件变化: ${path}`)
+            buildMoon()
+          })
+          
+          watcher.on('add', (path) => {
+            console.log(`新增 MoonBit 文件: ${path}`)
+            buildMoon()
+          })
+        }
       }
     }
   ]
