@@ -32,11 +32,22 @@ jobs:
           cache: 'npm'
           cache-dependency-path: 'package.json'
 
+      - name: Install MoonBit
+        run: |
+          # 使用官方安装脚本
+          curl -fsSL https://cli.moonbitlang.com/install/unix.sh | bash
+          
+          # 添加到 PATH
+          echo "$HOME/.moon/bin" >> $GITHUB_PATH
+          
+          # 验证安装
+          $HOME/.moon/bin/moon --version
+
       - name: Install dependencies
         run: npm ci
 
       - name: Build project
-        run: npm run build:web
+        run: npm run build
         env:
           NODE_ENV: production
           VITE_R2_PUBLIC_URL: https://${{ secrets.CLOUDFLARE_R2_BUCKET_NAME }}.${{ secrets.CLOUDFLARE_ACCOUNT_ID }}.r2.cloudflarestorage.com
