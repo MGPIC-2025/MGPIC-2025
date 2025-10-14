@@ -8,6 +8,10 @@
 import { readdirSync, statSync } from 'fs';
 import { join, relative } from 'path';
 import { shouldUploadFile, isAllowedFileType, getUploadConfig } from './upload-config.js';
+import dotenv from 'dotenv';
+
+// 加载环境变量
+dotenv.config({ path: '.env.local' });
 
 /**
  * 递归扫描目录

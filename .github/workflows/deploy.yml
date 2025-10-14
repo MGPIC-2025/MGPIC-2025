@@ -43,6 +43,7 @@ jobs:
         run: npm run build
         env:
           NODE_ENV: production
+          VITE_R2_PUBLIC_URL: https://${{ secrets.CLOUDFLARE_R2_BUCKET_NAME }}.${{ secrets.CLOUDFLARE_ACCOUNT_ID }}.r2.cloudflarestorage.com
 
       - name: Setup Pages
         uses: actions/configure-pages@v4

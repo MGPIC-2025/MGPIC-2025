@@ -10,6 +10,10 @@ import { readFileSync, readdirSync, statSync } from 'fs';
 import { join, relative } from 'path';
 import { createHash } from 'crypto';
 import { shouldUploadFile, isAllowedFileType, getUploadConfig } from './upload-config.js';
+import dotenv from 'dotenv';
+
+// 加载环境变量
+dotenv.config({ path: '.env.local' });
 
 const R2_ACCOUNT_ID = process.env.CLOUDFLARE_ACCOUNT_ID;
 const R2_ACCESS_KEY_ID = process.env.CLOUDFLARE_R2_ACCESS_KEY_ID;

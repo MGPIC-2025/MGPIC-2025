@@ -4,8 +4,8 @@ import { execSync } from 'child_process'
 import { resolve } from 'path'
 import { watch } from 'chokidar'
 
-export default defineConfig({
-  base: process.env.NODE_ENV === 'production' ? '/MGPIC-2025/' : '/',
+export default defineConfig(({ mode }) => ({
+  base: mode === 'production' ? '/MGPIC-2025/' : '/',
   server: {
     port: 3000,
     open: true
@@ -22,6 +22,10 @@ export default defineConfig({
         }
       }
     }
+  },
+  define: {
+    // 在构建时注入环境变量
+    'import.meta.env.VITE_R2_PUBLIC_URL': JSON.stringify(process.env.VITE_R2_PUBLIC_URL || 'https://your-bucket-name.your-account-id.r2.cloudflarestorage.com'),
   },
   plugins: [
     vue(),
@@ -64,4 +68,4 @@ export default defineConfig({
       }
     }
   ]
-})
+}))
