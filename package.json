@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "npm run moon:build && npm run moon:copy && vite build",
+    "build:web": "vite build",
     "preview": "vite preview",
     "moon:build": "cd main && moon build --target js",
     "moon:copy": "cp main/target/js/release/build/main/main.js src/main.js",
