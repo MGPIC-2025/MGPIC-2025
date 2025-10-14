@@ -1,8 +1,8 @@
 // 开始界面的 ThreeJS 渲染场景 只有一个 Logo
 
-import * as THREE from "three";
-import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
-import { DRACOLoader } from "three/examples/jsm/loaders/DRACOLoader.js";
+import * as THREE from "https://unpkg.com/three@0.180.0/build/three.module.js";
+import { GLTFLoader } from "https://unpkg.com/three@0.180.0/examples/jsm/loaders/GLTFLoader.js";
+import { DRACOLoader } from "https://unpkg.com/three@0.180.0/examples/jsm/loaders/DRACOLoader.js";
 
 let sceneInstance = null;
 
@@ -47,7 +47,9 @@ export function startMenu() {
 
   // 使用资源加载器获取正确的 URL
   const logoUrl = window.getAssetUrl ? window.getAssetUrl("logo.glb") : "/assets/logo.glb";
+  console.log("🔍 开始加载 Logo 模型:", logoUrl);
   loader.load(logoUrl, (gltf) => {
+    console.log("✅ Logo 模型加载成功:", gltf);
     gltf.scene.position.set(0, 0, 0);
     scene.add(gltf.scene);
     const box = new THREE.Box3().setFromObject(gltf.scene);

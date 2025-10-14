@@ -1,5 +1,5 @@
 <script setup>
-import { defineEmits } from 'vue'
+import { defineEmits } from 'https://unpkg.com/vue@3.5.21/dist/vue.esm-browser.js'
 
 const emit = defineEmits(['startGame', 'openWarehouse', 'openTutorial', 'openEncyclopedia'])
 
