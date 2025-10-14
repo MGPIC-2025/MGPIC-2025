@@ -51,7 +51,13 @@ jobs:
           npm install
 
       - name: Build project
-        run: npm run build
+        run: |
+          echo "开始构建项目..."
+          timeout 300 npm run build || (echo "构建超时，尝试重新构建..." && npm run build)
+          echo "构建完成，检查 dist 目录..."
+          ls -la dist/
+          echo "dist 目录大小:"
+          du -sh dist/
         env:
           NODE_ENV: production
           VITE_R2_PUBLIC_URL: https://${{ secrets.CLOUDFLARE_R2_BUCKET_NAME }}.${{ secrets.CLOUDFLARE_ACCOUNT_ID }}.r2.cloudflarestorage.com
