@@ -18,8 +18,7 @@ export default defineConfig(({ mode }) => ({
     rollupOptions: {
       output: {
         manualChunks: {
-          'three': ['three'],
-          'vue': ['vue']
+          'three': ['three']
         }
       }
     }

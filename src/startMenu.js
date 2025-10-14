@@ -1,8 +1,8 @@
 // 开始界面的 ThreeJS 渲染场景 只有一个 Logo
 
-import * as THREE from "https://unpkg.com/three@0.180.0/build/three.module.js";
-import { GLTFLoader } from "https://unpkg.com/three@0.180.0/examples/jsm/loaders/GLTFLoader.js";
-import { DRACOLoader } from "https://unpkg.com/three@0.180.0/examples/jsm/loaders/DRACOLoader.js";
+import * as THREE from "three";
+import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
+import { DRACOLoader } from "three/examples/jsm/loaders/DRACOLoader.js";
 
 let sceneInstance = null;
 
