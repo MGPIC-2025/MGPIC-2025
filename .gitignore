@@ -2,7 +2,6 @@ dist
 .DS_Store
 src/main.js
 node_modules
-package-lock.json
 
 # Environment variables
 .env
