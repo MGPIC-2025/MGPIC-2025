@@ -46,7 +46,7 @@ export function startMenu() {
   let baseScale = 1.2;
 
   // 使用资源加载器获取正确的 URL
-  const logoUrl = window.getAssetUrl ? window.getAssetUrl("logo.glb") : "/assets/logo.glb";
+  const logoUrl = window.getAssetUrl ? window.getAssetUrl("logo.glb") : "./assets/logo.glb";
   console.log("开始加载 Logo 模型:", logoUrl);
   loader.load(logoUrl, (gltf) => {
     console.log("Logo 模型加载成功:", gltf);

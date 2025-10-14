@@ -22,13 +22,13 @@ function getResourceBaseUrl() {
       }
       return url;
     } else {
-      // 默认使用 GitHub Pages 路径
-      return '/MGPIC-2025/assets';
+      // 默认使用相对路径
+      return './assets';
     }
   }
   
   // 开发环境使用本地路径
-  return '/assets';
+  return './assets';
 }
 
 /**

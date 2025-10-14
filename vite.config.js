@@ -5,7 +5,7 @@ import { resolve } from 'path'
 import { watch } from 'chokidar'
 
 export default defineConfig(({ mode }) => ({
-  base: mode === 'production' ? '/MGPIC-2025/' : '/',
+  base: './',
   server: {
     port: 3000,
     open: true
