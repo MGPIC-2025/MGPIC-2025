@@ -44,7 +44,11 @@ jobs:
           $HOME/.moon/bin/moon help
 
       - name: Install dependencies
-        run: npm install
+        run: |
+          # 删除可能存在的 lock 文件和 node_modules
+          rm -rf package-lock.json node_modules
+          # 重新安装依赖
+          npm install
 
       - name: Build project
         run: npm run build
