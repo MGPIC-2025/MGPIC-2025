@@ -301,3 +301,8 @@ pub let copper_info_list : FixedArray[CopperInfo] = [
     skill: None,
   },
 ]
+
+///|
+pub let copper_info_map : Map[String, CopperInfo] = Map::from_iter(
+  copper_info_list.iter().map(copper_info => (copper_info.name, copper_info)),
+)
