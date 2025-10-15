@@ -1,5 +1,5 @@
 <script setup>
-import { ref } from 'https://unpkg.com/vue@3.5.21/dist/vue.esm-browser.js'
+import { ref } from 'vue'
 import { getAssetUrl } from '../utils/resourceLoader.js'
 
 // 铜偶仓库：资源与铜偶数据（响应式）

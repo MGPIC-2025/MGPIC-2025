@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted, onBeforeUnmount } from "https://unpkg.com/vue@3.5.21/dist/vue.esm-browser.js";
+import { ref, onMounted, onBeforeUnmount } from "vue";
 import GameControlPanel from "./vue/GameControlPanel.vue";
 import WarehousePanel from "./vue/WarehousePanel.vue";
 

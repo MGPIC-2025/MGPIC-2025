@@ -1,5 +1,5 @@
 <script setup>
-import { defineEmits, ref, onMounted } from 'https://unpkg.com/vue@3.5.21/dist/vue.esm-browser.js'
+import { defineEmits, ref, onMounted } from 'vue'
 import { getAssetUrl } from '../utils/resourceLoader.js'
 
 const emit = defineEmits(['startGame', 'openWarehouse', 'openTutorial', 'openEncyclopedia'])
