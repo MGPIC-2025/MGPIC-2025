@@ -1,12 +1,13 @@
 <script setup>
 import { ref } from 'https://unpkg.com/vue@3.5.21/dist/vue.esm-browser.js'
+import { getAssetUrl } from '../utils/resourceLoader.js'
 
 // 铜偶仓库：资源与铜偶数据（响应式）
 const resources = ref([
-  { icon: '/assets/img/warehouse/goods/2ec8cf838cb33e421005058d17ff555b82cebf83.webp', name: '蓝晶', value: 88 },
-  { icon: '/assets/img/warehouse/goods/04681f25cc1debaf94214a7e09f44efbc7eb2963.webp', name: '木箱', value: 88 },
-  { icon: '/assets/img/warehouse/goods/1331f319af1e23fc301b7253ca5dca71e9c19e0f.webp', name: '紫球', value: 88 },
-  { icon: '/assets/img/warehouse/goods/ea74bce606c59ac4ab84ab117375c0de813cea49.webp', name: '蓝片', value: 88 }
+  { icon: getAssetUrl('img/warehouse/goods/2ec8cf838cb33e421005058d17ff555b82cebf83.webp'), name: '蓝晶', value: 88 },
+  { icon: getAssetUrl('img/warehouse/goods/04681f25cc1debaf94214a7e09f44efbc7eb2963.webp'), name: '木箱', value: 88 },
+  { icon: getAssetUrl('img/warehouse/goods/1331f319af1e23fc301b7253ca5dca71e9c19e0f.webp'), name: '紫球', value: 88 },
+  { icon: getAssetUrl('img/warehouse/goods/ea74bce606c59ac4ab84ab117375c0de813cea49.webp'), name: '蓝片', value: 88 }
 ])
 
 // 铜偶列表（响应式）
@@ -15,7 +16,7 @@ const puppets = ref([
     id: 1, 
     name: '阿磐01', 
     level: 1, 
-    image: '/assets/img/warehouse/character/a93e15a01fcbf3cfb088956aedc63e86b94d4019.webp', 
+    image: getAssetUrl('img/warehouse/character/a93e15a01fcbf3cfb088956aedc63e86b94d4019.webp'), 
     quantity: 1,
     description: '阿磐01是皇宫的守卫，在"大沉睡"事件中，他坚守岗位，保护着皇宫的安全。现在，他将继续履行自己的职责，守护着这片土地。',
     stats: {
@@ -26,14 +27,14 @@ const puppets = ref([
       class: '铁壁'
     },
     equipment: [
-      { name: '钢盾', icon: '/assets/img/warehouse/equip/3579e09f8cf4063c7d94f9f1d1a6db6fe746923f.webp', equipped: true },
+      { name: '钢盾', icon: getAssetUrl('img/warehouse/equip/3579e09f8cf4063c7d94f9f1d1a6db6fe746923f.webp'), equipped: true },
       { name: '空槽', icon: '🔒', equipped: false }
     ],
     skill: {
       name: '钢盾',
       cooldown: '10回合',
       effect: '保护相邻8格的单位2回合不受伤害(自己增加属性50%的防御力但仍会受到伤害)',
-      icon: '/assets/img/warehouse/skill/9ae9fd092931138c37c47a30f463011e7f4301d8.webp'
+      icon: getAssetUrl('img/warehouse/skill/9ae9fd092931138c37c47a30f463011e7f4301d8.webp')
     },
     upgradeCost: 10
   },
@@ -41,7 +42,7 @@ const puppets = ref([
     id: 2, 
     name: '卫斯理01', 
     level: 1, 
-    image: '/assets/img/warehouse/character/b2207275b74545d9fae68b985b2998de3672e0af.webp', 
+    image: getAssetUrl('img/warehouse/character/b2207275b74545d9fae68b985b2998de3672e0af.webp'), 
     quantity: 1,
     description: '卫斯理01最初是皇宫厨房的助手，在"大沉睡"事件中，他的高性能合金锅和出现在前线的原因至今仍是个谜。现在，他将继续为团队提供支持。',
     stats: {
@@ -52,14 +53,14 @@ const puppets = ref([
       class: '铁壁'
     },
     equipment: [
-      { name: '合金锅', icon: '/assets/img/warehouse/equip/3579e09f8cf4063c7d94f9f1d1a6db6fe746923f.webp', equipped: true },
+      { name: '合金锅', icon: getAssetUrl('img/warehouse/equip/3579e09f8cf4063c7d94f9f1d1a6db6fe746923f.webp'), equipped: true },
       { name: '空槽', icon: '🔒', equipped: false }
     ],
     skill: {
       name: '锅炉过热',
       cooldown: '10回合',
       effect: '自己受到最大生命值20%的伤害,对周围的敌人都造成无视防御力、无法被闪避的、数值为自己最大生命值15%的伤害。',
-      icon: '/assets/img/warehouse/skill/7b7cb41dbb1b9dae0bc4e7d030386f6d7d2e7da0.webp'
+      icon: getAssetUrl('img/warehouse/skill/7b7cb41dbb1b9dae0bc4e7d030386f6d7d2e7da0.webp')
     },
     upgradeCost: 10
   }
@@ -214,7 +215,7 @@ function drawTen() {
           <!-- 升级按钮 -->
           <div class="puppet-detail__upgrade">
             <div class="upgrade-cost">
-              <img class="cost-icon-img" src="/assets/img/warehouse/goods/ea74bce606c59ac4ab84ab117375c0de813cea49.webp" alt="cost" />
+              <img class="cost-icon-img" :src="getAssetUrl('img/warehouse/goods/ea74bce606c59ac4ab84ab117375c0de813cea49.webp')" alt="cost" />
               <span class="cost-amount">X {{ selectedPuppet.upgradeCost }}</span>
             </div>
             <button class="upgrade-btn">
@@ -232,10 +233,10 @@ function drawTen() {
     <div v-if="showDrawScreen" class="draw-screen">
       <div class="draw-screen__body">
         <div class="draw-card">
-          <img class="draw-card__img" src="/assets/img/warehouse/goods/04681f25cc1debaf94214a7e09f44efbc7eb2963.webp" alt="card" />
+          <img class="draw-card__img" :src="getAssetUrl('img/warehouse/goods/04681f25cc1debaf94214a7e09f44efbc7eb2963.webp')" alt="card" />
         </div>
         <div class="draw-cost">
-          <img class="draw-cost__icon" src="/assets/img/warehouse/goods/ea74bce606c59ac4ab84ab117375c0de813cea49.webp" alt="cost" />
+          <img class="draw-cost__icon" :src="getAssetUrl('img/warehouse/goods/ea74bce606c59ac4ab84ab117375c0de813cea49.webp')" alt="cost" />
           <span class="draw-cost__times">X 10</span>
         </div>
         <button class="draw-action" @click="drawTen">抽取卡牌</button>

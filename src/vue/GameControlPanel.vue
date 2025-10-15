@@ -1,5 +1,6 @@
 <script setup>
-import { defineEmits } from 'https://unpkg.com/vue@3.5.21/dist/vue.esm-browser.js'
+import { defineEmits, onMounted } from 'https://unpkg.com/vue@3.5.21/dist/vue.esm-browser.js'
+import { getAssetUrl } from '../utils/resourceLoader.js'
 
 const emit = defineEmits(['startGame', 'openWarehouse', 'openTutorial', 'openEncyclopedia'])
 
@@ -7,32 +8,38 @@ function startGame() { emit('startGame') }
 function openWarehouse() { emit('openWarehouse') }
 function openTutorial() { emit('openTutorial') }
 function openEncyclopedia() { emit('openEncyclopedia') }
+
+// 设置背景图片URL
+const bgStart = getAssetUrl('img/hall/start_game.png');
+const bgWarehouse = getAssetUrl('img/hall/warehouse.png');
+const bgWiki = getAssetUrl('img/hall/wiki.png');
+const bgTutorial = getAssetUrl('img/hall/tutorial.png');
 </script>
 
 <template>
   <div class="menu">
-    <button class="tile tile--start" @click="startGame">
+    <button class="tile tile--start" :style="{ backgroundImage: `url('${bgStart}')` }" @click="startGame">
       <div class="tile__mask"></div>
       <div class="tile__caption tile__caption--bottom">
         <div class="tile__title">开始游戏</div>
         <div class="tile__subtitle">Start Game</div>
       </div>
     </button>
-    <button class="tile tile--warehouse" @click="openWarehouse">
+    <button class="tile tile--warehouse" :style="{ backgroundImage: `url('${bgWarehouse}')` }" @click="openWarehouse">
       <div class="tile__mask"></div>
       <div class="tile__caption tile__caption--top">
         <div class="tile__title">铜偶仓库</div>
         <div class="tile__subtitle">Copper Warehouse</div>
       </div>
     </button>
-    <button class="tile tile--wiki" @click="openEncyclopedia">
+    <button class="tile tile--wiki" :style="{ backgroundImage: `url('${bgWiki}')` }" @click="openEncyclopedia">
       <div class="tile__mask"></div>
       <div class="tile__caption tile__caption--bottom">
         <div class="tile__title">游戏百科</div>
         <div class="tile__subtitle">Game Wiki</div>
       </div>
     </button>
-    <button class="tile tile--tutorial" @click="openTutorial">
+    <button class="tile tile--tutorial" :style="{ backgroundImage: `url('${bgTutorial}')` }" @click="openTutorial">
       <div class="tile__mask"></div>
       <div class="tile__caption tile__caption--top">
         <div class="tile__title">新手教程</div>
@@ -71,10 +78,7 @@ function openEncyclopedia() { emit('openEncyclopedia') }
   position: absolute; inset: 0; pointer-events: none;
   background: linear-gradient(180deg, rgba(0,0,0,0.20) 0%, rgba(0,0,0,0.05) 30%, rgba(0,0,0,0.35) 100%);
 }
-.tile--start { background-image: url('/assets/img/hall/start_game.png'); }
-.tile--warehouse { background-image: url('/assets/img/hall/warehouse.png'); }
-.tile--wiki { background-image: url('/assets/img/hall/wiki.png'); }
-.tile--tutorial { background-image: url('/assets/img/hall/tutorial.png'); }
+/* 背景图片现在通过内联样式设置 */
 
 .tile__caption {
   position: absolute; left: 18px; right: 18px; color: #fff;
