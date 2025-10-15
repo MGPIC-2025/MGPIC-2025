@@ -48,18 +48,57 @@ export function startMenu() {
   // 使用资源加载器获取正确的 URL
   const logoUrl = window.getAssetUrl ? window.getAssetUrl("logo.glb") : "./assets/logo.glb";
   console.log("开始加载 Logo 模型:", logoUrl);
-  loader.load(logoUrl, (gltf) => {
-    console.log("Logo 模型加载成功:", gltf);
-    gltf.scene.position.set(0, 0, 0);
-    scene.add(gltf.scene);
-    const box = new THREE.Box3().setFromObject(gltf.scene);
-    const center = box.getCenter(new THREE.Vector3());
-    gltf.scene.position.set(-center.x, -center.y, -center.z);
-    // 增大基础缩放，让 Logo 更醒目
-    try { gltf.scene.scale.setScalar(baseScale); } catch (_) {}
+  
+  // 带重试机制的模型加载
+  const loadLogoWithRetry = async () => {
+    try {
+      // 检查资源是否可用
+      const response = await fetch(logoUrl, { 
+        method: 'HEAD',
+        mode: 'cors',
+        credentials: 'omit'
+      });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+      
+      console.log("Logo 模型资源检查成功，开始加载...");
+      loader.load(logoUrl, (gltf) => {
+        console.log("Logo 模型加载成功:", gltf);
+        gltf.scene.position.set(0, 0, 0);
+        scene.add(gltf.scene);
+        const box = new THREE.Box3().setFromObject(gltf.scene);
+        const center = box.getCenter(new THREE.Vector3());
+        gltf.scene.position.set(-center.x, -center.y, -center.z);
+        // 增大基础缩放，让 Logo 更醒目
+        try { gltf.scene.scale.setScalar(baseScale); } catch (_) {}
 
-    logoObject = gltf.scene;
-  });
+        logoObject = gltf.scene;
+      }, undefined, (error) => {
+        console.error("Logo 模型加载失败:", error);
+        // 可以在这里添加重试逻辑或显示错误信息
+      });
+    } catch (error) {
+      console.warn("Logo 模型资源检查失败，尝试直接加载:", error.message);
+      // 即使检查失败也尝试直接加载
+      loader.load(logoUrl, (gltf) => {
+        console.log("Logo 模型加载成功:", gltf);
+        gltf.scene.position.set(0, 0, 0);
+        scene.add(gltf.scene);
+        const box = new THREE.Box3().setFromObject(gltf.scene);
+        const center = box.getCenter(new THREE.Vector3());
+        gltf.scene.position.set(-center.x, -center.y, -center.z);
+        try { gltf.scene.scale.setScalar(baseScale); } catch (_) {}
+        logoObject = gltf.scene;
+      }, undefined, (error) => {
+        console.error("Logo 模型最终加载失败:", error);
+      });
+    }
+  };
+  
+  // 执行带重试的加载
+  loadLogoWithRetry();
 
   function animate() {
     animationId = requestAnimationFrame(animate);
