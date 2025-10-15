@@ -10,23 +10,30 @@ function openTutorial() { emit('openTutorial') }
 function openEncyclopedia() { emit('openEncyclopedia') }
 
 // 设置背景图片URL（使用缓存）
-const bgStart = getAssetUrl('img/hall/start_game.png');
-const bgWarehouse = getAssetUrl('img/hall/warehouse.png');
-const bgWiki = getAssetUrl('img/hall/wiki.png');
-const bgTutorial = getAssetUrl('img/hall/tutorial.png');
+const bgStart = ref('');
+const bgWarehouse = ref('');
+const bgWiki = ref('');
+const bgTutorial = ref('');
 
 // 预加载背景图片到缓存
 onMounted(async () => {
   try {
+    // 设置背景图片URL
+    bgStart.value = getAssetUrl('img/hall/start_game.png');
+    bgWarehouse.value = getAssetUrl('img/hall/warehouse.png');
+    bgWiki.value = getAssetUrl('img/hall/wiki.png');
+    bgTutorial.value = getAssetUrl('img/hall/tutorial.png');
+    
     // 检查缓存状态
     if (window.getCacheStatus) {
       const status = await window.getCacheStatus();
       console.log('缓存状态:', status);
     }
     
-    // 预加载背景图片
-    const imageUrls = [bgStart, bgWarehouse, bgWiki, bgTutorial];
-    for (const url of imageUrls) {
+    // 预加载背景图片（带间隔控制）
+    const imageUrls = [bgStart.value, bgWarehouse.value, bgWiki.value, bgTutorial.value];
+    for (let i = 0; i < imageUrls.length; i++) {
+      const url = imageUrls[i];
       try {
         const img = new Image();
         img.crossOrigin = 'anonymous';
@@ -36,6 +43,11 @@ onMounted(async () => {
           img.onerror = reject;
         });
         console.log('背景图片预加载成功:', url);
+        
+        // 添加间隔，避免请求过于频繁
+        if (i < imageUrls.length - 1) {
+          await new Promise(resolve => setTimeout(resolve, 100)); // 100ms间隔
+        }
       } catch (error) {
         console.warn('背景图片预加载失败:', url, error.message);
       }

@@ -18,7 +18,9 @@ const PRECACHE_CONFIG = {
   enabled: true,
   maxCacheSize: 50 * 1024 * 1024, // 50MB
   cachePrefix: 'mgpic_',
-  version: '1.0.0'
+  version: '1.0.0',
+  loadInterval: 200, // 每个资源加载间隔200ms
+  batchSize: 3 // 每批处理3个资源
 };
 
 // 本地缓存管理
@@ -143,7 +145,9 @@ function getResourceBaseUrl() {
 export function getAssetUrl(path) {
   const baseUrl = getResourceBaseUrl();
   const cleanPath = path.startsWith('/') ? path.slice(1) : path;
-  return `${baseUrl}/${cleanPath}`;
+  const fullUrl = `${baseUrl}/${cleanPath}`;
+  
+  return fullUrl;
 }
 
 /**
@@ -309,7 +313,7 @@ export async function preloadAssets(paths) {
 }
 
 /**
- * 预缓存所有游戏资源
+ * 预缓存所有游戏资源（带间隔控制）
  * @returns {Promise<void>}
  */
 export async function precacheAllResources() {
@@ -352,31 +356,54 @@ export async function precacheAllResources() {
     'img/hall/tutorial.png'
   ];
   
-  const cachePromises = allResources.map(async (path) => {
-    const url = getAssetUrl(path);
-    
-    try {
-      // 检查是否已缓存
-      const isCached = await cacheManager.isCached(url);
-      if (isCached) {
-        console.log(`资源已缓存，跳过: ${path}`);
-        return;
-      }
-      
-      // 加载并缓存资源
-      await loadResourceWithCache(url);
-      console.log(`资源预缓存成功: ${path}`);
-    } catch (error) {
-      console.warn(`资源预缓存失败: ${path}`, error.message);
-    }
-  });
+  // 分批处理资源，避免请求过于频繁
+  const batchSize = PRECACHE_CONFIG.batchSize;
+  const loadInterval = PRECACHE_CONFIG.loadInterval;
   
-  try {
-    await Promise.all(cachePromises);
-    console.log('所有资源预缓存完成');
-  } catch (error) {
-    console.warn('预缓存过程中出现错误:', error.message);
+  for (let i = 0; i < allResources.length; i += batchSize) {
+    const batch = allResources.slice(i, i + batchSize);
+    console.log(`处理批次 ${Math.floor(i / batchSize) + 1}/${Math.ceil(allResources.length / batchSize)}: ${batch.length} 个资源`);
+    
+    // 并行处理当前批次
+    const batchPromises = batch.map(async (path, index) => {
+      const url = getAssetUrl(path);
+      
+      try {
+        // 检查是否已缓存
+        const isCached = await cacheManager.isCached(url);
+        if (isCached) {
+          console.log(`资源已缓存，跳过: ${path}`);
+          return { success: true, path, cached: true };
+        }
+        
+        // 加载并缓存资源
+        await loadResourceWithCache(url);
+        console.log(`资源预缓存成功: ${path}`);
+        return { success: true, path, cached: false };
+      } catch (error) {
+        console.warn(`资源预缓存失败: ${path}`, error.message);
+        return { success: false, path, error: error.message };
+      }
+    });
+    
+    // 等待当前批次完成
+    const results = await Promise.all(batchPromises);
+    
+    // 统计当前批次结果
+    const successCount = results.filter(r => r.success).length;
+    const cachedCount = results.filter(r => r.cached).length;
+    const errorCount = results.filter(r => !r.success).length;
+    
+    console.log(`批次完成: 成功 ${successCount}, 已缓存 ${cachedCount}, 失败 ${errorCount}`);
+    
+    // 如果不是最后一批，等待间隔时间
+    if (i + batchSize < allResources.length) {
+      console.log(`等待 ${loadInterval}ms 后处理下一批...`);
+      await new Promise(resolve => setTimeout(resolve, loadInterval));
+    }
   }
+  
+  console.log('所有资源预缓存完成');
 }
 
 /**
@@ -402,6 +429,32 @@ export async function getCacheStatus() {
   } catch (error) {
     return { supported: true, error: error.message };
   }
+}
+
+/**
+ * 更新预缓存配置
+ * @param {Object} config - 新的配置选项
+ */
+export function updatePrecacheConfig(config) {
+  if (config.loadInterval !== undefined) {
+    PRECACHE_CONFIG.loadInterval = Math.max(100, config.loadInterval); // 最小100ms
+  }
+  if (config.batchSize !== undefined) {
+    PRECACHE_CONFIG.batchSize = Math.max(1, Math.min(10, config.batchSize)); // 1-10之间
+  }
+  if (config.enabled !== undefined) {
+    PRECACHE_CONFIG.enabled = config.enabled;
+  }
+  
+  console.log('预缓存配置已更新:', PRECACHE_CONFIG);
+}
+
+/**
+ * 获取预缓存配置
+ * @returns {Object} 当前配置
+ */
+export function getPrecacheConfig() {
+  return { ...PRECACHE_CONFIG };
 }
 
 /**
