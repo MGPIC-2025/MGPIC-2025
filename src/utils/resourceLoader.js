@@ -29,11 +29,11 @@ function getResourceBaseUrl() {
       console.warn('R2 URL 格式错误，使用默认R2');
       return 'https://pub-6f9181bda40946ea92b5e87fe84e27d4.r2.dev';
     }
-    console.log('☁️ 使用配置的R2 URL:', url);
+    console.log('使用配置的R2 URL:', url);
     return url;
   } else {
     // 使用默认R2公共访问URL
-    console.log('☁️ 使用默认R2 URL');
+    console.log('使用默认R2 URL');
     return 'https://pub-6f9181bda40946ea92b5e87fe84e27d4.r2.dev';
   }
 }
@@ -227,7 +227,7 @@ export async function loadImageWithRetry(path) {
       throw new Error('Resource not available');
     }
   } catch (error) {
-    console.warn(`⚠️ 图片加载失败，使用原始URL: ${url}`, error.message);
+    console.warn(`图片加载失败，使用原始URL: ${url}`, error.message);
     return url; // 即使检查失败也返回URL，让浏览器处理
   }
 }
@@ -249,7 +249,7 @@ export async function loadModelWithRetry(path) {
       throw new Error('Resource not available');
     }
   } catch (error) {
-    console.warn(`⚠️ 3D模型加载失败，使用原始URL: ${url}`, error.message);
+    console.warn(`3D模型加载失败，使用原始URL: ${url}`, error.message);
     return url; // 即使检查失败也返回URL，让Three.js处理
   }
 }
