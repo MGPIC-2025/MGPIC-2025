@@ -5,7 +5,7 @@ struct GlobalResource(Map[@resource.ResourceType, Int])
 pub fn GlobalResource::new() -> GlobalResource {
   GlobalResource(
     Map::from_array([
-      (@resource.SpiritalSpark, 0),
+      (@resource.SpiritalSpark, 9999),
       (@resource.RecallGear, 0),
       (@resource.ResonantCrystal, 0),
       (@resource.RefinedCopper, 0),
