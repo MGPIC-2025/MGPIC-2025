@@ -68,7 +68,14 @@ jobs:
           echo "构建步骤完成！"
         env:
           NODE_ENV: production
-          VITE_R2_PUBLIC_URL: https://${{ secrets.CLOUDFLARE_ACCOUNT_ID }}.r2.cloudflarestorage.com/${{ secrets.CLOUDFLARE_R2_BUCKET_NAME }}
+          VITE_R2_PUBLIC_URL: https://pub-6f9181bda40946ea92b5e87fe84e27d4.r2.dev
+
+      - name: Add .nojekyll file
+        run: |
+          echo "添加 .nojekyll 文件到 dist 目录..."
+          touch dist/.nojekyll
+          echo ".nojekyll 文件已添加"
+          ls -la dist/
 
       - name: Setup Pages
         uses: actions/configure-pages@v4

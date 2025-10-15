@@ -22,8 +22,8 @@ function getResourceBaseUrl() {
       }
       return url;
     } else {
-      // 默认使用相对路径
-      return './assets';
+      // 使用新的R2公共访问URL
+      return 'https://pub-6f9181bda40946ea92b5e87fe84e27d4.r2.dev';
     }
   }
   
