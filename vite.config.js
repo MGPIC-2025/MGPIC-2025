@@ -5,7 +5,9 @@ import { resolve } from 'path'
 import { watch } from 'chokidar'
 
 export default defineConfig(({ mode }) => ({
-  base: './',
+    // base 中路径 "./" 是开发环境所用 "/" 才是生产环境
+    // GitHub Pages 需要设置为仓库名路径
+  base: mode === 'production' ? '/MGPIC-2025/' : '/',
   server: {
     port: 3000,
     open: true
@@ -25,7 +27,7 @@ export default defineConfig(({ mode }) => ({
   },
   define: {
     // 在构建时注入环境变量
-    'import.meta.env.VITE_R2_PUBLIC_URL': JSON.stringify(process.env.VITE_R2_PUBLIC_URL || 'https://your-bucket-name.your-account-id.r2.cloudflarestorage.com'),
+    'import.meta.env.VITE_R2_PUBLIC_URL': JSON.stringify(process.env.VITE_R2_PUBLIC_URL || 'https://b5607134c5566ee11aca7f90433e93f9.r2.cloudflarestorage.com/mgpic2025'),
   },
   plugins: [
     vue(),
