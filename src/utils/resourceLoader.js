@@ -180,6 +180,7 @@ async function loadResourceWithRetry(url, options = {}) {
         method: 'HEAD',
         mode: 'cors',
         credentials: 'omit',
+        cache: 'no-cache', // 防止使用没有CORS头部的缓存响应
         signal: controller.signal,
         ...options
       });
@@ -234,6 +235,7 @@ async function loadResourceWithCache(url, options = {}) {
       method: 'GET',
       mode: 'cors',
       credentials: 'omit',
+      cache: 'no-cache', // 防止使用没有CORS头部的缓存响应
       signal: controller.signal,
       ...options
     });
@@ -394,7 +396,7 @@ export async function precacheAllResources() {
           method: 'GET',
           mode: 'cors',
           credentials: 'omit',
-          cache: 'default', // 使用浏览器的默认缓存策略
+          cache: 'no-cache', // 防止使用没有CORS头部的缓存响应
           signal: controller.signal
         });
         
