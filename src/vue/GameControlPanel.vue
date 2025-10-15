@@ -9,11 +9,41 @@ function openWarehouse() { emit('openWarehouse') }
 function openTutorial() { emit('openTutorial') }
 function openEncyclopedia() { emit('openEncyclopedia') }
 
-// 设置背景图片URL
+// 设置背景图片URL（使用缓存）
 const bgStart = getAssetUrl('img/hall/start_game.png');
 const bgWarehouse = getAssetUrl('img/hall/warehouse.png');
 const bgWiki = getAssetUrl('img/hall/wiki.png');
 const bgTutorial = getAssetUrl('img/hall/tutorial.png');
+
+// 预加载背景图片到缓存
+onMounted(async () => {
+  try {
+    // 检查缓存状态
+    if (window.getCacheStatus) {
+      const status = await window.getCacheStatus();
+      console.log('缓存状态:', status);
+    }
+    
+    // 预加载背景图片
+    const imageUrls = [bgStart, bgWarehouse, bgWiki, bgTutorial];
+    for (const url of imageUrls) {
+      try {
+        const img = new Image();
+        img.crossOrigin = 'anonymous';
+        img.src = url;
+        await new Promise((resolve, reject) => {
+          img.onload = resolve;
+          img.onerror = reject;
+        });
+        console.log('背景图片预加载成功:', url);
+      } catch (error) {
+        console.warn('背景图片预加载失败:', url, error.message);
+      }
+    }
+  } catch (error) {
+    console.warn('背景图片预加载过程中出现错误:', error.message);
+  }
+});
 </script>
 
 <template>

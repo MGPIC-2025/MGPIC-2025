@@ -30,10 +30,19 @@
     <script type="module">
       import { startMenu } from "./src/startMenu.js";
       import { setupUI } from "./src/ui.js";
-      import { getAssetUrl } from "./src/utils/resourceLoader.js";
+      import { getAssetUrl, precacheAllResources, getCacheStatus } from "./src/utils/resourceLoader.js";
       
       // 将资源加载器暴露到全局，供其他模块使用
       window.getAssetUrl = getAssetUrl;
+      window.precacheAllResources = precacheAllResources;
+      window.getCacheStatus = getCacheStatus;
+      
+      // 启动预缓存（在后台进行，不阻塞主界面）
+      precacheAllResources().then(() => {
+        console.log('资源预缓存完成');
+      }).catch(error => {
+        console.warn('资源预缓存失败:', error);
+      });
       
       const scene = startMenu();
       setupUI(scene);

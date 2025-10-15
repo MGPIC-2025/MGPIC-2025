@@ -13,6 +13,103 @@ const RETRY_CONFIG = {
 // 资源加载状态缓存
 const resourceCache = new Map();
 
+// 预缓存配置
+const PRECACHE_CONFIG = {
+  enabled: true,
+  maxCacheSize: 50 * 1024 * 1024, // 50MB
+  cachePrefix: 'mgpic_',
+  version: '1.0.0'
+};
+
+// 本地缓存管理
+class LocalCacheManager {
+  constructor() {
+    this.cache = new Map();
+    this.totalSize = 0;
+  }
+
+  // 检查浏览器是否支持缓存API
+  isSupported() {
+    return 'caches' in window;
+  }
+
+  // 获取缓存名称
+  getCacheName() {
+    return `${PRECACHE_CONFIG.cachePrefix}${PRECACHE_CONFIG.version}`;
+  }
+
+  // 检查资源是否已缓存
+  async isCached(url) {
+    if (!this.isSupported()) return false;
+    
+    try {
+      const cache = await caches.open(this.getCacheName());
+      const response = await cache.match(url);
+      return response !== undefined;
+    } catch (error) {
+      console.warn('检查缓存失败:', error.message);
+      return false;
+    }
+  }
+
+  // 缓存资源
+  async cacheResource(url, response) {
+    if (!this.isSupported()) return false;
+    
+    try {
+      const cache = await caches.open(this.getCacheName());
+      await cache.put(url, response.clone());
+      
+      // 更新缓存大小统计
+      const contentLength = response.headers.get('content-length');
+      if (contentLength) {
+        this.totalSize += parseInt(contentLength);
+      }
+      
+      console.log(`资源已缓存: ${url}`);
+      return true;
+    } catch (error) {
+      console.warn('缓存资源失败:', error.message);
+      return false;
+    }
+  }
+
+  // 从缓存获取资源
+  async getCachedResource(url) {
+    if (!this.isSupported()) return null;
+    
+    try {
+      const cache = await caches.open(this.getCacheName());
+      return await cache.match(url);
+    } catch (error) {
+      console.warn('获取缓存资源失败:', error.message);
+      return null;
+    }
+  }
+
+  // 清理过期缓存
+  async cleanupCache() {
+    if (!this.isSupported()) return;
+    
+    try {
+      const cacheNames = await caches.keys();
+      const currentCacheName = this.getCacheName();
+      
+      for (const cacheName of cacheNames) {
+        if (cacheName.startsWith(PRECACHE_CONFIG.cachePrefix) && cacheName !== currentCacheName) {
+          await caches.delete(cacheName);
+          console.log(`清理过期缓存: ${cacheName}`);
+        }
+      }
+    } catch (error) {
+      console.warn('清理缓存失败:', error.message);
+    }
+  }
+}
+
+// 创建缓存管理器实例
+const cacheManager = new LocalCacheManager();
+
 // 获取资源基础 URL
 function getResourceBaseUrl() {
   // 统一使用R2，开发和生产环境都使用
@@ -99,6 +196,54 @@ async function loadResourceWithRetry(url, options = {}) {
 }
 
 /**
+ * 带缓存的资源加载
+ * @param {string} url - 资源URL
+ * @param {Object} options - 加载选项
+ * @returns {Promise<Response>} 响应对象
+ */
+async function loadResourceWithCache(url, options = {}) {
+  // 首先检查本地缓存
+  if (cacheManager.isSupported()) {
+    const cachedResponse = await cacheManager.getCachedResource(url);
+    if (cachedResponse) {
+      console.log(`从缓存加载: ${url}`);
+      return cachedResponse;
+    }
+  }
+  
+  // 缓存中没有，从网络加载
+  try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), RETRY_CONFIG.timeout);
+    
+    const response = await fetch(url, {
+      method: 'GET',
+      mode: 'cors',
+      credentials: 'omit',
+      signal: controller.signal,
+      ...options
+    });
+    
+    clearTimeout(timeoutId);
+    
+    if (response.ok) {
+      // 缓存到本地
+      if (cacheManager.isSupported()) {
+        await cacheManager.cacheResource(url, response);
+      }
+      
+      console.log(`资源加载并缓存: ${url}`);
+      return response;
+    } else {
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    }
+  } catch (error) {
+    console.warn(`资源加载失败: ${url}`, error.message);
+    throw error;
+  }
+}
+
+/**
  * 检查资源是否可用（带缓存）
  * @param {string} url - 资源URL
  * @returns {Promise<boolean>} 是否可用
@@ -160,6 +305,102 @@ export async function preloadAssets(paths) {
     console.log(` 资源预加载完成`);
   } catch (error) {
     console.warn(' 资源预加载过程中出现错误:', error.message);
+  }
+}
+
+/**
+ * 预缓存所有游戏资源
+ * @returns {Promise<void>}
+ */
+export async function precacheAllResources() {
+  if (!PRECACHE_CONFIG.enabled) {
+    console.log('预缓存已禁用');
+    return;
+  }
+  
+  console.log('开始预缓存所有游戏资源...');
+  
+  // 清理过期缓存
+  await cacheManager.cleanupCache();
+  
+  // 定义所有需要预缓存的资源
+  const allResources = [
+    // Logo和主要资源
+    'logo.glb',
+    
+    // 仓库相关图片
+    'img/warehouse/goods/2ec8cf838cb33e421005058d17ff555b82cebf83.webp',
+    'img/warehouse/goods/04681f25cc1debaf94214a7e09f44efbc7eb2963.webp',
+    'img/warehouse/goods/1331f319af1e23fc301b7253ca5dca71e9c19e0f.webp',
+    'img/warehouse/goods/ea74bce606c59ac4ab84ab117375c0de813cea49.webp',
+    
+    // 角色图片
+    'img/warehouse/character/a93e15a01fcbf3cfb088956aedc63e86b94d4019.webp',
+    'img/warehouse/character/b2207275b74545d9fae68b985b2998de3672e0af.webp',
+    
+    // 装备图片
+    'img/warehouse/equip/3579e09f8cf4063c7d94f9f1d1a6db6fe746923f.webp',
+    
+    // 技能图片
+    'img/warehouse/skill/9ae9fd092931138c37c47a30f463011e7f4301d8.webp',
+    'img/warehouse/skill/7b7cb41dbb1b9dae0bc4e7d030386f6d7d2e7da0.webp',
+    
+    // 主页面图片
+    'img/hall/start_game.png',
+    'img/hall/warehouse.png',
+    'img/hall/wiki.png',
+    'img/hall/tutorial.png'
+  ];
+  
+  const cachePromises = allResources.map(async (path) => {
+    const url = getAssetUrl(path);
+    
+    try {
+      // 检查是否已缓存
+      const isCached = await cacheManager.isCached(url);
+      if (isCached) {
+        console.log(`资源已缓存，跳过: ${path}`);
+        return;
+      }
+      
+      // 加载并缓存资源
+      await loadResourceWithCache(url);
+      console.log(`资源预缓存成功: ${path}`);
+    } catch (error) {
+      console.warn(`资源预缓存失败: ${path}`, error.message);
+    }
+  });
+  
+  try {
+    await Promise.all(cachePromises);
+    console.log('所有资源预缓存完成');
+  } catch (error) {
+    console.warn('预缓存过程中出现错误:', error.message);
+  }
+}
+
+/**
+ * 获取缓存状态
+ * @returns {Object} 缓存状态信息
+ */
+export async function getCacheStatus() {
+  if (!cacheManager.isSupported()) {
+    return { supported: false, message: '浏览器不支持缓存API' };
+  }
+  
+  try {
+    const cache = await caches.open(cacheManager.getCacheName());
+    const keys = await cache.keys();
+    
+    return {
+      supported: true,
+      cacheName: cacheManager.getCacheName(),
+      resourceCount: keys.length,
+      totalSize: cacheManager.totalSize,
+      maxSize: PRECACHE_CONFIG.maxCacheSize
+    };
+  } catch (error) {
+    return { supported: true, error: error.message };
   }
 }
 
