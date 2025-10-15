@@ -68,7 +68,7 @@ jobs:
           echo "构建步骤完成！"
         env:
           NODE_ENV: production
-          VITE_R2_PUBLIC_URL: https://${{ secrets.CLOUDFLARE_R2_BUCKET_NAME }}.${{ secrets.CLOUDFLARE_ACCOUNT_ID }}.r2.cloudflarestorage.com
+          VITE_R2_PUBLIC_URL: https://${{ secrets.CLOUDFLARE_ACCOUNT_ID }}.r2.cloudflarestorage.com/${{ secrets.CLOUDFLARE_R2_BUCKET_NAME }}
 
       - name: Setup Pages
         uses: actions/configure-pages@v4
