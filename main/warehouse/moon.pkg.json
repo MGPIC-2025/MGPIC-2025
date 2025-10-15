@@ -1,9 +1,0 @@
-{
-  "import": [
-    "Lampese/MGPIC_2025/id",
-    "Lampese/MGPIC_2025/coppers",
-    "Lampese/MGPIC_2025/resource",
-    "Lampese/MGPIC_2025/global_msg",
-    "Lampese/MGPIC_2025/global_resource"
-  ]
-}
