@@ -27,7 +27,7 @@ export default defineConfig(({ mode }) => ({
   },
   define: {
     // 在构建时注入环境变量
-    'import.meta.env.VITE_R2_PUBLIC_URL': JSON.stringify(process.env.VITE_R2_PUBLIC_URL || 'https://b5607134c5566ee11aca7f90433e93f9.r2.cloudflarestorage.com/mgpic2025'),
+    'import.meta.env.VITE_R2_PUBLIC_URL': JSON.stringify(process.env.VITE_R2_PUBLIC_URL || 'https://YourCFName.r2.cloudflarestorage.com/R2Name'),
   },
   plugins: [
     vue(),
