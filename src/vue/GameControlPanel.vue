@@ -1,5 +1,5 @@
 <script setup>
-import { defineEmits, onMounted } from 'https://unpkg.com/vue@3.5.21/dist/vue.esm-browser.js'
+import { defineEmits, ref, onMounted } from 'https://unpkg.com/vue@3.5.21/dist/vue.esm-browser.js'
 import { getAssetUrl } from '../utils/resourceLoader.js'
 
 const emit = defineEmits(['startGame', 'openWarehouse', 'openTutorial', 'openEncyclopedia'])
@@ -9,20 +9,16 @@ function openWarehouse() { emit('openWarehouse') }
 function openTutorial() { emit('openTutorial') }
 function openEncyclopedia() { emit('openEncyclopedia') }
 
-// 设置背景图片URL（使用缓存）
-const bgStart = ref('');
-const bgWarehouse = ref('');
-const bgWiki = ref('');
-const bgTutorial = ref('');
+// 设置背景图片URL（立即执行）
+const bgStart = ref(getAssetUrl('img/hall/start_game.webp'));
+const bgWarehouse = ref(getAssetUrl('img/hall/warehouse.webp'));
+const bgWiki = ref(getAssetUrl('img/hall/wiki.webp'));
+const bgTutorial = ref(getAssetUrl('img/hall/tutorial.webp'));
 
 // 预加载背景图片到缓存
 onMounted(async () => {
   try {
-    // 设置背景图片URL
-    bgStart.value = getAssetUrl('img/hall/start_game.png');
-    bgWarehouse.value = getAssetUrl('img/hall/warehouse.png');
-    bgWiki.value = getAssetUrl('img/hall/wiki.png');
-    bgTutorial.value = getAssetUrl('img/hall/tutorial.png');
+    // URL已经在上面设置好了，这里只做预加载
     
     // 检查缓存状态
     if (window.getCacheStatus) {

@@ -60,6 +60,14 @@ class LocalCacheManager {
     
     try {
       const cache = await caches.open(this.getCacheName());
+      
+      // 检查是否已经缓存
+      const existing = await cache.match(url);
+      if (existing) {
+        console.log(`资源已存在于缓存，跳过: ${url}`);
+        return true;
+      }
+      
       await cache.put(url, response.clone());
       
       // 更新缓存大小统计
@@ -112,28 +120,30 @@ class LocalCacheManager {
 // 创建缓存管理器实例
 const cacheManager = new LocalCacheManager();
 
+// 缓存资源基础URL，避免重复计算和日志
+let cachedBaseUrl = null;
+
 // 获取资源基础 URL
 function getResourceBaseUrl() {
+  // 如果已经缓存，直接返回
+  if (cachedBaseUrl) {
+    return cachedBaseUrl;
+  }
+  
   // 统一使用R2，开发和生产环境都使用
   const customDomain = import.meta.env.VITE_R2_CUSTOM_DOMAIN;
   const publicUrl = import.meta.env.VITE_R2_PUBLIC_URL;
   
   if (customDomain) {
-    return customDomain;
-  } else if (publicUrl) {
-    // 确保 URL 格式正确，移除可能的凭据信息
-    let url = publicUrl;
-    if (url.includes('@')) {
-      // 如果 URL 包含 @ 符号，说明格式错误，使用默认R2
-      console.warn('R2 URL 格式错误，使用默认R2');
-      return 'https://pub-6f9181bda40946ea92b5e87fe84e27d4.r2.dev';
-    }
-    console.log('使用配置的R2 URL:', url);
-    return url;
-  } else {
+    console.log('使用自定义域名:', customDomain);
+    cachedBaseUrl = customDomain;
+    return cachedBaseUrl;
+  } 
+ else {
     // 使用默认R2公共访问URL
     console.log('使用默认R2 URL');
-    return 'https://pub-6f9181bda40946ea92b5e87fe84e27d4.r2.dev';
+    cachedBaseUrl = 'https://pub-6f9181bda40946ea92b5e87fe84e27d4.r2.dev';
+    return cachedBaseUrl;
   }
 }
 
@@ -350,10 +360,10 @@ export async function precacheAllResources() {
     'img/warehouse/skill/7b7cb41dbb1b9dae0bc4e7d030386f6d7d2e7da0.webp',
     
     // 主页面图片
-    'img/hall/start_game.png',
-    'img/hall/warehouse.png',
-    'img/hall/wiki.png',
-    'img/hall/tutorial.png'
+    'img/hall/start_game.webp',
+    'img/hall/warehouse.webp',
+    'img/hall/wiki.webp',
+    'img/hall/tutorial.webp'
   ];
   
   // 分批处理资源，避免请求过于频繁
@@ -369,17 +379,43 @@ export async function precacheAllResources() {
       const url = getAssetUrl(path);
       
       try {
-        // 检查是否已缓存
+        // 检查是否已在Cache Storage中缓存
         const isCached = await cacheManager.isCached(url);
         if (isCached) {
-          console.log(`资源已缓存，跳过: ${path}`);
-          return { success: true, path, cached: true };
+          console.log(`资源已在Cache Storage中，跳过: ${path}`);
+          return { success: true, path, cached: true, source: 'cache' };
         }
         
-        // 加载并缓存资源
-        await loadResourceWithCache(url);
-        console.log(`资源预缓存成功: ${path}`);
-        return { success: true, path, cached: false };
+        // 尝试从网络加载（浏览器可能有HTTP缓存）
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), RETRY_CONFIG.timeout);
+        
+        const response = await fetch(url, {
+          method: 'GET',
+          mode: 'cors',
+          credentials: 'omit',
+          cache: 'default', // 使用浏览器的默认缓存策略
+          signal: controller.signal
+        });
+        
+        clearTimeout(timeoutId);
+        
+        if (response.ok) {
+          // 检查是否来自缓存
+          const fromCache = response.headers.get('x-cache') || 
+                           response.headers.get('cf-cache-status') ||
+                           (response.type === 'basic' && !response.redirected);
+          
+          // 保存到Cache Storage
+          if (cacheManager.isSupported()) {
+            await cacheManager.cacheResource(url, response);
+          }
+          
+          console.log(`资源预缓存成功: ${path}${fromCache ? ' (使用浏览器缓存)' : ''}`);
+          return { success: true, path, cached: false, fromBrowserCache: !!fromCache };
+        } else {
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
       } catch (error) {
         console.warn(`资源预缓存失败: ${path}`, error.message);
         return { success: false, path, error: error.message };
@@ -392,9 +428,10 @@ export async function precacheAllResources() {
     // 统计当前批次结果
     const successCount = results.filter(r => r.success).length;
     const cachedCount = results.filter(r => r.cached).length;
+    const browserCacheCount = results.filter(r => r.fromBrowserCache).length;
     const errorCount = results.filter(r => !r.success).length;
     
-    console.log(`批次完成: 成功 ${successCount}, 已缓存 ${cachedCount}, 失败 ${errorCount}`);
+    console.log(`批次完成: 成功 ${successCount}, Cache Storage已有 ${cachedCount}, 浏览器缓存 ${browserCacheCount}, 失败 ${errorCount}`);
     
     // 如果不是最后一批，等待间隔时间
     if (i + batchSize < allResources.length) {
