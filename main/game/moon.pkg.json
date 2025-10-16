@@ -1,0 +1,8 @@
+{
+  "import": [
+    "Lampese/MGPIC_2025/coppers",
+    "Lampese/MGPIC_2025/attribute",
+    "Lampese/MGPIC_2025/resource",
+    "Lampese/MGPIC_2025/equipment"
+  ]
+}

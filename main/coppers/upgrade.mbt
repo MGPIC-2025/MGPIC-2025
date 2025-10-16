@@ -4,12 +4,16 @@ pub fn Copper::apply_upgrade(copper : Copper) -> Copper {
   if copper.level == 4 {
     {
       ..copper,
-      attribute,
+      attribute: copper.attribute.merge(attribute),
       level: copper.level + 1,
       equipment_slot: copper.equipment_slot.unlock_slot2(),
     }
   } else {
-    { ..copper, attribute, level: copper.level + 1 }
+    {
+      ..copper,
+      attribute: copper.attribute.merge(attribute),
+      level: copper.level + 1,
+    }
   }
 }
 

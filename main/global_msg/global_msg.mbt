@@ -5,7 +5,7 @@ pub(all) struct InformationBase {
 } derive(ToJson)
 
 ///|
-struct Information {
+priv struct Information {
   id : Int
   type_msg : String
   content : String
@@ -14,7 +14,7 @@ struct Information {
 ///|
 struct GlobalInfo {
   history : Array[Information]
-  mut callback : (Information) -> Unit
+  mut callback : (String) -> Unit
 }
 
 ///|
@@ -25,7 +25,7 @@ pub fn GlobalInfo::new() -> GlobalInfo {
 ///|
 pub fn GlobalInfo::subscribe(
   global_info : GlobalInfo,
-  callback : (Information) -> Unit,
+  callback : (String) -> Unit,
 ) -> Unit {
   global_info.callback = callback
 }
@@ -41,7 +41,7 @@ pub fn GlobalInfo::broadcast(
     content: information.content,
   }
   global_info.history.push(information)
-  (global_info.callback)(information)
+  (global_info.callback)(information.to_json().stringify())
 }
 
 ///|

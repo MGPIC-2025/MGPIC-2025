@@ -1,5 +1,5 @@
 ///|
-struct Attribute {
+pub struct Attribute {
   health : Float
   attack : Float
   defense : Float
