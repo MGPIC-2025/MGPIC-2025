@@ -6,13 +6,14 @@
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { formatSize, logger } from '../shared/utils.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 // 配置
-const ASSETS_DIR = path.join(__dirname, '../assets');
-const OUTPUT_FILE = path.join(__dirname, '../src/utils/asset-list.json');
+const ASSETS_DIR = path.join(__dirname, '../../assets');
+const OUTPUT_FILE = path.join(__dirname, '../../src/utils/asset-list.json');
 
 // 资源优先级配置
 const PRIORITY_CONFIG = {
@@ -114,30 +115,23 @@ function getPriority(relativePath) {
   return 'medium';
 }
 
-/**
- * 格式化文件大小
- */
-function formatSize(bytes) {
-  if (bytes < 1024) return bytes + ' B';
-  if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(2) + ' KB';
-  return (bytes / (1024 * 1024)).toFixed(2) + ' MB';
-}
+// formatSize 已从 utils.js 导入
 
 /**
  * 主函数
  */
 function main() {
-  console.log('开始扫描 assets 目录...\n');
+  logger.info('开始扫描 assets 目录...\n');
   
   // 检查 assets 目录是否存在
   if (!fs.existsSync(ASSETS_DIR)) {
-    console.error('assets 目录不存在:', ASSETS_DIR);
+    logger.error('assets 目录不存在:', ASSETS_DIR);
     process.exit(1);
   }
   
   // 扫描所有文件
   const allFiles = scanDirectory(ASSETS_DIR);
-  console.log(`找到 ${allFiles.length} 个资源文件\n`);
+  logger.info(`找到 ${allFiles.length} 个资源文件\n`);
   
   // 按优先级分类
   const categorized = {
@@ -168,7 +162,7 @@ function main() {
       stats[priority].count++;
       stats[priority].totalSize += file.size;
     } else {
-      console.log(`跳过大文件 [${priority}]: ${file.path} (${formatSize(file.size)})`);
+      logger.warn(`跳过大文件 [${priority}]: ${file.path} (${formatSize(file.size)})`);
       stats.skipped.count++;
       stats.skipped.totalSize += file.size;
     }
@@ -212,21 +206,22 @@ function main() {
   fs.writeFileSync(OUTPUT_FILE, JSON.stringify(output, null, 2), 'utf8');
   
   // 打印统计信息
-  console.log('\n资源统计：');
+  console.log('\n' + '='.repeat(60));
+  console.log('资源统计');
   console.log('='.repeat(60));
-  console.log(`高优先级: ${stats.high.count} 个文件，总大小 ${formatSize(stats.high.totalSize)}`);
-  console.log(`中优先级: ${stats.medium.count} 个文件，总大小 ${formatSize(stats.medium.totalSize)}`);
-  console.log(`低优先级: ${stats.low.count} 个文件，总大小 ${formatSize(stats.low.totalSize)}`);
+  logger.info(`高优先级: ${stats.high.count} 个文件，总大小 ${formatSize(stats.high.totalSize)}`);
+  logger.info(`中优先级: ${stats.medium.count} 个文件，总大小 ${formatSize(stats.medium.totalSize)}`);
+  logger.info(`低优先级: ${stats.low.count} 个文件，总大小 ${formatSize(stats.low.totalSize)}`);
   if (stats.skipped.count > 0) {
-    console.log(`已跳过:   ${stats.skipped.count} 个文件，总大小 ${formatSize(stats.skipped.totalSize)}`);
+    logger.warn(`已跳过:   ${stats.skipped.count} 个文件，总大小 ${formatSize(stats.skipped.totalSize)}`);
   }
   console.log('='.repeat(60));
   
   // 推荐预加载配置
   const recommendedSize = stats.high.totalSize + stats.medium.totalSize;
-  console.log(`\n推荐预加载: 高+中优先级 (${stats.high.count + stats.medium.count} 个文件，${formatSize(recommendedSize)})`);
+  logger.info(`\n推荐预加载: 高+中优先级 (${stats.high.count + stats.medium.count} 个文件，${formatSize(recommendedSize)})`);
   
-  console.log(`\n资源列表已生成: ${OUTPUT_FILE}`);
+  logger.success(`\n资源列表已生成: ${OUTPUT_FILE}`);
 }
 
 // 运行
