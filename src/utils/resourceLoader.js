@@ -13,6 +13,9 @@ const RETRY_CONFIG = {
 // 资源加载状态缓存
 const resourceCache = new Map();
 
+// asset-list.json 缓存
+let assetListCache = null;
+
 // 预缓存配置
 const PRECACHE_CONFIG = {
   enabled: true,
@@ -211,51 +214,66 @@ async function loadResourceWithRetry(url, options = {}) {
 }
 
 /**
- * 带缓存的资源加载
+ * 带缓存的资源加载（带重试机制）
  * @param {string} url - 资源URL
  * @param {Object} options - 加载选项
  * @returns {Promise<Response>} 响应对象
  */
 async function loadResourceWithCache(url, options = {}) {
-  // 首先检查本地缓存
+  // 首先检查本地缓存（Cache Storage API）
   if (cacheManager.isSupported()) {
     const cachedResponse = await cacheManager.getCachedResource(url);
     if (cachedResponse) {
-      console.log(`从缓存加载: ${url}`);
+      console.log(`从 Cache Storage 加载: ${url}`);
       return cachedResponse;
     }
   }
   
-  // 缓存中没有，从网络加载
-  try {
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), RETRY_CONFIG.timeout);
-    
-    const response = await fetch(url, {
-      method: 'GET',
-      mode: 'cors',
-      credentials: 'omit',
-      cache: 'no-cache', // 防止使用没有CORS头部的缓存响应
-      signal: controller.signal,
-      ...options
-    });
-    
-    clearTimeout(timeoutId);
-    
-    if (response.ok) {
-      // 缓存到本地
-      if (cacheManager.isSupported()) {
-        await cacheManager.cacheResource(url, response);
+  // 缓存中没有，从网络加载（带重试机制）
+  const { maxRetries = RETRY_CONFIG.maxRetries, retryDelay = RETRY_CONFIG.retryDelay } = options;
+  
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      console.log(`尝试加载资源 (${attempt}/${maxRetries}): ${url}`);
+      
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), RETRY_CONFIG.timeout);
+      
+      const response = await fetch(url, {
+        method: 'GET',
+        mode: 'cors',
+        credentials: 'omit',
+        cache: 'no-cache', // 防止使用没有CORS头部的缓存响应
+        signal: controller.signal,
+        ...options
+      });
+      
+      clearTimeout(timeoutId);
+      
+      if (response.ok) {
+        // 缓存到 Cache Storage
+        if (cacheManager.isSupported()) {
+          await cacheManager.cacheResource(url, response);
+        }
+        
+        console.log(`资源加载并缓存成功: ${url}`);
+        return response;
+      } else {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+    } catch (error) {
+      console.warn(`资源加载失败 (${attempt}/${maxRetries}): ${url}`, error.message);
+      
+      if (attempt === maxRetries) {
+        console.error(`资源加载最终失败: ${url}`, error.message);
+        throw error;
       }
       
-      console.log(`资源加载并缓存: ${url}`);
-      return response;
-    } else {
-      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      // 等待后重试（递增延迟）
+      const waitTime = retryDelay * attempt;
+      console.log(`等待 ${waitTime}ms 后重试...`);
+      await new Promise(resolve => setTimeout(resolve, waitTime));
     }
-  } catch (error) {
-    console.warn(`资源加载失败: ${url}`, error.message);
-    throw error;
   }
 }
 
@@ -331,23 +349,32 @@ export async function preloadAssets(paths) {
  */
 async function loadAssetList(priorities = ['high', 'medium']) {
   try {
-    // 尝试加载自动生成的资源列表
-    const response = await fetch('./asset-list.json');
+    // 检查内存缓存
+    if (assetListCache) {
+      console.log('使用内存缓存的资源列表');
+      const resources = extractResourcesFromAssetList(assetListCache, priorities);
+      console.log(`从缓存的资源列表加载 ${resources.length} 个资源 (优先级: ${priorities.join(', ')})`);
+      return resources;
+    }
+    
+    // 尝试从 R2 CDN 加载资源列表（使用缓存机制）
+    const assetListUrl = getAssetUrl('asset-list.json');
+    console.log(`从 R2 CDN 加载资源列表: ${assetListUrl}`);
+    
+    // 使用带缓存和重试的加载方式
+    const response = await loadResourceWithCache(assetListUrl);
+    
     if (!response.ok) {
-      throw new Error('资源列表文件不存在');
+      throw new Error(`资源列表加载失败: HTTP ${response.status}`);
     }
     
     const assetList = await response.json();
-    const resources = [];
     
-    // 根据优先级收集资源
-    for (const priority of priorities) {
-      if (assetList.categories && assetList.categories[priority]) {
-        const categoryResources = assetList.categories[priority].resources || [];
-        resources.push(...categoryResources.map(r => r.path));
-      }
-    }
+    // 缓存到内存（用于当前会话的快速访问）
+    assetListCache = assetList;
+    console.log('资源列表已缓存到内存');
     
+    const resources = extractResourcesFromAssetList(assetList, priorities);
     console.log(`从资源列表加载 ${resources.length} 个资源 (优先级: ${priorities.join(', ')})`);
     return resources;
   } catch (error) {
@@ -363,6 +390,26 @@ async function loadAssetList(priorities = ['high', 'medium']) {
       'frontend_resource/gacha.webp'
     ];
   }
+}
+
+/**
+ * 从资源列表中提取指定优先级的资源路径
+ * @param {Object} assetList - 资源列表对象
+ * @param {Array<string>} priorities - 要加载的优先级
+ * @returns {Array<string>} 资源路径数组
+ */
+function extractResourcesFromAssetList(assetList, priorities) {
+  const resources = [];
+  
+  // 根据优先级收集资源
+  for (const priority of priorities) {
+    if (assetList.categories && assetList.categories[priority]) {
+      const categoryResources = assetList.categories[priority].resources || [];
+      resources.push(...categoryResources.map(r => r.path));
+    }
+  }
+  
+  return resources;
 }
 
 /**
@@ -532,6 +579,15 @@ export function updatePrecacheConfig(config) {
  */
 export function getPrecacheConfig() {
   return { ...PRECACHE_CONFIG };
+}
+
+/**
+ * 清除资源列表缓存
+ * 用于强制重新加载 asset-list.json
+ */
+export function clearAssetListCache() {
+  assetListCache = null;
+  console.log('资源列表缓存已清除');
 }
 
 /**

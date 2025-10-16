@@ -13,7 +13,7 @@ const __dirname = path.dirname(__filename);
 
 // 配置
 const ASSETS_DIR = path.join(__dirname, '../../assets');
-const OUTPUT_FILE = path.join(__dirname, '../../src/utils/asset-list.json');
+const OUTPUT_FILE = path.join(__dirname, '../../assets/asset-list.json');
 
 // 资源优先级配置
 const PRIORITY_CONFIG = {

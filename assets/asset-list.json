@@ -1,7 +1,7 @@
 {
-  "generated": "2025-10-16T04:45:54.388Z",
+  "generated": "2025-10-16T08:13:33.602Z",
   "version": "1.0.0",
-  "total": 139,
+  "total": 140,
   "categories": {
     "high": {
       "description": "首屏必需资源（自动预加载）",
@@ -42,9 +42,14 @@
     },
     "medium": {
       "description": "常用资源（推荐预加载）",
-      "count": 83,
-      "totalSize": 8795024,
+      "count": 84,
+      "totalSize": 8813840,
       "resources": [
+        {
+          "path": "asset-list.json",
+          "size": 18816,
+          "ext": ".json"
+        },
         {
           "path": "copper/arcanist/bubble/bubble.webp",
           "size": 142724,
@@ -726,8 +731,8 @@
       "totalSize": 7573442
     },
     "medium": {
-      "count": 83,
-      "totalSize": 8795024
+      "count": 84,
+      "totalSize": 8813840
     },
     "low": {
       "count": 50,
