@@ -332,7 +332,7 @@ export async function preloadAssets(paths) {
 async function loadAssetList(priorities = ['high', 'medium']) {
   try {
     // 尝试加载自动生成的资源列表
-    const response = await fetch('/src/utils/asset-list.json');
+    const response = await fetch('/asset-list.json');
     if (!response.ok) {
       throw new Error('资源列表文件不存在');
     }
