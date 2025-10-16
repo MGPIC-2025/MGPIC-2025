@@ -20,7 +20,15 @@ pub fn Warehouse::add_copper(
   warehouse : Warehouse,
   copper : @coppers.Copper,
 ) -> Warehouse {
-  { ..warehouse, coppers: warehouse.coppers.add(copper.id, copper) }
+  { coppers: warehouse.coppers.add(copper.id, copper) }
+}
+
+///|
+pub fn Warehouse::get_copper(
+  warehouse : Warehouse,
+  id : Int,
+) -> @coppers.Copper {
+  warehouse.coppers.get(id).unwrap()
 }
 
 ///|
@@ -28,4 +36,9 @@ pub fn Warehouse::get_copper_list(
   warehouse : Warehouse,
 ) -> Array[@coppers.Copper] {
   warehouse.coppers.values().to_array()
+}
+
+///|
+pub fn Warehouse::remove_copper(warehouse : Warehouse, id : Int) -> Warehouse {
+  { coppers: warehouse.coppers.remove(id) }
 }

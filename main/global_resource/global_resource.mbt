@@ -38,3 +38,28 @@ pub fn GlobalResource::consume_resource(
     global.0.set(resource, resource_amount - amount)
   }
 }
+
+///|
+pub fn GlobalResource::check_resource_cost(
+  global : GlobalResource,
+  resource_cost : @resource.ResourceCost,
+) -> Bool {
+  for res in resource_cost.cost {
+    let (res_type, amount) = res
+    if global.get_resource(res_type) < amount {
+      return false
+    }
+  }
+  true
+}
+
+///|
+pub fn GlobalResource::consume_resource_cost(
+  global : GlobalResource,
+  resource_cost : @resource.ResourceCost,
+) -> Unit {
+  for res in resource_cost.cost {
+    let (res_type, amount) = res
+    global.consume_resource(res_type, amount)
+  }
+}

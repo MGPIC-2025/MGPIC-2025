@@ -1,5 +1,5 @@
 ///|
-pub fn Copper::upgrade(copper : Copper) -> Copper {
+pub fn Copper::apply_upgrade(copper : Copper) -> Copper {
   let attribute = get_upgrade_effect(copper)
   if copper.level == 4 {
     {
