@@ -19,7 +19,7 @@ const PRECACHE_CONFIG = {
   maxCacheSize: 50 * 1024 * 1024, // 50MB
   cachePrefix: 'mgpic_',
   version: '1.0.0',
-  loadInterval: 200, // 每个资源加载间隔200ms
+  loadInterval: 50, // 每个资源加载间隔ms
   batchSize: 3 // 每批处理3个资源
 };
 
@@ -326,9 +326,10 @@ export async function preloadAssets(paths) {
 
 /**
  * 预缓存所有游戏资源（带间隔控制）
+ * @param {Function} onProgress - 进度回调函数 (current, total, percentage)
  * @returns {Promise<void>}
  */
-export async function precacheAllResources() {
+export async function precacheAllResources(onProgress = null) {
   if (!PRECACHE_CONFIG.enabled) {
     console.log('预缓存已禁用');
     return;
@@ -371,6 +372,13 @@ export async function precacheAllResources() {
   // 分批处理资源，避免请求过于频繁
   const batchSize = PRECACHE_CONFIG.batchSize;
   const loadInterval = PRECACHE_CONFIG.loadInterval;
+  const totalResources = allResources.length;
+  let loadedCount = 0;
+  
+  // 初始进度回调
+  if (onProgress) {
+    onProgress(0, totalResources, 0);
+  }
   
   for (let i = 0; i < allResources.length; i += batchSize) {
     const batch = allResources.slice(i, i + batchSize);
@@ -426,6 +434,15 @@ export async function precacheAllResources() {
     
     // 等待当前批次完成
     const results = await Promise.all(batchPromises);
+    
+    // 更新已加载计数
+    loadedCount += batch.length;
+    const percentage = Math.round((loadedCount / totalResources) * 100);
+    
+    // 进度回调
+    if (onProgress) {
+      onProgress(loadedCount, totalResources, percentage);
+    }
     
     // 统计当前批次结果
     const successCount = results.filter(r => r.success).length;

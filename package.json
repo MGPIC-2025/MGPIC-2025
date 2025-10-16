@@ -14,7 +14,7 @@
     "deploy:assets": "node scripts/upload-assets.js",
     "deploy:assets:smart": "node scripts/smart-upload.js",
     "deploy:full": "npm run build && npm run deploy:assets:smart",
-    "deploy:gh-pages": "npm run build && gh-pages -d dist -b gh-pages",
+    "deploy:gh-pages": "npm run build && npx gh-pages -d dist -b gh-pages",
     "test:upload-config": "node scripts/test-upload-config.js"
   },
   "devDependencies": {
