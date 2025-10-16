@@ -51,10 +51,18 @@ function initThreeIfNeeded() {
   container.innerHTML = ''
   container.appendChild(renderer.domElement)
 
-  const ambient = new THREE.AmbientLight(0xffffff, 0.8)
-  const dir = new THREE.DirectionalLight(0xffffff, 0.8)
+  const ambient = new THREE.AmbientLight(0xffffff, 1.2)
+  const dir = new THREE.DirectionalLight(0xffffff, 1.5)
   dir.position.set(3, 5, 2)
-  scene.add(ambient, dir)
+  
+  // 添加额外的光源来照亮模型
+  const dir2 = new THREE.DirectionalLight(0xffffff, 0.8)
+  dir2.position.set(-2, 3, 4)
+  
+  const pointLight = new THREE.PointLight(0xffffff, 1.0, 10)
+  pointLight.position.set(0, 2, 3)
+  
+  scene.add(ambient, dir, dir2, pointLight)
 
   const onResize = () => {
     if (!container || !renderer) return
@@ -127,12 +135,13 @@ function fitCameraToObject(object) {
   box.getCenter(center)
   object.position.sub(center)
 
-  const offsetX = -size.x * 0.3
-  const offsetY = size.y * 0.2
-  const offsetZ = size.z * 0.4
+  // 调整模型位置，使其更居中
+  const offsetX = 0  // 移除X轴偏移，使模型居中
+  const offsetY = 0  // 移除Y轴偏移，使模型居中
+  const offsetZ = 0   // 移除Z轴偏移，使模型居中
   object.position.add(new THREE.Vector3(offsetX, offsetY, offsetZ))
 
-  const shrink = 0.4
+  const shrink = 0.6  // 稍微增大模型尺寸
   object.scale.multiplyScalar(shrink)
 
   const canvas = renderer?.domElement
@@ -141,12 +150,12 @@ function fitCameraToObject(object) {
   const aspect = Math.max(1e-6, w / Math.max(1, h))
   const vFov = camera.fov * (Math.PI / 180)
   const hFov = 2 * Math.atan(Math.tan(vFov / 2) * aspect)
-  const padding = 1.15
+  const padding = 1.2  // 稍微增加边距
   const distV = (size.y / 2) / Math.tan(vFov / 2)
   const distH = (size.x / 2) / Math.tan(hFov / 2)
   const dist = padding * Math.max(distV, distH, 0.1)
 
-  camera.position.set(0, Math.max(size.y * 0.05, 0.1), dist)
+  camera.position.set(0, 0, dist)  // 相机位置也居中
   camera.lookAt(0, 0, 0)
 }
 

@@ -33,29 +33,6 @@ function showToast(text) {
 async function refreshCanDraw() {
   try {
     const data = get_resource()
-    const unwrap = (input) => {
-      if (input == null) return input
-      const maybe = (typeof input === 'object' && '_0' in input && Object.keys(input).length === 1) ? input._0 : input
-      if (maybe && typeof maybe === 'object' && '_0' in maybe && typeof maybe._0 === 'number') return maybe._0
-      if (maybe && typeof maybe === 'object' && Array.isArray(maybe.entries) && typeof maybe.size === 'number') {
-        const obj = {}
-        for (const e of maybe.entries) {
-          if (!e) continue
-          const k = (e.key ?? e._0 ?? e[0])
-          const v = (e.value ?? e._1 ?? e[1])
-          const keyStr = typeof k === 'string' ? k : (k && k._0 ? k._0 : String(k))
-          obj[keyStr] = unwrap(v)
-        }
-        return obj
-      }
-      if (Array.isArray(maybe)) return maybe.map(unwrap)
-      if (maybe && typeof maybe === 'object') {
-        const out = {}
-        for (const k of Object.keys(maybe)) out[k] = unwrap(maybe[k])
-        return out
-      }
-      return maybe
-    }
     const plain = data
     const spark = Number(plain?.SpiritalSpark ?? 0)
     canDraw.value = spark >= 10
@@ -104,7 +81,7 @@ function runDrawSequence() {
         const info = data.copper.copper_info
         tempName.value = info.name || '新铜偶'
         tempIcon.value = ''
-        tempImage.value = resolveAssetUrl(info.icon_url || '')
+        tempImage.value = getAssetUrl(info.icon_url || '')
         console.log('[DrawScreen] tempImage resolved:', tempImage.value)
         await nextTick()
         // 自动从背面翻转到正面并显示结果信息
@@ -183,8 +160,8 @@ function runDrawSequence() {
 .draw-card { width: 520px; height: 520px; display: flex; align-items: center; justify-content: center; position: relative; }
 .draw-card__img { width: 100%; height: 100%; object-fit: contain; display: block; }
 .draw-card.is-shaking { animation: shake 0.5s ease-in-out; }
-.draw-cost { display: flex; align-items: center; gap: 8px; }
-.draw-cost__icon { width: 48px; height: 48px; object-fit: contain; }
+.draw-cost { display: flex; align-items: center; gap: 12px; justify-content: center; }
+.draw-cost__icon { width: 64px; height: 64px; object-fit: contain; }
 .draw-cost__times { color: #fff; font-size: 22px; font-weight: 700; }
 .draw-action { margin-top: 6px; background: #3a2519; color: #fff; border: none; border-radius: 16px; padding: 12px 44px; font-size: 26px; cursor: pointer; }
 .draw-action:hover { background: #5a3525; }
