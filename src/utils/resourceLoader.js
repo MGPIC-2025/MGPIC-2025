@@ -156,10 +156,13 @@ function getResourceBaseUrl() {
  * @returns {string} 完整 URL
  */
 export function getAssetUrl(path) {
+  let clean_path = path;
+  if (path.startsWith('/assets/')) {
+    clean_path = path.slice(7);
+  }
   const baseUrl = getResourceBaseUrl();
-  const cleanPath = path.startsWith('/') ? path.slice(1) : path;
+  const cleanPath = clean_path.startsWith('/') ? clean_path.slice(1) : clean_path;
   const fullUrl = `${baseUrl}/${cleanPath}`;
-  
   return fullUrl;
 }
 

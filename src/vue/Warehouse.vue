@@ -64,8 +64,8 @@ function mapPuppets(arr) {
       name: info?.name ?? '未知铜偶',
       level: levelNum,
       suffix: copper?.suffix ?? 0,
-      image: info?.icon_url || '',
-      modelUrl: info?.model_url || '',
+      image: getAssetUrl(info?.icon_url || ''),
+      modelUrl: getAssetUrl(info?.model_url || ''),
       quantity: 1,
       description: info?.description || '',
       stats: {
@@ -79,19 +79,19 @@ function mapPuppets(arr) {
       },
       equipment: [
         slot1
-          ? { name: slot1.equipment_base?.name || '装备', icon: slot1.equipment_base?.resource_url || '', equipped: true, locked: false }
+          ? { name: slot1.equipment_base?.name || '装备', icon: getAssetUrl(slot1.equipment_base?.resource_url || ''), equipped: true, locked: false }
           : { name: '空槽', icon: '＋', equipped: false, locked: false },
         equipmentSlot?.is_slot2_locked
           ? { name: '未解锁', icon: '🔒', equipped: false, locked: true }
           : (slot2
-              ? { name: slot2.equipment_base?.name || '装备', icon: slot2.equipment_base?.resource_url || '', equipped: true, locked: false }
+              ? { name: slot2.equipment_base?.name || '装备', icon: getAssetUrl(slot2.equipment_base?.resource_url || ''), equipped: true, locked: false }
               : { name: '空槽', icon: '＋', equipped: false, locked: false })
       ],
       skill: {
         name: skill?.name || '——',
         cooldown: skill?.cool_down != null ? `${skill.cool_down}回合` : '——',
         effect: skill?.description || '——',
-        icon: skill?.resource_url || ''
+        icon: getAssetUrl(skill?.resource_url || '')
       },
       upgradeCost: getUpgradeCostByLevel(levelNum)
     }
@@ -386,7 +386,7 @@ async function upgradeSelected() {
                 <h4 class="section-title">装备</h4>
                 <div class="equipment-slots">
                   <div v-for="(item, index) in selectedPuppet.equipment" :key="index" class="equipment-slot" :class="{ 'equipment-slot--empty': !item.equipped && !item.locked, 'equipment-slot--locked': item.locked }">
-                    <img v-if="item.equipped && item.icon && item.icon.startsWith('/')" :src="item.icon" :alt="item.name" class="equipment-icon" />
+                    <img v-if="item.equipped && item.icon && (item.icon.startsWith('/') || item.icon.startsWith('http'))" :src="item.icon" :alt="item.name" class="equipment-icon" />
                     <span v-else class="equipment-icon">{{ item.locked ? '🔒' : item.icon }}</span>
                   </div>
                 </div>
@@ -402,7 +402,7 @@ async function upgradeSelected() {
                   <div class="skill-effect">{{ selectedPuppet.skill.effect }}</div>
                 </div>
                 <div class="skill-icon">
-                  <img v-if="selectedPuppet.skill.icon && selectedPuppet.skill.icon.startsWith('/')" :src="selectedPuppet.skill.icon" :alt="selectedPuppet.skill.name" class="skill-icon-img" />
+                  <img v-if="selectedPuppet.skill.icon && (selectedPuppet.skill.icon.startsWith('/') || selectedPuppet.skill.icon.startsWith('http'))" :src="selectedPuppet.skill.icon" :alt="selectedPuppet.skill.name" class="skill-icon-img" />
                   <span v-else>{{ selectedPuppet.skill.icon }}</span>
                 </div>
               </div>
@@ -411,7 +411,6 @@ async function upgradeSelected() {
           
           <div class="puppet-detail__upgrade">
             <div class="upgrade-cost">
-              <img class="cost-icon-img" :src="getAssetUrl('img/warehouse/goods/ea74bce606c59ac4ab84ab117375c0de813cea49.webp')" alt="cost" />
               <span class="cost-amount">{{ selectedPuppet.level >= 5 ? '已满级' : ('X ' + selectedPuppet.upgradeCost) }}</span>
             </div>
             <button class="upgrade-btn" @click="upgradeSelected" :disabled="selectedPuppet?.level >= 5">
