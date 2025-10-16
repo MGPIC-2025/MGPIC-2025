@@ -3,7 +3,100 @@ import { ref, onMounted, defineExpose, nextTick } from 'vue'
 import { getAssetUrl } from '../utils/resourceLoader.js'
 import DrawScreen from './DrawScreen.vue'
 import PuppetModelView from './PuppetModelView.vue'
-import { get_resource, get_copper_list } from '../glue.js'
+import { get_resource, get_copper_list, upgrade_copper, info_subscribe } from '../glue.js'
+
+// 统一的资源键顺序与元信息
+const ORDERED_RESOURCE_KEYS = [
+  'SpiritalSpark',
+  'RecallGear',
+  'ResonantCrystal',
+  'RefinedCopper',
+  'HeartCrystalDust'
+]
+
+const RESOURCE_META = {
+  SpiritalSpark: { name: '灵性火花', icon: getAssetUrl('resource/spiritual_spark.webp') },
+  RecallGear: { name: '回响齿轮', icon: getAssetUrl('resource/recall_gear.webp') },
+  ResonantCrystal: { name: '共鸣星晶', icon: getAssetUrl('resource/resonant_star_crystal/resonant_star_crystal.webp') },
+  RefinedCopper: { name: '精炼铜锭', icon: getAssetUrl('resource/refined_copper_ingot/refined_copper_ingot.webp') },
+  HeartCrystalDust: { name: '心晶尘', icon: getAssetUrl('resource/heart_crystal_dust.webp') }
+}
+
+function mapResources(plain) {
+  return ORDERED_RESOURCE_KEYS.map(k => ({
+    icon: RESOURCE_META[k].icon,
+    name: RESOURCE_META[k].name,
+    value: Number(plain?.[k] ?? 0)
+  }))
+}
+
+// 职业映射（统一处）
+const TYPE_MAP = { IronWall: '铁壁', Arcanist: '奥术', CraftsMan: '工匠', Mechanic: '机械', Resonator: '共振' }
+
+// 升级消耗统一计算
+function getUpgradeCostByLevel(level) {
+  const lv = Number(level ?? 1)
+  if (lv === 1) return 5
+  if (lv === 2) return 10
+  if (lv === 3) return 20
+  if (lv === 4) return 30
+  return 0
+}
+
+// 将后端铜偶数组映射为前端展示模型
+function mapPuppets(arr) {
+  return (arr || []).map((copper, idx) => {
+    const info = copper?.copper_info || {}
+    const skill = info?.skill || {}
+    const equipmentSlot = copper?.equipment_slot || {}
+    const slot1 = equipmentSlot?.slot1 || null
+    const slot2 = equipmentSlot?.slot2 || null
+    const attr = copper?.attribute || {}
+    const equipAttr1 = slot1?.equipment_base?.attribute || {}
+    const equipAttr2 = slot2?.equipment_base?.attribute || {}
+    const bonusAttack = Number(equipAttr1.attack || 0) + Number(equipAttr2.attack || 0)
+    const bonusDefense = Number(equipAttr1.defense || 0) + Number(equipAttr2.defense || 0)
+    const bonusDodge = Number(equipAttr1.dodge || 0) + Number(equipAttr2.dodge || 0)
+    const typeName = copper?.copper_type
+    const levelNum = copper?.level ?? 1
+    return {
+      id: Number(copper?.id ?? (idx + 1)),
+      name: info?.name ?? '未知铜偶',
+      level: levelNum,
+      suffix: copper?.suffix ?? 0,
+      image: info?.icon_url || '',
+      modelUrl: info?.model_url || '',
+      quantity: 1,
+      description: info?.description || '',
+      stats: {
+        level: `${levelNum}/5`,
+        health: Number(attr.health || 0),
+        live_left: Number(copper?.live_left ?? 0),
+        attack: { base: Number(attr.attack || 0), bonus: bonusAttack },
+        defense: { base: Number(attr.defense || 0), bonus: bonusDefense },
+        dodge: { base: Number(attr.dodge || 0), bonus: bonusDodge },
+        class: TYPE_MAP[typeName] || '未知'
+      },
+      equipment: [
+        slot1
+          ? { name: slot1.equipment_base?.name || '装备', icon: slot1.equipment_base?.resource_url || '', equipped: true, locked: false }
+          : { name: '空槽', icon: '＋', equipped: false, locked: false },
+        equipmentSlot?.is_slot2_locked
+          ? { name: '未解锁', icon: '🔒', equipped: false, locked: true }
+          : (slot2
+              ? { name: slot2.equipment_base?.name || '装备', icon: slot2.equipment_base?.resource_url || '', equipped: true, locked: false }
+              : { name: '空槽', icon: '＋', equipped: false, locked: false })
+      ],
+      skill: {
+        name: skill?.name || '——',
+        cooldown: skill?.cool_down != null ? `${skill.cool_down}回合` : '——',
+        effect: skill?.description || '——',
+        icon: skill?.resource_url || ''
+      },
+      upgradeCost: getUpgradeCostByLevel(levelNum)
+    }
+  })
+}
 
 function findKeyPath(root, targetKey, path = []) {
   if (!root || typeof root !== 'object') return null
@@ -31,57 +124,29 @@ const resources = ref([])
 onMounted(async () => {
   try {
     const plain = get_resource()
-
-    // 后端键名与顺序（见 src/main.js 导出）：
-    // SpiritalSpark, RecallGear, ResonantCrystal, RefinedCopper, HeartCrystalDust
-    const orderedKeys = [
-      'SpiritalSpark',
-      'RecallGear',
-      'ResonantCrystal',
-      'RefinedCopper',
-      'HeartCrystalDust'
-    ]
-
-    // 键名 → 展示名 与 图标映射
-    const meta = {
-      SpiritalSpark: {
-        name: '灵性火花',
-        icon: getAssetUrl('resource/spiritual_spark.webp')
-      },
-      RecallGear: {
-        name: '回响齿轮',
-        icon: getAssetUrl('resource/recall_gear.webp')
-      },
-      ResonantCrystal: {
-        name: '共鸣星晶',
-        icon: getAssetUrl('resource/resonant_star_crystal/resonant_star_crystal.webp')
-      },
-      RefinedCopper: {
-        name: '精炼铜锭',
-        icon: getAssetUrl('resource/refined_copper_ingot/refined_copper_ingot.webp')
-      },
-      HeartCrystalDust: {
-        name: '心晶尘',
-        icon: getAssetUrl('resource/heart_crystal_dust.webp')
-      }
-    }
-
-    const enriched = orderedKeys.map(key => ({
-      icon: meta[key].icon,
-      name: meta[key].name,
-      value: Number((plain && plain[key]) ?? 0)
-    }))
-
-    resources.value = enriched
+    resources.value = mapResources(plain)
   } catch (_) {
-    resources.value = [
-      { icon: getAssetUrl('resource/spiritual_spark.webp'), name: '灵性火花', value: 0 },
-      { icon: getAssetUrl('resource/recall_gear.webp'), name: '回响齿轮', value: 0 },
-      { icon: getAssetUrl('resource/resonant_star_crystal/resonant_star_crystal.webp'), name: '共鸣星晶', value: 0 },
-      { icon: getAssetUrl('resource/refined_copper_ingot/refined_copper_ingot.webp'), name: '精炼铜锭', value: 0 },
-      { icon: getAssetUrl('resource/heart_crystal_dust.webp'), name: '心晶尘', value: 0 }
-    ]
+    resources.value = mapResources({})
   }
+})
+
+// 订阅后端广播信息（如升级错误等）
+function handleGlobalInfo(raw) {
+  let msg = raw
+  if (typeof raw === 'string') {
+    try { msg = JSON.parse(raw) } catch (_) {}
+  }
+  if (msg && msg.type_msg) {
+    if (msg.type_msg === 'upgrade_cost_error') {
+      alert(msg.content || '升级等级错误')
+    } else {
+      console.log('[GlobalInfo]', msg)
+    }
+  }
+}
+
+onMounted(() => {
+  try { info_subscribe(handleGlobalInfo) } catch (_) { /* ignore */ }
 })
 
 const puppets = ref([])
@@ -104,54 +169,7 @@ onMounted(() => {
       }
     }
     console.log('[Warehouse] copper array length:', Array.isArray(arr) ? arr.length : 'not array')
-    const typeMap = { IronWall: '铁壁', Arcanist: '奥术', CraftsMan: '工匠', Mechanic: '机械', Resonator: '共振' }
-    puppets.value = (arr || []).map((copper, idx) => {
-      const info = copper?.copper_info || {}
-      const skill = info?.skill || {}
-      const equipmentSlot = copper?.equipment_slot || {}
-      const slot1 = equipmentSlot?.slot1 || null
-      const slot2 = equipmentSlot?.slot2 || null
-      const attr = copper?.attribute || {}
-      const equipAttr1 = slot1?.equipment_base?.attribute || {}
-      const equipAttr2 = slot2?.equipment_base?.attribute || {}
-      const bonusAttack = Number(equipAttr1.attack || 0) + Number(equipAttr2.attack || 0)
-      const bonusDefense = Number(equipAttr1.defense || 0) + Number(equipAttr2.defense || 0)
-      const bonusDodge = Number(equipAttr1.dodge || 0) + Number(equipAttr2.dodge || 0)
-      const typeName = info?.copper_type
-      return {
-        id: idx + 1,
-        name: info?.name ?? '未知铜偶',
-        level: copper?.level ?? 1,
-        image: info?.icon_url || '',
-        modelUrl: info?.model_url || '',
-        quantity: 1,
-        description: info?.description || '',
-        stats: {
-          level: `${copper?.level ?? 1}/5`,
-          attack: { base: Number(attr.attack || 0), bonus: bonusAttack },
-          defense: { base: Number(attr.defense || 0), bonus: bonusDefense },
-          dodge: { base: Number(attr.dodge || 0), bonus: bonusDodge },
-          class: typeMap[typeName] || '未知'
-        },
-        equipment: [
-          slot1
-            ? { name: slot1.equipment_base?.name || '装备', icon: slot1.equipment_base?.resource_url || '', equipped: true, locked: false }
-            : { name: '空槽', icon: '＋', equipped: false, locked: false },
-          equipmentSlot?.is_slot2_locked
-            ? { name: '未解锁', icon: '🔒', equipped: false, locked: true }
-            : (slot2
-                ? { name: slot2.equipment_base?.name || '装备', icon: slot2.equipment_base?.resource_url || '', equipped: true, locked: false }
-                : { name: '空槽', icon: '＋', equipped: false, locked: false })
-        ],
-        skill: {
-          name: skill?.name || '——',
-          cooldown: skill?.cool_down != null ? `${skill.cool_down}回合` : '——',
-          effect: skill?.description || '——',
-          icon: skill?.resource_url || ''
-        },
-        upgradeCost: 10
-      }
-    })
+    puppets.value = mapPuppets(arr)
     if (Array.isArray(puppets.value) && puppets.value.length > 0) {
       selectedPuppet.value = puppets.value[0]
     }
@@ -223,69 +241,44 @@ async function onGachaResult(payload) {
   try {
     // 刷新资源
     const resPlain = get_resource()
-    const orderedKeys = ['SpiritalSpark','RecallGear','ResonantCrystal','RefinedCopper','HeartCrystalDust']
-    const meta = {
-      SpiritalSpark: { name: '灵性火花', icon: getAssetUrl('resource/spiritual_spark.webp') },
-      RecallGear: { name: '回响齿轮', icon: getAssetUrl('resource/recall_gear.webp') },
-      ResonantCrystal: { name: '共鸣星晶', icon: getAssetUrl('resource/resonant_star_crystal/resonant_star_crystal.webp') },
-      RefinedCopper: { name: '精炼铜锭', icon: getAssetUrl('resource/refined_copper_ingot/refined_copper_ingot.webp') },
-      HeartCrystalDust: { name: '心晶尘', icon: getAssetUrl('resource/heart_crystal_dust.webp') }
-    }
-    resources.value = orderedKeys.map(k => ({ icon: meta[k].icon, name: meta[k].name, value: Number(resPlain?.[k] ?? 0) }))
+    resources.value = mapResources(resPlain)
 
     // 刷新铜偶列表
     const listPlain = get_copper_list()
     const arr = Array.isArray(listPlain?.coppers) ? listPlain.coppers : []
-    const typeMap = { IronWall: '铁壁', Arcanist: '奥术', CraftsMan: '工匠', Mechanic: '机械', Resonator: '共振' }
-    puppets.value = (arr || []).map((copper, idx) => {
-      const info = copper?.copper_info || {}
-      const skill = info?.skill || {}
-      const equipmentSlot = copper?.equipment_slot || {}
-      const slot1 = equipmentSlot?.slot1 || null
-      const slot2 = equipmentSlot?.slot2 || null
-      const attr = copper?.attribute || {}
-      const equipAttr1 = slot1?.equipment_base?.attribute || {}
-      const equipAttr2 = slot2?.equipment_base?.attribute || {}
-      const bonusAttack = Number(equipAttr1.attack || 0) + Number(equipAttr2.attack || 0)
-      const bonusDefense = Number(equipAttr1.defense || 0) + Number(equipAttr2.defense || 0)
-      const bonusDodge = Number(equipAttr1.dodge || 0) + Number(equipAttr2.dodge || 0)
-      const typeName = info?.copper_type
-      return {
-        id: idx + 1,
-        name: info?.name ?? '未知铜偶',
-        level: copper?.level ?? 1,
-        image: info?.icon_url || '',
-        modelUrl: info?.model_url || '',
-        quantity: 1,
-        description: info?.description || '',
-        stats: {
-          level: `${copper?.level ?? 1}/5`,
-          attack: { base: Number(attr.attack || 0), bonus: bonusAttack },
-          defense: { base: Number(attr.defense || 0), bonus: bonusDefense },
-          dodge: { base: Number(attr.dodge || 0), bonus: bonusDodge },
-          class: typeMap[typeName] || '未知'
-        },
-        equipment: [
-          slot1
-            ? { name: slot1.equipment_base?.name || '装备', icon: slot1.equipment_base?.resource_url || '', equipped: true, locked: false }
-            : { name: '空槽', icon: '＋', equipped: false, locked: false },
-          equipmentSlot?.is_slot2_locked
-            ? { name: '未解锁', icon: '🔒', equipped: false, locked: true }
-            : (slot2
-                ? { name: slot2.equipment_base?.name || '装备', icon: slot2.equipment_base?.resource_url || '', equipped: true, locked: false }
-                : { name: '空槽', icon: '＋', equipped: false, locked: false })
-        ],
-        skill: {
-          name: skill?.name || '——',
-          cooldown: skill?.cool_down != null ? `${skill.cool_down}回合` : '——',
-          effect: skill?.description || '——',
-          icon: skill?.resource_url || ''
-        },
-        upgradeCost: 10
-      }
-    })
+    puppets.value = mapPuppets(arr)
 
     // 子组件内展示结果，这里不再弹窗
+  } catch (_) {}
+}
+
+// 升级当前选中铜偶并刷新数据
+async function upgradeSelected() {
+  if (!selectedPuppet.value) return
+  if (Number(selectedPuppet.value.level || 0) >= 5) {
+    alert('已达满级')
+    return
+  }
+  const id = selectedPuppet.value.id
+  const res = upgrade_copper(id)
+  if (!res || res.type !== 'success') {
+    alert(res && res.content ? res.content : '升级失败')
+    return
+  }
+
+  try {
+    // 刷新资源（升级消耗的是灵性火花）
+    const resPlain = get_resource()
+    resources.value = mapResources(resPlain)
+
+    // 刷新铜偶列表
+    const listPlain = get_copper_list()
+    const arr = Array.isArray(listPlain?.coppers) ? listPlain.coppers : []
+    puppets.value = mapPuppets(arr)
+
+    // 维持选中项（按 id 匹配）
+    const updated = puppets.value.find(p => p.id === id)
+    if (updated) selectedPuppet.value = updated
   } catch (_) {}
 }
 
@@ -319,7 +312,7 @@ async function onGachaResult(payload) {
               <img :src="puppet.image" :alt="puppet.name" />
             </div>
             <div class="puppet-card__info">
-              <div class="puppet-card__name">{{ puppet.name }}</div>
+              <div class="puppet-card__name">{{ puppet.name }}{{ puppet.suffix }}</div>
               <div class="puppet-card__level">{{ puppet.level }}级</div>
             </div>
           </div>
@@ -353,20 +346,34 @@ async function onGachaResult(payload) {
               <div class="puppet-detail__stats">
                 <div class="stats-section">
                   <div class="stat-item">
+                    <span class="stat-label">生命:</span>
+                    <span class="stat-value">{{ selectedPuppet.stats.health }}</span>
+                  </div>
+                  <div class="stat-item">
                     <span class="stat-label">等级:</span>
                     <span class="stat-value">{{ selectedPuppet.stats.level }}</span>
                   </div>
                   <div class="stat-item">
+                    <span class="stat-label">剩余上场次数:</span>
+                    <span class="stat-value">{{ selectedPuppet.stats.live_left }}</span>
+                  </div>
+                  <div class="stat-item">
                     <span class="stat-label">攻击力:</span>
-                    <span class="stat-value">{{ selectedPuppet.stats.attack.base }} <span class="stat-bonus">(+{{ selectedPuppet.stats.attack.bonus }})</span></span>
+                    <span class="stat-value">{{ selectedPuppet.stats.attack.base }} 
+                      <!-- <span class="stat-bonus">(+{{ selectedPuppet.stats.attack.bonus }})</span> -->
+                    </span>
                   </div>
                   <div class="stat-item">
                     <span class="stat-label">防御力:</span>
-                    <span class="stat-value">{{ selectedPuppet.stats.defense.base }} <span class="stat-bonus">(+{{ selectedPuppet.stats.defense.bonus }})</span></span>
+                    <span class="stat-value">{{ selectedPuppet.stats.defense.base }} 
+                      <!-- <span class="stat-bonus">(+{{ selectedPuppet.stats.defense.bonus }})</span> -->
+                    </span>
                   </div>
                   <div class="stat-item">
                     <span class="stat-label">闪避:</span>
-                    <span class="stat-value">{{ selectedPuppet.stats.dodge.base }}% <span class="stat-bonus">(+{{ selectedPuppet.stats.dodge.bonus }}%)</span></span>
+                    <span class="stat-value">{{ selectedPuppet.stats.dodge.base }}% 
+                      <!-- <span class="stat-bonus">(+{{ selectedPuppet.stats.dodge.bonus }}%)</span> -->
+                    </span>
                   </div>
                   <div class="stat-item">
                     <span class="stat-label">职业:</span>
@@ -386,7 +393,7 @@ async function onGachaResult(payload) {
               </div>
             </div>
             
-            <div class="skill-section">
+            <div class="skill-section" v-if="selectedPuppet?.stats?.class !== '工匠'">
               <h4 class="section-title">技能</h4>
               <div class="skill-info">
                 <div class="skill-text">
@@ -405,9 +412,9 @@ async function onGachaResult(payload) {
           <div class="puppet-detail__upgrade">
             <div class="upgrade-cost">
               <img class="cost-icon-img" :src="getAssetUrl('img/warehouse/goods/ea74bce606c59ac4ab84ab117375c0de813cea49.webp')" alt="cost" />
-              <span class="cost-amount">X {{ selectedPuppet.upgradeCost }}</span>
+              <span class="cost-amount">{{ selectedPuppet.level >= 5 ? '已满级' : ('X ' + selectedPuppet.upgradeCost) }}</span>
             </div>
-            <button class="upgrade-btn">
+            <button class="upgrade-btn" @click="upgradeSelected" :disabled="selectedPuppet?.level >= 5">
               <span class="upgrade-icon">⏫</span>
             </button>
           </div>
@@ -435,7 +442,7 @@ async function onGachaResult(payload) {
 .resource-icon img { width: 130%; height: 130%; object-fit: contain; }
 .resource-value { font-size: 24px; font-weight: 700; color: #fff; }
 .warehouse__main { flex: 1; display: flex; margin-top: 20px; min-height: 0; }
-.warehouse__sidebar { width: 70%; background: #3a2519; padding: 20px; display: flex; flex-direction: column; overflow: hidden; min-height: 0; }
+.warehouse__sidebar { width: 70%; background: #3a2519; padding: 20px; display: flex; flex-direction: column; overflow: hidden; min-height: 0; border-radius: 12px; }
 .warehouse__title { font-size: 24px; font-weight: 900; margin-bottom: 20px; color: #fff; }
 .puppet-list { display: flex; flex-wrap: wrap; gap: 4px; overflow-y: auto; flex: 1; padding-right: 8px; min-height: 0; -webkit-overflow-scrolling: touch; }
 .puppet-card { position: relative; background: transparent; border-radius: 12px; padding: 0; cursor: pointer; transition: all 0.2s ease; width: 200px; height: 200px; display: flex; flex-direction: column; overflow: hidden; }
@@ -468,13 +475,13 @@ async function onGachaResult(payload) {
 .stat-label { color: #ccc; font-size: 14px; }
 .stat-value { color: #fff; font-weight: 600; }
 .stat-bonus { color: #4ade80; font-size: 12px; }
-.equipment-section { flex: 1; }
-.section-title { color: #fff; font-size: 16px; font-weight: 700; margin-bottom: 12px; }
-.equipment-slots { display: flex; gap: 8px; }
-.equipment-slot { width: 40px; height: 40px; background: #4b2e1f; border-radius: 6px; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+.equipment-section { flex: 0 0 96px; }
+.section-title { color: #fff; font-size: 16px; font-weight: 700; margin: 0; padding: 0; }
+.equipment-slots { display: flex; flex-direction: column; gap: 12px; align-items: flex-start; }
+.equipment-slot { width: 75px; height: 75px; background: #4b2e1f; border-radius: 8px; display: flex; align-items: center; justify-content: center; overflow: hidden; }
 .equipment-slot--empty { background: #2b1a11; border: 1px solid #666; }
 .equipment-slot--locked { background: #1a1410; border: 1px dashed #8a6b52; opacity: 0.7; }
-.equipment-icon { font-size: 20px; }
+.equipment-icon { font-size: 28px; }
 .equipment-slot img { width: 100%; height: 100%; object-fit: contain; display: block; }
 .skill-info { background: #4b2e1f; padding: 16px; border-radius: 10px; display: flex; align-items: center; justify-content: space-between; gap: 16px; }
 .skill-name { color: #fff; font-weight: 700; font-size: 20px; margin-bottom: 6px; }
