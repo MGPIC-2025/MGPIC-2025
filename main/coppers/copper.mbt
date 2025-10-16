@@ -24,6 +24,9 @@ pub struct CopperInfo {
 pub fn summon_copper_from_info(name : String) -> Copper {
   let copper_info = copper_info_map[name]
   let id = @id.id_pool.get_id()
+  let equipment_slot = EquipmentSlot::new().equip(
+    @equipment.Equipment::new(@equipment.equipment_list[0]),
+  ).0
   Copper::{
     id,
     level: 1,
@@ -31,7 +34,7 @@ pub fn summon_copper_from_info(name : String) -> Copper {
     live_left: 5,
     attribute: get_default_attribute(copper_info.copper_type),
     copper_type: copper_info.copper_type,
-    equipment_slot: EquipmentSlot::new(),
+    equipment_slot: equipment_slot,
     copper_info,
   }
 }
