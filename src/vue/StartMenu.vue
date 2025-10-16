@@ -85,15 +85,17 @@ function destroyScene() {
   logoObject = null;
 }
 
-async function initScene() {
+async function initScene(onProgress = null) {
   // 暴露资源加载器到全局，兼容旧逻辑
   try {
     window.getAssetUrl = getAssetUrl;
     window.precacheAllResources = precacheAllResources;
     window.getCacheStatus = getCacheStatus;
-    // 在后台预缓存
-    precacheAllResources().catch(() => {});
   } catch (_) {}
+
+  // 步骤1：初始化基础场景
+  if (onProgress) onProgress(0, 100, 10);
+  await new Promise(resolve => setTimeout(resolve, 30));
 
   scene = new THREE.Scene();
   scene.background = new THREE.Color("#a0a0a0");
@@ -102,9 +104,17 @@ async function initScene() {
   camera.position.set(-3.655, 0.2, -0.006);
   camera.rotation.set(-1.618275, -1.538307, -1.6183, "XYZ");
 
+  // 步骤2：初始化渲染器
+  if (onProgress) onProgress(0, 100, 20);
+  await new Promise(resolve => setTimeout(resolve, 30));
+
   renderer = new THREE.WebGLRenderer({ antialias: true, canvas: canvasRef.value });
   renderer.setSize(window.innerWidth, window.innerHeight);
   renderer.setPixelRatio(window.devicePixelRatio);
+
+  // 步骤3：设置光照
+  if (onProgress) onProgress(0, 100, 30);
+  await new Promise(resolve => setTimeout(resolve, 30));
 
   const ambientLight = new THREE.AmbientLight(0x404040, 0.4);
   scene.add(ambientLight);
@@ -112,10 +122,18 @@ async function initScene() {
   directionalLight.position.set(-5, -2, 1);
   scene.add(directionalLight);
 
+  // 步骤4：初始化DRACO解码器
+  if (onProgress) onProgress(0, 100, 40);
+  await new Promise(resolve => setTimeout(resolve, 50));
+
   const dracoLoader = new DRACOLoader();
   dracoLoader.setDecoderPath("https://www.gstatic.com/draco/versioned/decoders/1.5.7/");
   const loader = new GLTFLoader();
   loader.setDRACOLoader(dracoLoader);
+
+  // 步骤5：检查模型文件
+  if (onProgress) onProgress(0, 100, 50);
+  await new Promise(resolve => setTimeout(resolve, 30));
 
   const logoUrl = (window.getAssetUrl ? window.getAssetUrl("logo.glb") : "./assets/logo.glb");
 
@@ -124,9 +142,16 @@ async function initScene() {
   });
 
   try {
+    // 步骤6：下载模型文件
+    if (onProgress) onProgress(0, 100, 60);
     const head = await fetch(logoUrl, { method: "HEAD", mode: "cors", credentials: "omit" });
     if (!head.ok) throw new Error("logo not ok");
+    
+    if (onProgress) onProgress(0, 100, 70);
     const gltf = await tryLoad();
+    
+    // 步骤7：设置模型
+    if (onProgress) onProgress(0, 100, 80);
     gltf.scene.position.set(0, 0, 0);
     scene.add(gltf.scene);
     const box = new THREE.Box3().setFromObject(gltf.scene);
@@ -134,10 +159,20 @@ async function initScene() {
     gltf.scene.position.set(-center.x, -center.y, -center.z);
     try { gltf.scene.scale.setScalar(baseScale); } catch (_) {}
     logoObject = gltf.scene;
+    
+    // 步骤8：启动渲染
+    if (onProgress) onProgress(0, 100, 90);
+    await new Promise(resolve => setTimeout(resolve, 50));
+    
     isReady.value = true;
+    if (onProgress) onProgress(0, 100, 100);
+    
   } catch (_) {
     try {
+      if (onProgress) onProgress(0, 100, 60);
       const gltf = await tryLoad();
+      
+      if (onProgress) onProgress(0, 100, 80);
       gltf.scene.position.set(0, 0, 0);
       scene.add(gltf.scene);
       const box = new THREE.Box3().setFromObject(gltf.scene);
@@ -145,9 +180,23 @@ async function initScene() {
       gltf.scene.position.set(-center.x, -center.y, -center.z);
       try { gltf.scene.scale.setScalar(baseScale); } catch (_) {}
       logoObject = gltf.scene;
+      
+      if (onProgress) onProgress(0, 100, 90);
+      await new Promise(resolve => setTimeout(resolve, 50));
+      
       isReady.value = true;
+      if (onProgress) onProgress(0, 100, 100);
     } catch (e) {
-      // 忽略最终失败
+      console.warn('3D模型加载失败，使用占位符');
+      // 创建占位符
+      const geometry = new THREE.BoxGeometry(1, 1, 1);
+      const material = new THREE.MeshBasicMaterial({ color: 0xf59e0b });
+      const placeholder = new THREE.Mesh(geometry, material);
+      scene.add(placeholder);
+      logoObject = placeholder;
+      
+      if (onProgress) onProgress(0, 100, 100);
+      isReady.value = true;
     }
   }
 
@@ -169,7 +218,15 @@ function onOpenSettings() { showSettings.value = true }
 function onCloseSettings() { showSettings.value = false }
 
 onMounted(() => {
-  initScene();
+  // 不在这里初始化场景，等待资源加载完成后再初始化
+  console.log('StartMenu组件已挂载，等待资源加载...');
+  
+  // 暴露3D场景初始化函数到全局
+  window.__INIT_THREE_SCENE__ = async (onProgress) => {
+    console.log('开始初始化3D场景...');
+    await initScene(onProgress);
+    console.log('3D场景初始化完成');
+  };
 });
 
 onBeforeUnmount(() => {

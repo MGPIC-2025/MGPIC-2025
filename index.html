@@ -171,16 +171,26 @@
       import { precacheAllResources } from "./src/utils/resourceLoader.js";
 
       // 更新进度条
-      function updateProgress(current, total, percentage) {
+      function updateProgress(current, total, percentage, message = '') {
         const progressBar = document.getElementById('progress-bar');
         const progressText = document.getElementById('progress-text');
+        const loadingSubtitle = document.querySelector('.loading-subtitle');
         
         if (progressBar) {
           progressBar.style.width = percentage + '%';
         }
         
         if (progressText) {
-          progressText.textContent = `${current} / ${total} (${percentage}%)`;
+          // 如果是3D场景加载（current和total都为0），显示不同的格式
+          if (current === 0 && total === 0) {
+            progressText.textContent = `${percentage}%`;
+          } else {
+            progressText.textContent = `${current} / ${total} (${percentage}%)`;
+          }
+        }
+        
+        if (loadingSubtitle && message) {
+          loadingSubtitle.textContent = message;
         }
       }
 
@@ -198,24 +208,50 @@
       // 初始化应用
       async function initApp() {
         try {
-          // 先执行预缓存
-          // precacheAllResources(onProgress, priorities)
-          // priorities 默认为 ['high', 'medium']
-          // 可选: ['high'], ['high', 'medium'], ['high', 'medium', 'low']
           console.log('开始预缓存资源...');
-          await precacheAllResources(updateProgress);
-          console.log('预缓存完成！');
           
-          // 预缓存完成后，挂载 Vue 应用
-          createApp(App).mount("#app");
+          // 步骤1：预加载关键资源 (保持原有进度条)
+          await precacheAllResources(updateProgress, ['high']);
           
-          // 短暂延迟后隐藏加载界面，让用户看到100%
+          console.log('关键资源预缓存完成！');
+          
+          // 步骤2：挂载Vue应用
+          updateProgress(0, 100, 100, "初始化应用界面...");
+          const app = createApp(App);
+          app.mount("#app");
+          
+          // 步骤3：等待Vue组件挂载完成
+          await new Promise(resolve => setTimeout(resolve, 200));
+          
+          // 步骤4：初始化3D场景 (在原有进度条基础上继续)
+          if (window.__INIT_THREE_SCENE__) {
+            await window.__INIT_THREE_SCENE__((current, total, percentage) => {
+              // 3D场景加载显示在进度条上，使用更合适的格式
+              updateProgress(0, 0, percentage, `3D场景加载中... ${percentage}%`);
+            });
+          }
+          
+          console.log('所有初始化完成！');
+          
+          // 短暂延迟后隐藏加载界面
           setTimeout(() => {
             hideLoadingScreen();
-          }, 500);
+          }, 300);
+          
+          // 在后台继续预加载其他资源
+          setTimeout(async () => {
+            try {
+              console.log('开始后台预缓存其他资源...');
+              await precacheAllResources(null, ['medium']);
+              console.log('后台预缓存完成！');
+            } catch (error) {
+              console.warn('后台预缓存失败:', error);
+            }
+          }, 1000);
+          
         } catch (error) {
-          console.error('预缓存失败:', error);
-          // 即使预缓存失败也启动应用
+          console.error('初始化失败:', error);
+          // 即使失败也启动应用
           createApp(App).mount("#app");
           hideLoadingScreen();
         }
