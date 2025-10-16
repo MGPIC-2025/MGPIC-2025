@@ -199,6 +199,9 @@
       async function initApp() {
         try {
           // 先执行预缓存
+          // precacheAllResources(onProgress, priorities)
+          // priorities 默认为 ['high', 'medium']
+          // 可选: ['high'], ['high', 'medium'], ['high', 'medium', 'low']
           console.log('开始预缓存资源...');
           await precacheAllResources(updateProgress);
           console.log('预缓存完成！');
