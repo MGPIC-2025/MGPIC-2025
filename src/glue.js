@@ -1,5 +1,6 @@
 import {
   get_global,
+  get_global_info,
   global_gacha as global_gacha_api,
   global_get_resource as global_get_resource_api,
   global_get_copper_list as global_get_copper_list_api,

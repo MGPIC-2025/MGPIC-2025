@@ -3,43 +3,7 @@ import { ref, onMounted, defineExpose, nextTick } from 'vue'
 import { getAssetUrl } from '../utils/resourceLoader.js'
 import DrawScreen from './DrawScreen.vue'
 import PuppetModelView from './PuppetModelView.vue'
-import { get_global, global_get_resource, global_get_copper_list } from '../glue.js'
-
-// 将 Moonbit 的 Json.Object 递归解包为普通对象
-function unwrapMoonJson(input) {
-  if (input == null) return input
-  // 统一解包单层 _0 包装
-  const maybe = (typeof input === 'object' && '_0' in input && Object.keys(input).length === 1) ? input._0 : input
-  // 处理 Json.Number 等包含数值在 _0 字段的情况（可能还有 _1/$tag 等额外字段）
-  if (maybe && typeof maybe === 'object' && '_0' in maybe && typeof maybe._0 === 'number') {
-    return maybe._0
-  }
-  if (Array.isArray(maybe)) {
-    return maybe.map(unwrapMoonJson)
-  }
-  if (maybe && typeof maybe === 'object') {
-    // 处理 Moonbit Map：{ entries:[{key:K,value:V}...], size, ... }
-    if (Array.isArray(maybe.entries) && typeof maybe.size === 'number') {
-      const objectFromMap = {}
-      for (const entry of maybe.entries) {
-        if (!entry) continue
-        const k = (entry.key ?? entry._0 ?? entry[0])
-        const v = (entry.value ?? entry._1 ?? entry[1])
-        const keyStr = typeof k === 'string' ? k : (k && k._0 ? k._0 : String(k))
-        objectFromMap[keyStr] = unwrapMoonJson(v)
-      }
-      return objectFromMap
-    }
-    const out = {}
-    for (const key of Object.keys(maybe)) {
-      const val = maybe[key]
-      // 子项也可能是 {_0: ...}
-      out[key] = unwrapMoonJson(val)
-    }
-    return out
-  }
-  return maybe
-}
+import { get_resource, get_copper_list } from '../glue.js'
 
 function findKeyPath(root, targetKey, path = []) {
   if (!root || typeof root !== 'object') return null
@@ -66,11 +30,7 @@ const resources = ref([])
 
 onMounted(async () => {
   try {
-    const global = get_global()
-    const data = await global_get_resource(global)
-    console.log('[Warehouse] resource raw:', data)
-    const plain = unwrapMoonJson(data)
-    console.log('[Warehouse] resource plain(unwrapped):', plain)
+    const plain = get_resource()
 
     // 后端键名与顺序（见 src/main.js 导出）：
     // SpiritalSpark, RecallGear, ResonantCrystal, RefinedCopper, HeartCrystalDust
@@ -127,13 +87,9 @@ onMounted(async () => {
 const puppets = ref([])
 
 // 拉取铜偶列表
-onMounted(async () => {
+onMounted(() => {
   try {
-    const global = get_global()
-    const raw = await global_get_copper_list(global)
-    console.log('[Warehouse] copper raw:', raw)
-    const plainCopper = unwrapMoonJson(raw)
-    console.log('[Warehouse] copper plain(unwrapped):', plainCopper)
+    const plainCopper = get_copper_list()
     let arr = (plainCopper && Array.isArray(plainCopper.coppers)) ? plainCopper.coppers : []
     if (!Array.isArray(arr)) {
       const p = findKeyPath(plainCopper, 'coppers')
@@ -265,10 +221,8 @@ defineExpose({ handleBack })
 // 后端抽卡结果回调：刷新资源与铜偶列表，展示结果
 async function onGachaResult(payload) {
   try {
-    const g = get_global()
     // 刷新资源
-    const resRaw = await global_get_resource(g)
-    const resPlain = unwrapMoonJson(resRaw)
+    const resPlain = get_resource()
     const orderedKeys = ['SpiritalSpark','RecallGear','ResonantCrystal','RefinedCopper','HeartCrystalDust']
     const meta = {
       SpiritalSpark: { name: '灵性火花', icon: getAssetUrl('resource/spiritual_spark.webp') },
@@ -280,8 +234,7 @@ async function onGachaResult(payload) {
     resources.value = orderedKeys.map(k => ({ icon: meta[k].icon, name: meta[k].name, value: Number(resPlain?.[k] ?? 0) }))
 
     // 刷新铜偶列表
-    const listRaw = await global_get_copper_list(g)
-    const listPlain = unwrapMoonJson(listRaw)
+    const listPlain = get_copper_list()
     const arr = Array.isArray(listPlain?.coppers) ? listPlain.coppers : []
     const typeMap = { IronWall: '铁壁', Arcanist: '奥术', CraftsMan: '工匠', Mechanic: '机械', Resonator: '共振' }
     puppets.value = (arr || []).map((copper, idx) => {

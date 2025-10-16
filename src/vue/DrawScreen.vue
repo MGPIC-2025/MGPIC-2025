@@ -1,7 +1,7 @@
 <script setup>
 import { ref, nextTick } from 'vue'
 import { getAssetUrl } from '../utils/resourceLoader.js'
-import { get_global, global_gacha, global_get_resource } from '../glue.js'
+import { gacha, get_resource } from '../glue.js'
 
 const emit = defineEmits(['draw'])
 
@@ -32,7 +32,7 @@ function showToast(text) {
 
 async function refreshCanDraw() {
   try {
-    const data = await global_get_resource(get_global())
+    const data = get_resource()
     const unwrap = (input) => {
       if (input == null) return input
       const maybe = (typeof input === 'object' && '_0' in input && Object.keys(input).length === 1) ? input._0 : input
@@ -56,7 +56,7 @@ async function refreshCanDraw() {
       }
       return maybe
     }
-    const plain = unwrap(data)
+    const plain = data
     const spark = Number(plain?.SpiritalSpark ?? 0)
     canDraw.value = spark >= 10
   } catch (_) {
@@ -99,40 +99,9 @@ function runDrawSequence() {
     // 初始先展示卡背
     cardFlipped.value = true
     try {
-      const raw = await global_gacha(get_global())
-      console.log('[DrawScreen] gacha raw:', raw)
-      const unwrap = (input) => {
-        if (input == null) return input
-        // 解掉单层 _0 包装
-        const maybe = (typeof input === 'object' && '_0' in input && Object.keys(input).length === 1) ? input._0 : input
-        // Json.Number {_0:number}
-        if (maybe && typeof maybe === 'object' && '_0' in maybe && typeof maybe._0 === 'number') return maybe._0
-        // Moonbit Map: { entries: [{key,value}, ...], size, ... }
-        if (maybe && typeof maybe === 'object' && Array.isArray(maybe.entries) && typeof maybe.size === 'number') {
-          const obj = {}
-          for (const e of maybe.entries) {
-            if (!e) continue
-            const k = (e.key ?? e._0 ?? e[0])
-            const v = (e.value ?? e._1 ?? e[1])
-            const keyStr = typeof k === 'string' ? k : (k && k._0 ? k._0 : String(k))
-            obj[keyStr] = unwrap(v)
-          }
-          return obj
-        }
-        if (Array.isArray(maybe)) return maybe.map(unwrap)
-        if (maybe && typeof maybe === 'object') {
-          const out = {}
-          for (const k of Object.keys(maybe)) out[k] = unwrap(maybe[k])
-          return out
-        }
-        return maybe
-      }
-      const data = unwrap(raw)
-      console.log('[DrawScreen] gacha data:', data)
+      const data = gacha()
       if (data && data.type === 'success' && data.copper && data.copper.copper_info) {
         const info = data.copper.copper_info
-        console.log('[DrawScreen] gacha info:', info)
-        console.log('[DrawScreen] icon_url:', info.icon_url)
         tempName.value = info.name || '新铜偶'
         tempIcon.value = ''
         tempImage.value = resolveAssetUrl(info.icon_url || '')

@@ -15,19 +15,19 @@ pub fn Global::new() -> Global {
 ///|
 pub fn Global::get_resource(global : Global) -> String {
   let resource = global.resource
-  {
+  ({
     "SpiritalSpark": resource.get_resource(@resource.SpiritalSpark),
     "RecallGear": resource.get_resource(@resource.RecallGear),
     "ResonantCrystal": resource.get_resource(@resource.ResonantCrystal),
     "RefinedCopper": resource.get_resource(@resource.RefinedCopper),
     "HeartCrystalDust": resource.get_resource(@resource.HeartCrystalDust),
-  }.to_string()
+  } : Json).stringify()
 }
 
 ///|
 pub fn Global::get_copper_list(global : Global) -> String {
   let warehouse = global.warehouse
-  { "coppers": warehouse.get_copper_list().to_json() }.to_string()
+  ({ "coppers": warehouse.get_copper_list().to_json() } : Json).stringify()
 }
 
 ///|
@@ -39,7 +39,7 @@ pub fn Global::gacha(global : Global) -> String {
       { "type": "success", "copper": copper }
     } else {
       { "type": "error", "content": "资源不足" }
-    } : Json).to_string()
+    } : Json).stringify()
 }
 
 ///|
@@ -62,7 +62,7 @@ pub fn Global::upgrade_copper(global : Global, id : Int) -> String {
       { "type": "success" }
     } else {
       { "type": "error", "content": "资源不足" }
-    } : Json).to_string()
+    } : Json).stringify()
 }
 
 ///|
