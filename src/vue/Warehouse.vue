@@ -326,6 +326,10 @@ async function upgradeSelected() {
 
       <div class="warehouse__detail" ref="detailWrap">
         <div v-if="selectedPuppet" class="puppet-detail">
+          <!-- 3D模型区域 - 固定位置，不参与transition -->
+          <div class="puppet-detail__model-wrapper">
+            <PuppetModelView :puppet="selectedPuppet" />
+          </div>
           
           <!-- 文字内容区域 - 使用transition -->
           <transition name="fade-slide" mode="out-in">
@@ -335,14 +339,8 @@ async function upgradeSelected() {
               </div>
               
               <div class="puppet-detail__content">
-                <!-- 3D模型和描述并排显示 -->
-                <div class="puppet-detail__row">
-                  <div class="puppet-detail__model-wrapper">
-                    <PuppetModelView :puppet="selectedPuppet" />
-                  </div>
-                  <div class="puppet-detail__description">
-                    {{ selectedPuppet.description }}
-                  </div>
+                <div class="puppet-detail__description">
+                  {{ selectedPuppet.description }}
                 </div>
             
             <div class="puppet-detail__row">

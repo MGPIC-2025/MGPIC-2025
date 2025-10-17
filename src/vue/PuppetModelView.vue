@@ -220,7 +220,7 @@ async function loadPuppetModel(puppet) {
     if (gltfMemoryCache.has(modelUrl)) {
       console.log('[PuppetModelView] Loading from memory cache (instant):', modelUrl)
       const cachedGltf = gltfMemoryCache.get(modelUrl)
-      // 克隆场景以避免共享引用
+      // 克隆原始场景，每次都会应用新的变换
       gltf = {
         scene: cachedGltf.scene.clone(true),
         scenes: cachedGltf.scenes,
@@ -245,9 +245,18 @@ async function loadPuppetModel(puppet) {
             loader.parse(arrayBuffer, '', resolve, reject)
           })
           console.log('[PuppetModelView] GLTF loaded from Cache Storage:', gltf)
-          // 保存到内存缓存
-          gltfMemoryCache.set(modelUrl, gltf)
-          console.log('[PuppetModelView] GLTF saved to memory cache')
+          // 保存原始 GLTF 到内存缓存（避免后续修改影响缓存）
+          const gltfForCache = {
+            scene: gltf.scene.clone(true),
+            scenes: gltf.scenes,
+            animations: gltf.animations,
+            cameras: gltf.cameras,
+            asset: gltf.asset,
+            parser: gltf.parser,
+            userData: gltf.userData
+          }
+          gltfMemoryCache.set(modelUrl, gltfForCache)
+          console.log('[PuppetModelView] Original GLTF saved to memory cache')
         } else {
           throw new Error('No cached response available')
         }
@@ -256,9 +265,18 @@ async function loadPuppetModel(puppet) {
         // 缓存失败，直接从网络加载
         gltf = await loader.loadAsync(modelUrl)
         console.log('[PuppetModelView] GLTF loaded from network:', gltf)
-        // 保存到内存缓存
-        gltfMemoryCache.set(modelUrl, gltf)
-        console.log('[PuppetModelView] GLTF saved to memory cache')
+        // 保存原始 GLTF 到内存缓存（避免后续修改影响缓存）
+        const gltfForCache = {
+          scene: gltf.scene.clone(true),
+          scenes: gltf.scenes,
+          animations: gltf.animations,
+          cameras: gltf.cameras,
+          asset: gltf.asset,
+          parser: gltf.parser,
+          userData: gltf.userData
+        }
+        gltfMemoryCache.set(modelUrl, gltfForCache)
+        console.log('[PuppetModelView] Original GLTF saved to memory cache')
       }
     }
     // 检查是否是最新的加载请求
