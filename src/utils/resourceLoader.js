@@ -222,7 +222,7 @@ async function loadResourceWithRetry(url, options = {}) {
  * @param {Object} options - 加载选项
  * @returns {Promise<Response>} 响应对象
  */
-async function loadResourceWithCache(url, options = {}) {
+export async function loadResourceWithCache(url, options = {}) {
   // 首先检查本地缓存（Cache Storage API）
   if (cacheManager.isSupported()) {
     const cachedResponse = await cacheManager.getCachedResource(url);

@@ -3,13 +3,14 @@ import { ref, watch, onMounted, onBeforeUnmount, nextTick } from 'vue'
 import * as THREE from 'three'
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
 import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js'
-import { getAssetUrl } from '../utils/resourceLoader.js'
+import { getAssetUrl, loadResourceWithCache } from '../utils/resourceLoader.js'
 
 const props = defineProps({
   puppet: { type: Object, default: null }
 })
 
 const mountEl = ref(null)
+const isLoading = ref(false)  // 加载状态
 let renderer = null
 let scene = null
 let camera = null
@@ -22,14 +23,20 @@ let dracoLoader = null
 let loadSequence = 0 // 防止旧的异步加载结果覆盖新的选择
 let isInitialized = false // 添加初始化状态标记
 
+// 使用全局缓存，不受组件生命周期影响
+if (!window.__GLTF_MEMORY_CACHE__) {
+  window.__GLTF_MEMORY_CACHE__ = new Map()
+  console.log('[PuppetModelView] Initialized global GLTF memory cache')
+}
+const gltfMemoryCache = window.__GLTF_MEMORY_CACHE__
+
 function initThreeIfNeeded() {
   if (isInitialized) return
   
   const container = mountEl.value
   if (!container) {
-    console.log('[PuppetModelView] Container not ready, retrying...')
-    setTimeout(initThreeIfNeeded, 100)
-    return
+    console.warn('[PuppetModelView] Container not ready for Three.js initialization')
+    return  // 不再重试，由调用方控制时机
   }
   
   console.log('[PuppetModelView] Initializing Three.js...')
@@ -162,6 +169,10 @@ function fitCameraToObject(object) {
 async function loadPuppetModel(puppet) {
   if (!puppet) return
   console.log('[PuppetModelView] Loading puppet:', puppet.name)
+  
+  // 设置加载状态
+  isLoading.value = true
+  
   initThreeIfNeeded()
   clearCurrentModel()
   const token = ++loadSequence
@@ -201,8 +212,55 @@ async function loadPuppetModel(puppet) {
 
   try {
     console.log('[PuppetModelView] Starting to load:', modelUrl)
-    const gltf = await loader.loadAsync(modelUrl)
-    console.log('[PuppetModelView] GLTF loaded:', gltf)
+    console.log('[PuppetModelView] Memory cache size:', gltfMemoryCache.size, 'entries')
+    console.log('[PuppetModelView] Memory cache has this URL?', gltfMemoryCache.has(modelUrl))
+    
+    // 首先检查内存缓存
+    let gltf
+    if (gltfMemoryCache.has(modelUrl)) {
+      console.log('[PuppetModelView] Loading from memory cache (instant):', modelUrl)
+      const cachedGltf = gltfMemoryCache.get(modelUrl)
+      // 克隆场景以避免共享引用
+      gltf = {
+        scene: cachedGltf.scene.clone(true),
+        scenes: cachedGltf.scenes,
+        animations: cachedGltf.animations,
+        cameras: cachedGltf.cameras,
+        asset: cachedGltf.asset,
+        parser: cachedGltf.parser,
+        userData: cachedGltf.userData
+      }
+      console.log('[PuppetModelView] GLTF cloned from memory cache:', gltf)
+    } else {
+      // 内存缓存未命中，从 Cache Storage 或网络加载
+      try {
+        console.log('[PuppetModelView] Checking Cache Storage for:', modelUrl)
+        const cachedResponse = await loadResourceWithCache(modelUrl)
+        if (cachedResponse) {
+          console.log('[PuppetModelView] Loading from Cache Storage:', modelUrl)
+          // 从缓存的响应创建 ArrayBuffer
+          const arrayBuffer = await cachedResponse.arrayBuffer()
+          // 使用 GLTFLoader 的 parse 方法直接解析
+          gltf = await new Promise((resolve, reject) => {
+            loader.parse(arrayBuffer, '', resolve, reject)
+          })
+          console.log('[PuppetModelView] GLTF loaded from Cache Storage:', gltf)
+          // 保存到内存缓存
+          gltfMemoryCache.set(modelUrl, gltf)
+          console.log('[PuppetModelView] GLTF saved to memory cache')
+        } else {
+          throw new Error('No cached response available')
+        }
+      } catch (cacheError) {
+        console.log('[PuppetModelView] Cache miss, loading from network:', modelUrl)
+        // 缓存失败，直接从网络加载
+        gltf = await loader.loadAsync(modelUrl)
+        console.log('[PuppetModelView] GLTF loaded from network:', gltf)
+        // 保存到内存缓存
+        gltfMemoryCache.set(modelUrl, gltf)
+        console.log('[PuppetModelView] GLTF saved to memory cache')
+      }
+    }
     // 检查是否是最新的加载请求
     if (token !== loadSequence) {
       console.log('[PuppetModelView] Ignoring outdated load result for:', puppet.name)
@@ -224,6 +282,23 @@ async function loadPuppetModel(puppet) {
     }
     
     console.log('[PuppetModelView] Applying model for:', puppet.name)
+    
+    // 确保 Three.js 场景已经初始化
+    if (!scene) {
+      console.log('[PuppetModelView] Scene not ready, initializing...')
+      initThreeIfNeeded()
+      // 等待场景初始化
+      let waitCount = 0
+      while (!scene && waitCount < 40) {
+        await new Promise(resolve => setTimeout(resolve, 50))
+        waitCount++
+      }
+      if (!scene) {
+        console.error('[PuppetModelView] Scene initialization timeout')
+        return
+      }
+    }
+    
     currentModel = gltf.scene || gltf.scenes?.[0]
     if (!currentModel) {
       console.error('[PuppetModelView] No scene found in GLTF')
@@ -237,6 +312,9 @@ async function loadPuppetModel(puppet) {
     }
     fitCameraToObject(currentModel)
     console.log('[PuppetModelView] Model loaded successfully:', puppet.name, 'Scene children:', scene.children.length)
+    
+    // 加载完成，清除加载状态
+    isLoading.value = false
   } catch (e) {
     console.error('[PuppetModelView] Load failed:', e)
     console.error('[PuppetModelView] Failed URL:', modelUrl)
@@ -277,20 +355,31 @@ async function loadPuppetModel(puppet) {
       scene.add(currentModel)
       fitCameraToObject(currentModel)
     }
+    
+    // 加载失败，清除加载状态
+    isLoading.value = false
   }
 }
 
 watch(() => props.puppet, async (val) => {
+  // 等待下一个 tick 确保 DOM 已更新
   await nextTick()
   loadPuppetModel(val)
-}, { immediate: true })
+}, { immediate: false })  // 改为 false，让 onMounted 先执行
 
 onMounted(() => {
   console.log('[PuppetModelView] Component mounted')
-  // 确保容器存在后再初始化
+  // 立即初始化 Three.js（同步）
   nextTick(() => {
     if (mountEl.value) {
       initThreeIfNeeded()
+      // 初始化完成后异步加载初始模型（不阻塞）
+      if (props.puppet) {
+        // 使用 setTimeout 让文字内容先渲染
+        setTimeout(() => {
+          loadPuppetModel(props.puppet)
+        }, 0)
+      }
     }
   })
 })
@@ -324,13 +413,56 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div ref="mountEl" class="model-canvas"></div>
-  
+  <div class="model-wrapper">
+    <div ref="mountEl" class="model-canvas"></div>
+    <div v-if="isLoading" class="model-loading">
+      <div class="loading-spinner"></div>
+    </div>
+  </div>
 </template>
 
 <style scoped>
-.model-canvas { width: 100%; height: 100%; }
-.model-canvas canvas { position: absolute; inset: 0; width: 100% !important; height: 100% !important; display: block; }
+.model-wrapper {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.model-canvas { 
+  width: 100%; 
+  height: 100%; 
+}
+
+.model-canvas canvas { 
+  position: absolute; 
+  inset: 0; 
+  width: 100% !important; 
+  height: 100% !important; 
+  display: block; 
+}
+
+.model-loading {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.1);
+  pointer-events: none;
+}
+
+.loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid rgba(255, 255, 255, 0.3);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
 </style>
 
 
