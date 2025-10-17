@@ -143,8 +143,8 @@ function fitCameraToObject(object) {
   object.position.sub(center)
 
   // 调整模型位置，使其更居中
-  const offsetX = -0.15  // 移除X轴偏移，使模型居中
-  const offsetY = 0.17  // 移除Y轴偏移，使模型居中
+  const offsetX = -0.3  // 移除X轴偏移，使模型居中
+  const offsetY = 0.3  // 移除Y轴偏移，使模型居中
   const offsetZ = 0  // 移除Z轴偏移，使模型居中
   object.position.add(new THREE.Vector3(offsetX, offsetY, offsetZ))
 
