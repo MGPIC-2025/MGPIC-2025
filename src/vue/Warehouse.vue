@@ -327,9 +327,7 @@ async function upgradeSelected() {
       <div class="warehouse__detail" ref="detailWrap">
         <div v-if="selectedPuppet" class="puppet-detail">
           <!-- 3D模型区域 - 固定位置，不参与transition -->
-          <div class="puppet-detail__model-wrapper">
-            <PuppetModelView :puppet="selectedPuppet" />
-          </div>
+          
           
           <!-- 文字内容区域 - 使用transition -->
           <transition name="fade-slide" mode="out-in">
@@ -339,8 +337,13 @@ async function upgradeSelected() {
               </div>
               
               <div class="puppet-detail__content">
-                <div class="puppet-detail__description">
-                  {{ selectedPuppet.description }}
+                <div class="puppet-detail__top-row">
+                  <div class="puppet-detail__model-wrapper">
+                    <PuppetModelView :puppet="selectedPuppet" />
+                  </div>
+                  <div class="puppet-detail__description">
+                    {{ selectedPuppet.description }}
+                  </div>
                 </div>
             
             <div class="puppet-detail__row">
@@ -484,7 +487,7 @@ async function upgradeSelected() {
 .puppet-detail__description {
   flex: 1;
   color: #ccc; 
-  font-size: 11.5px; 
+  font-size: 12px; 
   line-height: 1.6;
   padding-left: 20px;
 }
@@ -492,6 +495,7 @@ async function upgradeSelected() {
 .puppet-detail__header { margin-bottom: 10px; }
 .puppet-detail__name { font-size: 28px; font-weight: 900; color: #fff; margin: 0; }
 .puppet-detail__content { flex: 1; display: flex; flex-direction: column; gap: 20px; }
+.puppet-detail__top-row { display: flex; gap: 20px; align-items: stretch; }
 .puppet-detail__row { display: flex; gap: 20px; }
 .model-placeholder { color: #999; font-size: 16px; }
 .puppet-detail__stats { flex: 1; display: flex; flex-direction: column; gap: 8px; }
