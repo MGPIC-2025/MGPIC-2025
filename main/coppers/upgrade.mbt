@@ -21,13 +21,13 @@ pub fn Copper::apply_upgrade(copper : Copper) -> Copper {
 pub fn get_upgrade_effect(copper : Copper) -> @attribute.Attribute {
   match copper.copper_type {
     IronWall =>
-      @attribute.Attribute::new(health=10, attack=1, defense=1, dodge=1)
+      @attribute.Attribute::new(health=30, attack=5, defense=5, dodge=5)
     Arcanist =>
-      @attribute.Attribute::new(health=5, attack=2, defense=0.5, dodge=0.5)
+      @attribute.Attribute::new(health=15, attack=10, defense=2.5, dodge=2.5)
     Resonator =>
-      @attribute.Attribute::new(health=5, attack=1, defense=0.5, dodge=0.5)
+      @attribute.Attribute::new(health=15, attack=2.5, defense=2.5, dodge=2.5)
     Mechanic | CraftsMan =>
-      @attribute.Attribute::new(health=5, attack=0.5, defense=5, dodge=0.5)
+      @attribute.Attribute::new(health=15, attack=2.5, defense=2.5, dodge=2.5)
   }
 }
 

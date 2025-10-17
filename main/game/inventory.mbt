@@ -23,7 +23,12 @@ struct Inventory {
 }
 
 ///|
-fn Inventory::new(capacity : Int) -> Inventory {
+pub fn Item::new(item_type : ItemType, count? : Int = 1) -> Item {
+  { item_type, count }
+}
+
+///|
+pub fn Inventory::new(capacity : Int) -> Inventory {
   { capacity, items: [] }
 }
 

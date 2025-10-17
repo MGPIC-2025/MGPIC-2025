@@ -1,9 +1,8 @@
 ///|
-let random : @random.Rand = @random.Rand::new()
 
 ///|
 fn summon_random_number(min : Int, max : Int) -> Int {
-  min + random.int(limit=max - min + 1)
+  min + @rand.random.int(limit=max - min + 1)
 }
 
 ///|
