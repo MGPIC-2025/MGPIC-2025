@@ -1,5 +1,6 @@
 ///|
 enum Occupant {
+  Enemy(Enemy)
   Copper(Copper)
   Material(Material)
   ChargingCoil
@@ -8,17 +9,16 @@ enum Occupant {
 
 ///|
 struct MapBlock {
-  occupant : Occupant
+  mut occupant : Occupant
   resources : Array[Item]
 }
 
 ///|
-struct Room {
-  blocks : Array[Array[MapBlock]]
+pub fn MapBlock::new() -> MapBlock {
+  { occupant: Empty, resources: [] }
 }
 
 ///|
-struct Map {
+struct Map_ {
   rooms : Array[Array[Room]]
 }
-

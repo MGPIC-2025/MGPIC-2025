@@ -1,6 +1,7 @@
 ///|
 let enemy_list : Array[EnemyBase] = [
   {
+    level: 1,
     health: 30,
     attack: 5,
     defense: 0,
@@ -14,6 +15,7 @@ let enemy_list : Array[EnemyBase] = [
     drop_items: [],
   },
   {
+    level: 1,
     health: 100,
     attack: 20,
     defense: 5,
@@ -27,6 +29,7 @@ let enemy_list : Array[EnemyBase] = [
     drop_items: [],
   },
   {
+    level: 2,
     health: 40,
     attack: 5,
     defense: 3,
@@ -40,6 +43,7 @@ let enemy_list : Array[EnemyBase] = [
     drop_items: [],
   },
   {
+    level: 3,
     health: 200,
     attack: 30,
     defense: 20,
@@ -53,6 +57,7 @@ let enemy_list : Array[EnemyBase] = [
     drop_items: [],
   },
   {
+    level: 2,
     health: 10,
     attack: 20,
     defense: 5,
@@ -66,6 +71,7 @@ let enemy_list : Array[EnemyBase] = [
     drop_items: [],
   },
   {
+    level: 2,
     health: 20,
     attack: 50,
     defense: 0,
@@ -79,6 +85,7 @@ let enemy_list : Array[EnemyBase] = [
     drop_items: [],
   },
   {
+    level: 5,
     health: 300,
     attack: 10,
     defense: 20,
@@ -92,6 +99,7 @@ let enemy_list : Array[EnemyBase] = [
     drop_items: [],
   },
   {
+    level: 6,
     health: 20,
     attack: 80,
     defense: 0,
@@ -105,6 +113,7 @@ let enemy_list : Array[EnemyBase] = [
     drop_items: [],
   },
   {
+    level: 7,
     health: 150,
     attack: 30,
     defense: 20,
@@ -118,6 +127,7 @@ let enemy_list : Array[EnemyBase] = [
     drop_items: [],
   },
   {
+    level: 8,
     health: 50,
     attack: 30,
     defense: 5,
@@ -131,6 +141,7 @@ let enemy_list : Array[EnemyBase] = [
     drop_items: [],
   },
   {
+    level: 9,
     health: 200,
     attack: 40,
     defense: 20,
@@ -144,29 +155,36 @@ let enemy_list : Array[EnemyBase] = [
     drop_items: [],
   },
   {
+    level: 11,
     health: 1000,
     attack: 80,
     defense: 50,
     dodge: 0,
     attack_range: 1,
     move_range: 1,
-    name: "（BOSS）织网夫人 · 夏特拉",
+    name: "（BOSS）织网夫人·夏特拉",
     description: "夏特拉曾是王朝的“信息架构师”，负责维护整个王城的心源能量网络。大休眠发生时，她为了稳定网络，选择将自己的核心与主控终端永久连接。数百年的孤独守护和能量侵蚀让她变得偏执，她认为任何外来者都是不稳定的“病毒”，会破坏她精心维持的、死寂的“平衡”。她会操纵整个地牢的机关和能量流来攻击玩家，将玩家视为需要清除的系统威胁。",
     asset_url: "/assets/enemy/shatra/shatra.webp",
     model_url: "/assets/enemy/shatra/shatra.glb",
     drop_items: [],
   },
   {
+    level: 11,
     health: 3000,
     attack: 50,
     defense: 50,
     dodge: 0,
     attack_range: 1,
     move_range: 1,
-    name: "（BOSS）废械吞噬者 · 饕餮",
+    name: "（BOSS）废械吞噬者·饕餮",
     description: "它不是被制造的，而是“生长”出来的。在王朝崩溃的废墟中，一个简单的“垃圾处理”核心程序发生了可怕的变异，它开始主动吞噬遇到的一切机械体，并将它们的功能和结构粗暴地整合到自己身上。它代表着纯粹的、无意识的毁灭与贪婪，是地牢中会移动的天灾。击败它需要攻击其身上不断变化的弱点核心。",
     asset_url: "/assets/enemy/glutton/glutton.webp",
     model_url: "/assets/enemy/glutton/glutton.glb",
     drop_items: [],
   },
 ]
+
+///|
+let enemy_map : Map[String, EnemyBase] = Map::from_iter(
+  enemy_list.iter().map(enemy => (enemy.name, enemy)),
+)

@@ -6,6 +6,7 @@ pub struct Enemy {
 
 ///|
 struct EnemyBase {
+  level: Int
   health : Int
   attack : Int
   defense : Int
