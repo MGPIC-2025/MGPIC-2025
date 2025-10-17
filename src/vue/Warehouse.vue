@@ -325,22 +325,23 @@ async function upgradeSelected() {
       </div>
 
       <div class="warehouse__detail" ref="detailWrap">
-        <transition name="fade-slide" mode="out-in">
-        <div v-if="selectedPuppet" class="puppet-detail" :key="selectedPuppet?.id || 'none'">
-          <div class="puppet-detail__header">
-            <h2 class="puppet-detail__name">{{ selectedPuppet.name }}</h2>
+        <div v-if="selectedPuppet" class="puppet-detail">
+          <!-- 3D模型区域 - 保持挂载，不参与transition -->
+          <div class="puppet-detail__model-wrapper">
+            <PuppetModelView :puppet="selectedPuppet" />
           </div>
           
-          <div class="puppet-detail__content">
-            <div class="puppet-detail__row">
-              <div class="puppet-detail__model">
-                <PuppetModelView :puppet="selectedPuppet" />
+          <!-- 文字内容区域 - 使用transition -->
+          <transition name="fade-slide" mode="out-in">
+            <div :key="selectedPuppet?.id" class="puppet-detail__info">
+              <div class="puppet-detail__header">
+                <h2 class="puppet-detail__name">{{ selectedPuppet.name }}</h2>
               </div>
               
-              <div class="puppet-detail__description">
-                {{ selectedPuppet.description }}
-              </div>
-            </div>
+              <div class="puppet-detail__content">
+                <div class="puppet-detail__description">
+                  {{ selectedPuppet.description }}
+                </div>
             
             <div class="puppet-detail__row">
               <div class="puppet-detail__stats">
@@ -417,11 +418,12 @@ async function upgradeSelected() {
               <span class="upgrade-icon">⏫</span>
             </button>
           </div>
+            </div>
+          </transition>
         </div>
-        <div v-else class="warehouse__placeholder" key="placeholder">
+        <div v-else class="warehouse__placeholder">
           <p>请选择英雄以浏览</p>
         </div>
-        </transition>
       </div>
     </div>
 
@@ -458,16 +460,39 @@ async function upgradeSelected() {
 .puppet-card__add-text { font-size: 16px; color: #999; }
 .warehouse__detail { width: 30%; background: #3a2519; margin: 20px; border-radius: 12px; display: flex; flex-direction: column; overflow-y: auto; max-height: calc(100vh - 140px); }
 .warehouse__placeholder { text-align: center; color: #ccc; font-size: 18px; padding: 40px; }
-.puppet-detail { padding: 20px; color: #fff; min-height: 100%; display: flex; flex-direction: column; }
-.puppet-detail__header { margin-bottom: 20px; }
+.puppet-detail { 
+  padding: 20px; 
+  color: #fff; 
+  min-height: 100%; 
+  display: flex; 
+  gap: 20px;
+}
+
+/* 3D模型区域 - 左侧固定 */
+.puppet-detail__model-wrapper { 
+  position: relative; 
+  background: #4b2e1f; 
+  border-radius: 8px; 
+  width: 200px; 
+  height: 200px; 
+  flex-shrink: 0; 
+  overflow: hidden; 
+}
+
+/* 文字信息区域 - 右侧可过渡 */
+.puppet-detail__info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.puppet-detail__header { margin-bottom: 10px; }
 .puppet-detail__name { font-size: 28px; font-weight: 900; color: #fff; margin: 0; }
 .puppet-detail__content { flex: 1; display: flex; flex-direction: column; gap: 20px; }
 .puppet-detail__row { display: flex; gap: 20px; }
-.puppet-detail__model { position: relative; background: #4b2e1f; border-radius: 8px; width: 200px; height: 200px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; overflow: hidden; }
 .model-placeholder { color: #999; font-size: 16px; }
-.model-canvas { width: 100%; height: 100%; }
-.model-canvas canvas { position: absolute; inset: 0; width: 100% !important; height: 100% !important; display: block; }
-.puppet-detail__description { flex: 1; color: #ccc; font-size: 12px; line-height: 1.6; }
+.puppet-detail__description { color: #ccc; font-size: 12px; line-height: 1.6; }
 .puppet-detail__stats { flex: 1; display: flex; flex-direction: column; gap: 8px; }
 .stats-section { display: flex; flex-direction: column; gap: 8px; }
 .stat-item { display: flex; justify-content: space-between; align-items: center; }
