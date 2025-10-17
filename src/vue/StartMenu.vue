@@ -47,7 +47,7 @@ function pause() {
 
 function resume() {
   if (!animationId) {
-    animationId = requestAnimationFrame(renderLoop);
+    renderLoop();
   }
 }
 
@@ -218,14 +218,10 @@ function onOpenSettings() { showSettings.value = true }
 function onCloseSettings() { showSettings.value = false }
 
 onMounted(() => {
-  // 不在这里初始化场景，等待资源加载完成后再初始化
-  console.log('StartMenu组件已挂载，等待资源加载...');
-  
-  // 暴露3D场景初始化函数到全局
+  // 外部会在资源加载完成后调用此函数
   window.__INIT_THREE_SCENE__ = async (onProgress) => {
-    console.log('开始初始化3D场景...');
+    if (scene && logoObject) return; // 场景已存在，跳过重复初始化
     await initScene(onProgress);
-    console.log('3D场景初始化完成');
   };
 });
 

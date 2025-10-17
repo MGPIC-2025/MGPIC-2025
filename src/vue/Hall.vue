@@ -9,10 +9,10 @@ function openWarehouse() { emit('openWarehouse') }
 function openTutorial() { emit('openTutorial') }
 function openEncyclopedia() { emit('openEncyclopedia') }
 
-const bgStart = ref(getAssetUrl('img/hall/start_game.webp'))
-const bgWarehouse = ref(getAssetUrl('img/hall/warehouse.webp'))
-const bgWiki = ref(getAssetUrl('img/hall/wiki.webp'))
-const bgTutorial = ref(getAssetUrl('img/hall/tutorial.webp'))
+const bgStart = ref(getAssetUrl('frontend_resource/start_game.webp'))
+const bgWarehouse = ref(getAssetUrl('frontend_resource/copper_warehouse.webp'))
+const bgWiki = ref(getAssetUrl('frontend_resource/game_wiki.webp'))
+const bgTutorial = ref(getAssetUrl('frontend_resource/Tutorial.webp'))
 
 onMounted(async () => {
   try {
