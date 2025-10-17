@@ -1,32 +1,70 @@
-// using @resource{type ResourceType}
-// using @equipment{type Equipment}
+///|
+using @resource {type ResourceType}
 
-// enum Items{
-//   Resource(ResourceType)
-//   Equipment(Equipment)
-// } derive(Eq)
+///|
+using @equipment {type Equipment}
 
-// struct Inventory {
-//   capacity:Int
-//   items:FixedArray[Items]
-// }
+///|
+enum ItemType {
+  Resource(ResourceType)
+  Equipment(Equipment)
+} derive(Eq)
 
-// fn Inventory::new(capacity:Int) -> Inventory {
-//   { capacity, items:[] }
-// }
+///|
+struct Item {
+  item_type : ItemType
+  mut count : Int
+} derive(Eq)
 
-// fn Inventory::check_can_add_item(inventory:Inventory, item:Items) -> Bool {
-//   if inventory.items.length() < inventory.capacity {
-//     return true
-//   }
-//   for item_ in inventory.items {
-//     if item_ is Resource(_) && item_ == item {
-//       return true
-//     } 
-//   }
-//   false
-// }
+///|
+struct Inventory {
+  capacity : Int
+  items : Array[Item]
+}
 
-// fn Inventory::add_item(inventory:Inventory, item:Items) -> Unit {
-  
-// }
+///|
+fn Inventory::new(capacity : Int) -> Inventory {
+  { capacity, items: [] }
+}
+
+///|
+pub fn Inventory::check_can_add_item(
+  inventory : Inventory,
+  item : ItemType,
+) -> Bool {
+  if inventory.items.length() < inventory.capacity {
+    return true
+  }
+  for item_ in inventory.items {
+    if item_.item_type is Resource(_) && item_.item_type == item {
+      return true
+    }
+  }
+  false
+}
+
+///|
+pub fn Inventory::add_item(inventory : Inventory, item : Item) -> Unit {
+  match item.item_type {
+    Resource(resource) => {
+      for i in 0..<inventory.items.length() {
+        if inventory.items[i].item_type is Resource(resource_) &&
+          resource_ == resource {
+          inventory.items[i].count += item.count
+          return
+        }
+      }
+      inventory.items.push({ item_type: Resource(resource), count: 1 })
+    }
+    Equipment(equipment) =>
+      inventory.items.push({ item_type: Equipment(equipment), count: 1 })
+  }
+}
+
+///|
+pub fn Inventory::remove_item(inventory : Inventory, index : Int) -> Item? {
+  if inventory.items.length() <= index {
+    return None
+  }
+  Some(inventory.items.remove(index))
+}
