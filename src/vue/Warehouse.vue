@@ -326,10 +326,6 @@ async function upgradeSelected() {
 
       <div class="warehouse__detail" ref="detailWrap">
         <div v-if="selectedPuppet" class="puppet-detail">
-          <!-- 3D模型区域 - 保持挂载，不参与transition -->
-          <div class="puppet-detail__model-wrapper">
-            <PuppetModelView :puppet="selectedPuppet" />
-          </div>
           
           <!-- 文字内容区域 - 使用transition -->
           <transition name="fade-slide" mode="out-in">
@@ -339,8 +335,14 @@ async function upgradeSelected() {
               </div>
               
               <div class="puppet-detail__content">
-                <div class="puppet-detail__description">
-                  {{ selectedPuppet.description }}
+                <!-- 3D模型和描述并排显示 -->
+                <div class="puppet-detail__row">
+                  <div class="puppet-detail__model-wrapper">
+                    <PuppetModelView :puppet="selectedPuppet" />
+                  </div>
+                  <div class="puppet-detail__description">
+                    {{ selectedPuppet.description }}
+                  </div>
                 </div>
             
             <div class="puppet-detail__row">
@@ -480,12 +482,13 @@ async function upgradeSelected() {
   overflow: hidden; 
 }
 
-/* 文字信息区域 - 右侧可过渡 */
-.puppet-detail__info {
+/* 描述文字区域 - 右侧自适应 */
+.puppet-detail__description {
   flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
+  color: #ccc; 
+  font-size: 11.5px; 
+  line-height: 1.6;
+  padding-left: 20px;
 }
 
 .puppet-detail__header { margin-bottom: 10px; }
@@ -493,7 +496,6 @@ async function upgradeSelected() {
 .puppet-detail__content { flex: 1; display: flex; flex-direction: column; gap: 20px; }
 .puppet-detail__row { display: flex; gap: 20px; }
 .model-placeholder { color: #999; font-size: 16px; }
-.puppet-detail__description { color: #ccc; font-size: 12px; line-height: 1.6; }
 .puppet-detail__stats { flex: 1; display: flex; flex-direction: column; gap: 8px; }
 .stats-section { display: flex; flex-direction: column; gap: 8px; }
 .stat-item { display: flex; justify-content: space-between; align-items: center; }
