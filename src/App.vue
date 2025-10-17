@@ -71,6 +71,7 @@ function goBack() {
       // 若覆盖层关闭后当前未处于开始菜单，则回到开始菜单
       if (!showStartMenu.value) {
         showStartMenu.value = true;
+        window.__START_MENU_RESUME__ && window.__START_MENU_RESUME__();
         isPaused.value = false;
       } else {
         window.__START_MENU_RESUME__ && window.__START_MENU_RESUME__();
