@@ -33,6 +33,16 @@ pub fn Inventory::new(capacity : Int) -> Inventory {
 }
 
 ///|
+pub fn Inventory::check_resource_in_inventory(
+  inventory : Inventory,
+  resource : @resource.ResourceType,
+) -> Bool {
+  inventory.items
+  .iter()
+  .any(item => item.item_type is Resource(resource_) && resource_ == resource)
+}
+
+///|
 pub fn Inventory::check_can_add_item(
   inventory : Inventory,
   item : ItemType,
@@ -72,4 +82,34 @@ pub fn Inventory::remove_item(inventory : Inventory, index : Int) -> Item? {
     return None
   }
   Some(inventory.items.remove(index))
+}
+
+///|
+pub fn Inventory::craft(inventory : Inventory) -> Bool {
+  let heart_crystal_dust = inventory.check_resource_in_inventory(
+    @resource.HeartCrystalDust,
+  )
+  let recall_gear = inventory.check_resource_in_inventory(@resource.RecallGear)
+  let resonant_crystal = inventory.check_resource_in_inventory(
+    @resource.ResonantCrystal,
+  )
+  let refined_copper = inventory.check_resource_in_inventory(
+    @resource.RefinedCopper,
+  )
+  let spirital_spark = inventory.check_resource_in_inventory(
+    @resource.SpiritalSpark,
+  )
+  if (heart_crystal_dust && recall_gear && resonant_crystal && refined_copper) &&
+    (spirital_spark || inventory.capacity < inventory.items.length()) {
+    inventory.add_item(Item::new(Resource(@resource.SpiritalSpark), count=1))
+    inventory.add_item(Item::new(Resource(@resource.RecallGear), count=-1))
+    inventory.add_item(Item::new(Resource(@resource.ResonantCrystal), count=-1))
+    inventory.add_item(Item::new(Resource(@resource.RefinedCopper), count=-1))
+    inventory.add_item(
+      Item::new(Resource(@resource.HeartCrystalDust), count=-1),
+    )
+    true
+  } else {
+    false
+  }
 }
