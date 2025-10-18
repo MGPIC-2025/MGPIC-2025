@@ -10,11 +10,15 @@ import(
 // Values
 let copper_info_list : FixedArray[CopperInfo]
 
+let copper_info_map : Map[String, CopperInfo]
+
 fn get_default_attribute(CopperType) -> @attribute.Attribute
 
 fn get_upgrade_cost(Int) -> @resource.ResourceCost
 
 fn get_upgrade_effect(Copper) -> @attribute.Attribute
+
+fn summon_copper_from_info(String) -> Copper
 
 // Errors
 
@@ -29,7 +33,8 @@ pub(all) struct Copper {
   equipment_slot : EquipmentSlot
   copper_info : CopperInfo
 }
-fn Copper::upgrade(Self) -> Self
+fn Copper::apply_upgrade(Self) -> Self
+fn Copper::to_json(Self) -> Json // from trait `ToJson`
 impl ToJson for Copper
 
 pub struct CopperInfo {
@@ -40,6 +45,7 @@ pub struct CopperInfo {
   model_url : String
   skill : Skill?
 }
+fn CopperInfo::to_json(Self) -> Json // from trait `ToJson`
 impl ToJson for CopperInfo
 
 pub enum CopperType {
@@ -49,15 +55,18 @@ pub enum CopperType {
   Mechanic
   Resonator
 }
+fn CopperType::to_json(Self) -> Json // from trait `ToJson`
 impl ToJson for CopperType
 
 type EquipmentSlot
 fn EquipmentSlot::equip(Self, @equipment.Equipment) -> (Self, Bool)
 fn EquipmentSlot::new() -> Self
+fn EquipmentSlot::to_json(Self) -> Json // from trait `ToJson`
 fn EquipmentSlot::unlock_slot2(Self) -> Self
 impl ToJson for EquipmentSlot
 
 type Skill
+fn Skill::to_json(Self) -> Json // from trait `ToJson`
 impl ToJson for Skill
 
 // Type aliases

@@ -1,0 +1,110 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "Lampese/MGPIC_2025/game"
+
+import(
+  "Lampese/MGPIC_2025/resource"
+  "moonbitlang/core/set"
+)
+
+// Values
+fn animate_move(Int) -> Unit
+
+fn animate_reset() -> Unit
+
+fn change_direction(Int, UnitDirection) -> Unit
+
+fn clear_block((Int, Int)) -> Unit
+
+fn clear_state(Int) -> Unit
+
+fn cost_drop_item(Array[(Item, Double)]) -> Item?
+
+fn display_can_attack(Int, Bool) -> Unit
+
+fn display_can_move(Int, Bool) -> Unit
+
+fn move_to(Int, (Int, Int)) -> Unit
+
+fn put_map_block((Int, Int)) -> Unit
+
+fn remove_unit(Int) -> Unit
+
+fn set_attack_block((Int, Int)) -> Unit
+
+fn set_copper(BattleCopper, Int, (Int, Int)) -> Unit
+
+fn set_enemy(Enemy, Int, (Int, Int)) -> Unit
+
+fn set_move_block((Int, Int)) -> Unit
+
+// Errors
+
+// Types and methods
+type BattleCopper
+fn BattleCopper::to_json(Self) -> Json // from trait `ToJson`
+impl ToJson for BattleCopper
+
+type Direction
+
+pub struct Enemy {
+  id : Int
+  mut now_health : Float
+  enemy_base : EnemyBase
+}
+fn Enemy::to_json(Self) -> Json // from trait `ToJson`
+impl ToJson for Enemy
+
+type EnemyBase
+fn EnemyBase::to_json(Self) -> Json // from trait `ToJson`
+impl ToJson for EnemyBase
+
+type Inventory
+fn Inventory::add_item(Self, Item) -> Unit
+fn Inventory::check_can_add_item(Self, ItemType) -> Bool
+fn Inventory::check_resource_in_inventory(Self, @resource.ResourceType) -> Bool
+fn Inventory::craft(Self) -> Bool
+fn Inventory::new(Int) -> Self
+fn Inventory::remove_item(Self, Int) -> Item?
+fn Inventory::to_json(Self) -> Json // from trait `ToJson`
+impl ToJson for Inventory
+
+type Item
+fn Item::equal(Self, Self) -> Bool // from trait `Eq`
+fn Item::new(ItemType, count? : Int) -> Self
+#deprecated
+fn Item::op_equal(Self, Self) -> Bool // from trait `Eq`
+fn Item::to_json(Self) -> Json // from trait `ToJson`
+impl Eq for Item
+impl ToJson for Item
+
+type ItemType
+fn ItemType::equal(Self, Self) -> Bool // from trait `Eq`
+#deprecated
+fn ItemType::op_equal(Self, Self) -> Bool // from trait `Eq`
+fn ItemType::to_json(Self) -> Json // from trait `ToJson`
+impl Eq for ItemType
+impl ToJson for ItemType
+
+type MapBlock
+fn MapBlock::new() -> Self
+
+type Map_
+
+type Material
+
+type Occupant
+
+type Room
+fn Room::get_room_direction_and_new_position(Self, (Int, Int)) -> (Direction, (Int, Int))
+fn Room::is_coord_in_room(Self, (Int, Int)) -> Bool
+fn Room::new(Int, (Int, Int), @set.Set[(Int, Int)]) -> Self
+
+type UnitDirection
+fn UnitDirection::output(Self, &Logger) -> Unit // from trait `Show`
+fn UnitDirection::to_string(Self) -> String // from trait `Show`
+impl Show for UnitDirection
+
+// Type aliases
+
+// Traits
+

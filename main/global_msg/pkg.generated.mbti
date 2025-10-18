@@ -10,15 +10,13 @@ let msg_info : GlobalInfo
 type GlobalInfo
 fn GlobalInfo::broadcast(Self, InformationBase) -> Unit
 fn GlobalInfo::new() -> Self
-fn GlobalInfo::subscribe(Self, (Information) -> Unit) -> Unit
-
-type Information
-impl ToJson for Information
+fn GlobalInfo::subscribe(Self, (String) -> Unit) -> Unit
 
 pub(all) struct InformationBase {
   type_msg : String
   content : String
 }
+fn InformationBase::to_json(Self) -> Json // from trait `ToJson`
 impl ToJson for InformationBase
 
 // Type aliases

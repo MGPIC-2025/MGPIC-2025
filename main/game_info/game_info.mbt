@@ -7,12 +7,7 @@ pub fn GameInfo::new() -> GameInfo {
 }
 
 ///|
-pub fn move_to(
-  from_x : Int,
-  from_y : Int,
-  to_x : Int,
-  to_y : Int,
-) -> Unit {
+pub fn move_to(from_x : Int, from_y : Int, to_x : Int, to_y : Int) -> Unit {
   @global_msg.msg_info.broadcast({
     type_msg: "move",
     content: (

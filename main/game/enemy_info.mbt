@@ -15,7 +15,16 @@ let enemy_list : Array[EnemyBase] = [
     drop_items: [
       (Item::new(Resource(HeartCrystalDust), count=1), 0.5),
       (Item::new(Resource(RefinedCopper), count=2), 0.6),
-      (Item::new(Equipment(@equipment.Equipment::new(@equipment.equipment_map["书页的速记羽毛笔"]))), 0.05),
+      (
+        Item::new(
+          Equipment(
+            @equipment.Equipment::new(
+              @equipment.equipment_map["书页的速记羽毛笔"],
+            ),
+          ),
+        ),
+        0.05,
+      ),
     ],
   },
   {
@@ -33,7 +42,16 @@ let enemy_list : Array[EnemyBase] = [
     drop_items: [
       (Item::new(Resource(HeartCrystalDust), count=2), 0.7),
       (Item::new(Resource(RefinedCopper), count=1), 0.5),
-      (Item::new(Equipment(@equipment.Equipment::new(@equipment.equipment_map["万用齿轮口袋"]))), 0.06),
+      (
+        Item::new(
+          Equipment(
+            @equipment.Equipment::new(
+              @equipment.equipment_map["万用齿轮口袋"],
+            ),
+          ),
+        ),
+        0.06,
+      ),
     ],
   },
   {
@@ -52,7 +70,16 @@ let enemy_list : Array[EnemyBase] = [
       (Item::new(Resource(HeartCrystalDust), count=2), 0.6),
       (Item::new(Resource(RefinedCopper), count=2), 0.7),
       (Item::new(Resource(RecallGear), count=1), 0.2),
-      (Item::new(Equipment(@equipment.Equipment::new(@equipment.equipment_map["不稳定的欢乐扳手"]))), 0.08),
+      (
+        Item::new(
+          Equipment(
+            @equipment.Equipment::new(
+              @equipment.equipment_map["不稳定的欢乐扳手"],
+            ),
+          ),
+        ),
+        0.08,
+      ),
     ],
   },
   {
@@ -71,7 +98,16 @@ let enemy_list : Array[EnemyBase] = [
       (Item::new(Resource(HeartCrystalDust), count=3), 0.8),
       (Item::new(Resource(RefinedCopper), count=3), 0.8),
       (Item::new(Resource(RecallGear), count=1), 0.3),
-      (Item::new(Equipment(@equipment.Equipment::new(@equipment.equipment_map["锅盖君的绝对防御"]))), 0.10),
+      (
+        Item::new(
+          Equipment(
+            @equipment.Equipment::new(
+              @equipment.equipment_map["锅盖君的绝对防御"],
+            ),
+          ),
+        ),
+        0.10,
+      ),
     ],
   },
   {
@@ -89,7 +125,16 @@ let enemy_list : Array[EnemyBase] = [
     drop_items: [
       (Item::new(Resource(HeartCrystalDust), count=2), 0.7),
       (Item::new(Resource(ResonantCrystal), count=1), 0.4),
-      (Item::new(Equipment(@equipment.Equipment::new(@equipment.equipment_map["哨歌的共鸣笛"]))), 0.07),
+      (
+        Item::new(
+          Equipment(
+            @equipment.Equipment::new(
+              @equipment.equipment_map["哨歌的共鸣笛"],
+            ),
+          ),
+        ),
+        0.07,
+      ),
     ],
   },
   {
@@ -108,7 +153,16 @@ let enemy_list : Array[EnemyBase] = [
       (Item::new(Resource(HeartCrystalDust), count=2), 0.7),
       (Item::new(Resource(RefinedCopper), count=2), 0.6),
       (Item::new(Resource(RecallGear), count=1), 0.4),
-      (Item::new(Equipment(@equipment.Equipment::new(@equipment.equipment_map["毛团的线团堡垒"]))), 0.08),
+      (
+        Item::new(
+          Equipment(
+            @equipment.Equipment::new(
+              @equipment.equipment_map["毛团的线团堡垒"],
+            ),
+          ),
+        ),
+        0.08,
+      ),
     ],
   },
   {
@@ -127,7 +181,16 @@ let enemy_list : Array[EnemyBase] = [
       (Item::new(Resource(HeartCrystalDust), count=4), 0.85),
       (Item::new(Resource(RefinedCopper), count=4), 0.8),
       (Item::new(Resource(RecallGear), count=2), 0.5),
-      (Item::new(Equipment(@equipment.Equipment::new(@equipment.equipment_map["钟摆的时之碎片"]))), 0.12),
+      (
+        Item::new(
+          Equipment(
+            @equipment.Equipment::new(
+              @equipment.equipment_map["钟摆的时之碎片"],
+            ),
+          ),
+        ),
+        0.12,
+      ),
     ],
   },
   {
@@ -146,7 +209,16 @@ let enemy_list : Array[EnemyBase] = [
       (Item::new(Resource(HeartCrystalDust), count=3), 0.8),
       (Item::new(Resource(ResonantCrystal), count=2), 0.6),
       (Item::new(Resource(RecallGear), count=1), 0.5),
-      (Item::new(Equipment(@equipment.Equipment::new(@equipment.equipment_map["流光溢彩的棱镜"]))), 0.15),
+      (
+        Item::new(
+          Equipment(
+            @equipment.Equipment::new(
+              @equipment.equipment_map["流光溢彩的棱镜"],
+            ),
+          ),
+        ),
+        0.15,
+      ),
     ],
   },
   {
@@ -165,7 +237,16 @@ let enemy_list : Array[EnemyBase] = [
       (Item::new(Resource(HeartCrystalDust), count=4), 0.9),
       (Item::new(Resource(RefinedCopper), count=5), 0.85),
       (Item::new(Resource(RecallGear), count=2), 0.6),
-      (Item::new(Equipment(@equipment.Equipment::new(@equipment.equipment_map["锅盖君的绝对防御"]))), 0.15),
+      (
+        Item::new(
+          Equipment(
+            @equipment.Equipment::new(
+              @equipment.equipment_map["锅盖君的绝对防御"],
+            ),
+          ),
+        ),
+        0.15,
+      ),
     ],
   },
   {
@@ -184,7 +265,16 @@ let enemy_list : Array[EnemyBase] = [
       (Item::new(Resource(HeartCrystalDust), count=5), 0.9),
       (Item::new(Resource(ResonantCrystal), count=3), 0.75),
       (Item::new(Resource(RecallGear), count=2), 0.7),
-      (Item::new(Equipment(@equipment.Equipment::new(@equipment.equipment_map["掘掘的幸运罗盘"]))), 0.18),
+      (
+        Item::new(
+          Equipment(
+            @equipment.Equipment::new(
+              @equipment.equipment_map["掘掘的幸运罗盘"],
+            ),
+          ),
+        ),
+        0.18,
+      ),
     ],
   },
   {
@@ -204,7 +294,16 @@ let enemy_list : Array[EnemyBase] = [
       (Item::new(Resource(RefinedCopper), count=5), 0.85),
       (Item::new(Resource(ResonantCrystal), count=3), 0.8),
       (Item::new(Resource(RecallGear), count=3), 0.75),
-      (Item::new(Equipment(@equipment.Equipment::new(@equipment.equipment_map["旋旋的舞会请柬"]))), 0.20),
+      (
+        Item::new(
+          Equipment(
+            @equipment.Equipment::new(
+              @equipment.equipment_map["旋旋的舞会请柬"],
+            ),
+          ),
+        ),
+        0.20,
+      ),
     ],
   },
   {
@@ -224,9 +323,36 @@ let enemy_list : Array[EnemyBase] = [
       (Item::new(Resource(RefinedCopper), count=10), 1.0),
       (Item::new(Resource(ResonantCrystal), count=8), 1.0),
       (Item::new(Resource(RecallGear), count=5), 1.0),
-      (Item::new(Equipment(@equipment.Equipment::new(@equipment.equipment_map["流光溢彩的棱镜"]))), 0.60),
-      (Item::new(Equipment(@equipment.Equipment::new(@equipment.equipment_map["掘掘的幸运罗盘"]))), 0.50),
-      (Item::new(Equipment(@equipment.Equipment::new(@equipment.equipment_map["旋旋的舞会请柬"]))), 0.50),
+      (
+        Item::new(
+          Equipment(
+            @equipment.Equipment::new(
+              @equipment.equipment_map["流光溢彩的棱镜"],
+            ),
+          ),
+        ),
+        0.60,
+      ),
+      (
+        Item::new(
+          Equipment(
+            @equipment.Equipment::new(
+              @equipment.equipment_map["掘掘的幸运罗盘"],
+            ),
+          ),
+        ),
+        0.50,
+      ),
+      (
+        Item::new(
+          Equipment(
+            @equipment.Equipment::new(
+              @equipment.equipment_map["旋旋的舞会请柬"],
+            ),
+          ),
+        ),
+        0.50,
+      ),
     ],
   },
   {
@@ -246,10 +372,46 @@ let enemy_list : Array[EnemyBase] = [
       (Item::new(Resource(RefinedCopper), count=15), 1.0),
       (Item::new(Resource(ResonantCrystal), count=10), 1.0),
       (Item::new(Resource(RecallGear), count=8), 1.0),
-      (Item::new(Equipment(@equipment.Equipment::new(@equipment.equipment_map["不稳定的欢乐扳手"]))), 0.40),
-      (Item::new(Equipment(@equipment.Equipment::new(@equipment.equipment_map["锅盖君的绝对防御"]))), 0.40),
-      (Item::new(Equipment(@equipment.Equipment::new(@equipment.equipment_map["哨歌的共鸣笛"]))), 0.40),
-      (Item::new(Equipment(@equipment.Equipment::new(@equipment.equipment_map["钟摆的时之碎片"]))), 0.40),
+      (
+        Item::new(
+          Equipment(
+            @equipment.Equipment::new(
+              @equipment.equipment_map["不稳定的欢乐扳手"],
+            ),
+          ),
+        ),
+        0.40,
+      ),
+      (
+        Item::new(
+          Equipment(
+            @equipment.Equipment::new(
+              @equipment.equipment_map["锅盖君的绝对防御"],
+            ),
+          ),
+        ),
+        0.40,
+      ),
+      (
+        Item::new(
+          Equipment(
+            @equipment.Equipment::new(
+              @equipment.equipment_map["哨歌的共鸣笛"],
+            ),
+          ),
+        ),
+        0.40,
+      ),
+      (
+        Item::new(
+          Equipment(
+            @equipment.Equipment::new(
+              @equipment.equipment_map["钟摆的时之碎片"],
+            ),
+          ),
+        ),
+        0.40,
+      ),
     ],
   },
 ]

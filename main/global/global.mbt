@@ -15,13 +15,14 @@ pub fn Global::new() -> Global {
 ///|
 pub fn Global::get_resource(global : Global) -> String {
   let resource = global.resource
-  ({
-    "SpiritalSpark": resource.get_resource(@resource.SpiritalSpark),
-    "RecallGear": resource.get_resource(@resource.RecallGear),
-    "ResonantCrystal": resource.get_resource(@resource.ResonantCrystal),
-    "RefinedCopper": resource.get_resource(@resource.RefinedCopper),
-    "HeartCrystalDust": resource.get_resource(@resource.HeartCrystalDust),
-  } : Json).stringify()
+  (
+    {
+      "SpiritalSpark": resource.get_resource(@resource.SpiritalSpark),
+      "RecallGear": resource.get_resource(@resource.RecallGear),
+      "ResonantCrystal": resource.get_resource(@resource.ResonantCrystal),
+      "RefinedCopper": resource.get_resource(@resource.RefinedCopper),
+      "HeartCrystalDust": resource.get_resource(@resource.HeartCrystalDust),
+    } : Json).stringify()
 }
 
 ///|

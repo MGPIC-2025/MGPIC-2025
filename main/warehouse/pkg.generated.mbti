@@ -17,8 +17,10 @@ pub struct Warehouse {
   coppers : @hashmap.HashMap[Int, @coppers.Copper]
 }
 fn Warehouse::add_copper(Self, @coppers.Copper) -> Self
+fn Warehouse::get_copper(Self, Int) -> @coppers.Copper
 fn Warehouse::get_copper_list(Self) -> Array[@coppers.Copper]
 fn Warehouse::new() -> Self
+fn Warehouse::remove_copper(Self, Int) -> Self
 
 // Type aliases
 

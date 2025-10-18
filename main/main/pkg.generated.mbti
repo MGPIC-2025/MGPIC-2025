@@ -1,32 +1,22 @@
 // Generated using `moon info`, DON'T EDIT IT
 package "Lampese/MGPIC_2025/main"
 
-import(
-  "Lampese/MGPIC_2025/global"
-  "Lampese/MGPIC_2025/global_msg"
-)
-
 // Values
-fn get_global() -> @global.Global
+fn global_gacha() -> String
 
-fn get_global_info() -> @global_msg.GlobalInfo
+fn global_get_copper_list() -> String
 
-fn global_gacha(@global.Global) -> Json
+fn global_get_resource() -> String
 
-fn global_get_copper_list(@global.Global) -> Json
+fn global_info_subscribe((String) -> Unit) -> Unit
 
-fn global_get_resource(@global.Global) -> Json
-
-fn global_info_subscribe(@global_msg.GlobalInfo, (Json) -> Unit) -> Unit
+fn global_upgrade_copper(Int) -> String
 
 // Errors
 
 // Types and methods
 
 // Type aliases
-pub typealias @global.Global as Global
-
-pub typealias @global_msg.GlobalInfo as GlobalInfo
 
 // Traits
 
