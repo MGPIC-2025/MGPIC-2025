@@ -105,3 +105,8 @@ pub let equipment_list : FixedArray[EquipmentBase] = [
     ),
   },
 ]
+
+///|
+pub let equipment_map : Map[String, EquipmentBase] = Map::from_iter(
+  equipment_list.iter().map(fn(equipment) { (equipment.name, equipment) }),
+)
