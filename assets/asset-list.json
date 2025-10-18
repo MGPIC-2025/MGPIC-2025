@@ -1,0 +1,746 @@
+{
+  "generated": "2025-10-17T06:06:49.990Z",
+  "version": "1.0.0",
+  "total": 140,
+  "categories": {
+    "high": {
+      "description": "首屏必需资源（自动预加载）",
+      "count": 6,
+      "totalSize": 7573442,
+      "resources": [
+        {
+          "path": "frontend_resource/copper_warehouse.webp",
+          "size": 167904,
+          "ext": ".webp"
+        },
+        {
+          "path": "frontend_resource/gacha.webp",
+          "size": 112156,
+          "ext": ".webp"
+        },
+        {
+          "path": "frontend_resource/game_wiki.webp",
+          "size": 157324,
+          "ext": ".webp"
+        },
+        {
+          "path": "frontend_resource/start_game.webp",
+          "size": 66114,
+          "ext": ".webp"
+        },
+        {
+          "path": "frontend_resource/Tutorial.webp",
+          "size": 129344,
+          "ext": ".webp"
+        },
+        {
+          "path": "logo.glb",
+          "size": 6940600,
+          "ext": ".glb"
+        }
+      ]
+    },
+    "medium": {
+      "description": "常用资源（推荐预加载）",
+      "count": 84,
+      "totalSize": 8813840,
+      "resources": [
+        {
+          "path": "asset-list.json",
+          "size": 18816,
+          "ext": ".json"
+        },
+        {
+          "path": "copper/arcanist/bubble/bubble.webp",
+          "size": 142724,
+          "ext": ".webp"
+        },
+        {
+          "path": "copper/arcanist/bubble/bubble_skill.webp",
+          "size": 68648,
+          "ext": ".webp"
+        },
+        {
+          "path": "copper/arcanist/glimmer/glimmer.webp",
+          "size": 148460,
+          "ext": ".webp"
+        },
+        {
+          "path": "copper/arcanist/glimmer/glimmer_skill.webp",
+          "size": 30318,
+          "ext": ".webp"
+        },
+        {
+          "path": "copper/arcanist/spark/spark.webp",
+          "size": 154264,
+          "ext": ".webp"
+        },
+        {
+          "path": "copper/arcanist/spark/spark_skill.webp",
+          "size": 138718,
+          "ext": ".webp"
+        },
+        {
+          "path": "copper/arcanist/syrup/syrup.webp",
+          "size": 161218,
+          "ext": ".webp"
+        },
+        {
+          "path": "copper/arcanist/syrup/syrup_skill.webp",
+          "size": 126482,
+          "ext": ".webp"
+        },
+        {
+          "path": "copper/arcanist/turner/turner.webp",
+          "size": 32014,
+          "ext": ".webp"
+        },
+        {
+          "path": "copper/arcanist/turner/turner_skill.webp",
+          "size": 134420,
+          "ext": ".webp"
+        },
+        {
+          "path": "copper/craftsman/artifex/artifex.webp",
+          "size": 93536,
+          "ext": ".webp"
+        },
+        {
+          "path": "copper/craftsman/coil/coil.webp",
+          "size": 169390,
+          "ext": ".webp"
+        },
+        {
+          "path": "copper/craftsman/drillbit/drillbit.webp",
+          "size": 124614,
+          "ext": ".webp"
+        },
+        {
+          "path": "copper/craftsman/quickhand/quickhand.webp",
+          "size": 167218,
+          "ext": ".webp"
+        },
+        {
+          "path": "copper/craftsman/wrench/wrench.webp",
+          "size": 159114,
+          "ext": ".webp"
+        },
+        {
+          "path": "copper/iron_wall/bell/bell.webp",
+          "size": 103802,
+          "ext": ".webp"
+        },
+        {
+          "path": "copper/iron_wall/bell/bell_skill.webp",
+          "size": 80818,
+          "ext": ".webp"
+        },
+        {
+          "path": "copper/iron_wall/chief/chief.webp",
+          "size": 151796,
+          "ext": ".webp"
+        },
+        {
+          "path": "copper/iron_wall/chief/chief_skill.webp",
+          "size": 89552,
+          "ext": ".webp"
+        },
+        {
+          "path": "copper/iron_wall/rocky/rocky.webp",
+          "size": 144212,
+          "ext": ".webp"
+        },
+        {
+          "path": "copper/iron_wall/rocky/rocky_skill.webp",
+          "size": 91838,
+          "ext": ".webp"
+        },
+        {
+          "path": "copper/iron_wall/tumble/tumble.webp",
+          "size": 113716,
+          "ext": ".webp"
+        },
+        {
+          "path": "copper/iron_wall/tumble/tumble_skill.webp",
+          "size": 95196,
+          "ext": ".webp"
+        },
+        {
+          "path": "copper/iron_wall/wesley/wesley.webp",
+          "size": 125862,
+          "ext": ".webp"
+        },
+        {
+          "path": "copper/iron_wall/wesley/wesley_skill.webp",
+          "size": 87714,
+          "ext": ".webp"
+        },
+        {
+          "path": "copper/mechanic/gyro/gyro.webp",
+          "size": 108880,
+          "ext": ".webp"
+        },
+        {
+          "path": "copper/mechanic/gyro/gyro_skill.webp",
+          "size": 94062,
+          "ext": ".webp"
+        },
+        {
+          "path": "copper/mechanic/karin/karin.webp",
+          "size": 265330,
+          "ext": ".webp"
+        },
+        {
+          "path": "copper/mechanic/karin/karin_skill.webp",
+          "size": 146258,
+          "ext": ".webp"
+        },
+        {
+          "path": "copper/mechanic/pendulum/pendulum.webp",
+          "size": 136414,
+          "ext": ".webp"
+        },
+        {
+          "path": "copper/mechanic/pendulum/pendulum_skill.webp",
+          "size": 117722,
+          "ext": ".webp"
+        },
+        {
+          "path": "copper/mechanic/tricky/tricky.webp",
+          "size": 172010,
+          "ext": ".webp"
+        },
+        {
+          "path": "copper/mechanic/tricky/tricky_skill.webp",
+          "size": 110160,
+          "ext": ".webp"
+        },
+        {
+          "path": "copper/mechanic/yoyo/yoyo.webp",
+          "size": 27058,
+          "ext": ".webp"
+        },
+        {
+          "path": "copper/mechanic/yoyo/yoyo_skill.webp",
+          "size": 100262,
+          "ext": ".webp"
+        },
+        {
+          "path": "copper/resonator/clawster/clawster.webp",
+          "size": 134686,
+          "ext": ".webp"
+        },
+        {
+          "path": "copper/resonator/clawster/clawster_skill.webp",
+          "size": 136558,
+          "ext": ".webp"
+        },
+        {
+          "path": "copper/resonator/diggs/diggs.webp",
+          "size": 120654,
+          "ext": ".webp"
+        },
+        {
+          "path": "copper/resonator/diggs/diggs_skill.webp",
+          "size": 93546,
+          "ext": ".webp"
+        },
+        {
+          "path": "copper/resonator/hive/hive.webp",
+          "size": 158898,
+          "ext": ".webp"
+        },
+        {
+          "path": "copper/resonator/hive/hive_skill.webp",
+          "size": 98212,
+          "ext": ".webp"
+        },
+        {
+          "path": "copper/resonator/melody/melody.webp",
+          "size": 197730,
+          "ext": ".webp"
+        },
+        {
+          "path": "copper/resonator/melody/melody_skill.webp",
+          "size": 133712,
+          "ext": ".webp"
+        },
+        {
+          "path": "copper/resonator/murmur/murmur.webp",
+          "size": 140124,
+          "ext": ".webp"
+        },
+        {
+          "path": "copper/resonator/murmur/murmur_skill.webp",
+          "size": 129078,
+          "ext": ".webp"
+        },
+        {
+          "path": "enemy/assassin/assassin.webp",
+          "size": 116414,
+          "ext": ".webp"
+        },
+        {
+          "path": "enemy/boxer/boxer.webp",
+          "size": 115010,
+          "ext": ".webp"
+        },
+        {
+          "path": "enemy/cruiser/cruiser.webp",
+          "size": 130252,
+          "ext": ".webp"
+        },
+        {
+          "path": "enemy/demon/demon.webp",
+          "size": 146162,
+          "ext": ".webp"
+        },
+        {
+          "path": "enemy/devourer/devourer.webp",
+          "size": 118644,
+          "ext": ".webp"
+        },
+        {
+          "path": "enemy/glutton/glutton.webp",
+          "size": 177286,
+          "ext": ".webp"
+        },
+        {
+          "path": "enemy/goblin/goblin.webp",
+          "size": 132610,
+          "ext": ".webp"
+        },
+        {
+          "path": "enemy/guard/guard.webp",
+          "size": 26034,
+          "ext": ".webp"
+        },
+        {
+          "path": "enemy/horn/horn.webp",
+          "size": 141144,
+          "ext": ".webp"
+        },
+        {
+          "path": "enemy/mirror/mirror.webp",
+          "size": 32116,
+          "ext": ".webp"
+        },
+        {
+          "path": "enemy/scout/scout.webp",
+          "size": 136160,
+          "ext": ".webp"
+        },
+        {
+          "path": "enemy/shatra/shatra.webp",
+          "size": 166864,
+          "ext": ".webp"
+        },
+        {
+          "path": "enemy/variant/variant.webp",
+          "size": 195336,
+          "ext": ".webp"
+        },
+        {
+          "path": "equipment/compass.webp",
+          "size": 69118,
+          "ext": ".webp"
+        },
+        {
+          "path": "equipment/flute.webp",
+          "size": 45856,
+          "ext": ".webp"
+        },
+        {
+          "path": "equipment/fragment.webp",
+          "size": 67686,
+          "ext": ".webp"
+        },
+        {
+          "path": "equipment/gear_pocket.webp",
+          "size": 73146,
+          "ext": ".webp"
+        },
+        {
+          "path": "equipment/invitation.webp",
+          "size": 75180,
+          "ext": ".webp"
+        },
+        {
+          "path": "equipment/lid.webp",
+          "size": 55026,
+          "ext": ".webp"
+        },
+        {
+          "path": "equipment/line_fortress.webp",
+          "size": 76002,
+          "ext": ".webp"
+        },
+        {
+          "path": "equipment/prism.webp",
+          "size": 63412,
+          "ext": ".webp"
+        },
+        {
+          "path": "equipment/quill_pen.webp",
+          "size": 72250,
+          "ext": ".webp"
+        },
+        {
+          "path": "equipment/wrench.webp",
+          "size": 60454,
+          "ext": ".webp"
+        },
+        {
+          "path": "resource/heart_crystal_dust.webp",
+          "size": 71450,
+          "ext": ".webp"
+        },
+        {
+          "path": "resource/recall_gear.webp",
+          "size": 51678,
+          "ext": ".webp"
+        },
+        {
+          "path": "resource/refined_copper_ingot/refined_copper_ingot.webp",
+          "size": 37712,
+          "ext": ".webp"
+        },
+        {
+          "path": "resource/resonant_star_crystal/resonant_star_crystal.webp",
+          "size": 56968,
+          "ext": ".webp"
+        },
+        {
+          "path": "resource/spiritual_spark.webp",
+          "size": 78468,
+          "ext": ".webp"
+        },
+        {
+          "path": "structure/automatic_loading_gun/automatic_loading_gun.webp",
+          "size": 84204,
+          "ext": ".webp"
+        },
+        {
+          "path": "structure/charging_coil/charging_coil.webp",
+          "size": 68144,
+          "ext": ".webp"
+        },
+        {
+          "path": "structure/gear_arrow_tower/gear_arrow_tower.webp",
+          "size": 54018,
+          "ext": ".webp"
+        },
+        {
+          "path": "structure/heart_source_mineral_drill/heart_source_mineral_drill.webp",
+          "size": 65656,
+          "ext": ".webp"
+        },
+        {
+          "path": "structure/mirro_light_refraction_tower/mirror_ light_refraction_tower.webp",
+          "size": 64250,
+          "ext": ".webp"
+        },
+        {
+          "path": "structure/repair_workshop/repair_workshop.webp",
+          "size": 78976,
+          "ext": ".webp"
+        },
+        {
+          "path": "structure/resonance_alarm_bell/resonance_alarm_bell.webp",
+          "size": 61016,
+          "ext": ".webp"
+        },
+        {
+          "path": "structure/rivet_barrier/rivet_barrier.webp",
+          "size": 35270,
+          "ext": ".webp"
+        },
+        {
+          "path": "structure/steam_mining_car/steam_mining_car.webp",
+          "size": 63804,
+          "ext": ".webp"
+        },
+        {
+          "path": "structure/storm_anvil/storm_anvil.webp",
+          "size": 74250,
+          "ext": ".webp"
+        }
+      ]
+    },
+    "low": {
+      "description": "可选资源（按需加载）",
+      "count": 50,
+      "totalSize": 254811628,
+      "resources": [
+        {
+          "path": "copper/arcanist/bubble/bubble.glb",
+          "size": 4038752,
+          "ext": ".glb"
+        },
+        {
+          "path": "copper/arcanist/glimmer/glimmer.glb",
+          "size": 4665136,
+          "ext": ".glb"
+        },
+        {
+          "path": "copper/arcanist/spark/spark.glb",
+          "size": 4313452,
+          "ext": ".glb"
+        },
+        {
+          "path": "copper/arcanist/syrup/syrup.glb",
+          "size": 4177048,
+          "ext": ".glb"
+        },
+        {
+          "path": "copper/arcanist/turner/turner.glb",
+          "size": 5080232,
+          "ext": ".glb"
+        },
+        {
+          "path": "copper/craftsman/artifex/artifex.glb",
+          "size": 10043856,
+          "ext": ".glb"
+        },
+        {
+          "path": "copper/craftsman/coil/coil.glb",
+          "size": 4603020,
+          "ext": ".glb"
+        },
+        {
+          "path": "copper/craftsman/drillbit/drillbit.glb",
+          "size": 5032736,
+          "ext": ".glb"
+        },
+        {
+          "path": "copper/craftsman/quickhand/quickhand.glb",
+          "size": 4616028,
+          "ext": ".glb"
+        },
+        {
+          "path": "copper/craftsman/wrench/wrench.glb",
+          "size": 4933552,
+          "ext": ".glb"
+        },
+        {
+          "path": "copper/iron_wall/bell/bell.glb",
+          "size": 4343388,
+          "ext": ".glb"
+        },
+        {
+          "path": "copper/iron_wall/chief/chief.glb",
+          "size": 4458776,
+          "ext": ".glb"
+        },
+        {
+          "path": "copper/iron_wall/rocky/rocky.glb",
+          "size": 4273664,
+          "ext": ".glb"
+        },
+        {
+          "path": "copper/iron_wall/tumble/tumble.glb",
+          "size": 2795228,
+          "ext": ".glb"
+        },
+        {
+          "path": "copper/iron_wall/wesley/wesley.glb",
+          "size": 4142752,
+          "ext": ".glb"
+        },
+        {
+          "path": "copper/mechanic/gyro/gyro.glb",
+          "size": 4328272,
+          "ext": ".glb"
+        },
+        {
+          "path": "copper/mechanic/karin/karin.glb",
+          "size": 3148096,
+          "ext": ".glb"
+        },
+        {
+          "path": "copper/mechanic/pendulum/pendulum.glb",
+          "size": 4371788,
+          "ext": ".glb"
+        },
+        {
+          "path": "copper/mechanic/tricky/tricky.glb",
+          "size": 4081416,
+          "ext": ".glb"
+        },
+        {
+          "path": "copper/mechanic/yoyo/yoyo.glb",
+          "size": 3902816,
+          "ext": ".glb"
+        },
+        {
+          "path": "copper/resonator/clawster/clawster.glb",
+          "size": 4514444,
+          "ext": ".glb"
+        },
+        {
+          "path": "copper/resonator/diggs/diggs.glb",
+          "size": 4121916,
+          "ext": ".glb"
+        },
+        {
+          "path": "copper/resonator/hive/hive.glb",
+          "size": 4219744,
+          "ext": ".glb"
+        },
+        {
+          "path": "copper/resonator/melody/melody.glb",
+          "size": 3990552,
+          "ext": ".glb"
+        },
+        {
+          "path": "copper/resonator/murmur/murmur.glb",
+          "size": 4696948,
+          "ext": ".glb"
+        },
+        {
+          "path": "enemy/assassin/assassin.glb",
+          "size": 4189896,
+          "ext": ".glb"
+        },
+        {
+          "path": "enemy/boxer/boxer.glb",
+          "size": 4539496,
+          "ext": ".glb"
+        },
+        {
+          "path": "enemy/cruiser/cruiser.glb",
+          "size": 4985736,
+          "ext": ".glb"
+        },
+        {
+          "path": "enemy/demon/demon.glb",
+          "size": 8457012,
+          "ext": ".glb"
+        },
+        {
+          "path": "enemy/devourer/devourer.glb",
+          "size": 4469944,
+          "ext": ".glb"
+        },
+        {
+          "path": "enemy/glutton/glutton.glb",
+          "size": 4641364,
+          "ext": ".glb"
+        },
+        {
+          "path": "enemy/goblin/goblin.glb",
+          "size": 4770688,
+          "ext": ".glb"
+        },
+        {
+          "path": "enemy/guard/guard.glb",
+          "size": 4865188,
+          "ext": ".glb"
+        },
+        {
+          "path": "enemy/horn/horn.glb",
+          "size": 4440364,
+          "ext": ".glb"
+        },
+        {
+          "path": "enemy/mirror/mirror.glb",
+          "size": 4996536,
+          "ext": ".glb"
+        },
+        {
+          "path": "enemy/scout/scout.glb",
+          "size": 5835252,
+          "ext": ".glb"
+        },
+        {
+          "path": "enemy/shatra/shatra.glb",
+          "size": 4868296,
+          "ext": ".glb"
+        },
+        {
+          "path": "enemy/variant/variant.glb",
+          "size": 6030364,
+          "ext": ".glb"
+        },
+        {
+          "path": "resource/refined_copper_ingot/refined_copper_ingot.glb",
+          "size": 24325144,
+          "ext": ".glb"
+        },
+        {
+          "path": "resource/resonant_star_crystal/resonant_star_crystal.glb",
+          "size": 3669272,
+          "ext": ".glb"
+        },
+        {
+          "path": "structure/automatic_loading_gun/automatic_loading_gun.glb",
+          "size": 4622484,
+          "ext": ".glb"
+        },
+        {
+          "path": "structure/charging_coil/charging_coil.glb",
+          "size": 4756280,
+          "ext": ".glb"
+        },
+        {
+          "path": "structure/gear_arrow_tower/gear_arrow_tower.glb",
+          "size": 4674212,
+          "ext": ".glb"
+        },
+        {
+          "path": "structure/heart_source_mineral_drill/heart_source_mineral_drill.glb",
+          "size": 4675504,
+          "ext": ".glb"
+        },
+        {
+          "path": "structure/mirro_light_refraction_tower/mirro_light_refraction_tower.glb",
+          "size": 5050332,
+          "ext": ".glb"
+        },
+        {
+          "path": "structure/repair_workshop/repair_workshop.glb",
+          "size": 4907220,
+          "ext": ".glb"
+        },
+        {
+          "path": "structure/resonance_alarm_bell/resonance_alarm_bell.glb",
+          "size": 5059056,
+          "ext": ".glb"
+        },
+        {
+          "path": "structure/rivet_barrier/rivet_barrier.glb",
+          "size": 4404456,
+          "ext": ".glb"
+        },
+        {
+          "path": "structure/steam_mining_car/steam_mining_car.glb",
+          "size": 4354028,
+          "ext": ".glb"
+        },
+        {
+          "path": "structure/storm_anvil/storm_anvil.glb",
+          "size": 4329892,
+          "ext": ".glb"
+        }
+      ]
+    }
+  },
+  "stats": {
+    "high": {
+      "count": 6,
+      "totalSize": 7573442
+    },
+    "medium": {
+      "count": 84,
+      "totalSize": 8813840
+    },
+    "low": {
+      "count": 50,
+      "totalSize": 254811628
+    },
+    "skipped": {
+      "count": 0,
+      "totalSize": 0
+    }
+  }
+}

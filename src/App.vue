@@ -1,12 +1,17 @@
 <script setup>
 import { ref, onMounted, onBeforeUnmount } from "vue";
-import GameControlPanel from "./vue/GameControlPanel.vue";
-import WarehousePanel from "./vue/WarehousePanel.vue";
+import Hall from "./vue/Hall.vue";
+import Warehouse from "./vue/Warehouse.vue";
+import TopLeftPanel from "./vue/TopLeftPanel.vue";
+import StartMenu from "./vue/StartMenu.vue";
 
 const isPaused = ref(false);
 const overlay = ref(null);
+const showSettingsOverlay = ref(false)
+const warehouseRef = ref(null)
 const overlayHistory = ref([]);
 const currentPuppetIndex = ref(0)
+const showStartMenu = ref(true)
 
 // 通过全局函数与开场动画交互
 function togglePause() {
@@ -36,20 +41,54 @@ function closeOverlay() {
 }
 
 function openSettings() {
-  openOverlay('settings')
+  showSettingsOverlay.value = true
+  isPaused.value = true
+}
+function closeSettings() {
+  showSettingsOverlay.value = false
+  // 如果没有其他覆盖层，则恢复
+  if (!overlay.value) {
+    window.__START_MENU_RESUME__ && window.__START_MENU_RESUME__();
+    isPaused.value = false;
+  }
 }
 
 function goBack() {
+  // 优先关闭设置浮层
+  if (showSettingsOverlay.value) {
+    closeSettings()
+    return
+  }
   if (overlay.value) {
+    // 若为仓库界面，优先让子组件处理返回（先关闭抽卡界面）
+    if (overlay.value === 'warehouse' && warehouseRef.value && warehouseRef.value.handleBack) {
+      const consumed = warehouseRef.value.handleBack()
+      if (consumed) return
+    }
     const prev = overlayHistory.value.pop() ?? null;
     overlay.value = prev;
     if (!prev) {
-      window.__START_MENU_RESUME__ && window.__START_MENU_RESUME__();
-      isPaused.value = false;
+      // 若覆盖层关闭后当前未处于开始菜单，则回到开始菜单
+      if (!showStartMenu.value) {
+        showStartMenu.value = true;
+        window.__START_MENU_RESUME__ && window.__START_MENU_RESUME__();
+        isPaused.value = false;
+      } else {
+        window.__START_MENU_RESUME__ && window.__START_MENU_RESUME__();
+        isPaused.value = false;
+      }
     }
     return;
   }
-  // 没有覆盖层时不刷新，保持当前状态
+  // 没有覆盖层：若当前不在开始菜单，则回到开始菜单
+  if (!showStartMenu.value) {
+    showStartMenu.value = true;
+    // 恢复开始菜单动画（StartMenu 常驻，使用全局钩子控制）
+    window.__START_MENU_RESUME__ && window.__START_MENU_RESUME__();
+    isPaused.value = false;
+    return;
+  }
+  // 其余情况保持当前状态
 }
 
 // 设置：音乐/存档交互占位
@@ -87,77 +126,20 @@ function onFileChange(ev) {
 
 <template>
   <div class="stage">
-    <!-- Three.js 的 canvas 在 index.html 中，Vue 只负责覆盖层 UI -->
-    <div class="panel" style="left: 24px; right: auto;">
-      <button class="btn" @click="goBack" title="返回">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M15 18L9 12L15 6" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
-        <span class="sr-only">返回</span>
-      </button>
-      <button class="btn" @click="openSettings" title="设置">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M12 15.5C13.933 15.5 15.5 13.933 15.5 12C15.5 10.067 13.933 8.5 12 8.5C10.067 8.5 8.5 10.067 8.5 12C8.5 13.933 10.067 15.5 12 15.5Z" stroke="#ffffff" stroke-width="2"/>
-          <path d="M19.4 15A7.964 7.964 0 0 0 20 12C20 11.49 19.95 10.99 19.86 10.5L22 8.5L20 5.5L17.34 6.07C16.78 5.58 16.14 5.18 15.44 4.9L15 2H9L8.56 4.9C7.86 5.18 7.22 5.58 6.66 6.07L4 5.5L2 8.5L4.14 10.5C4.05 10.99 4 11.49 4 12C4 12.51 4.05 13.01 4.14 13.5L2 15.5L4 18.5L6.66 17.93C7.22 18.42 7.86 18.82 8.56 19.1L9 22H15L15.44 19.1C16.14 18.82 16.78 18.42 17.34 17.93L20 18.5L22 15.5L19.86 13.5C19.95 13.01 20 12.51 20 12" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
-        <span class="sr-only">设置</span>
-      </button>
-    </div>
-    <GameControlPanel
+    <StartMenu v-show="showStartMenu" @started="showStartMenu=false" />
+    <TopLeftPanel v-if="!showStartMenu" @back="goBack" @open-settings="openSettings" />
+    <Hall
       @startGame="openOverlay('start')"
       @openWarehouse="openOverlay('warehouse')"
       @openTutorial="openOverlay('tutorial')"
       @openEncyclopedia="openOverlay('encyclopedia')"
     />
-    <div v-if="overlay" class="overlay" :class="{ 'overlay--settings': overlay==='settings', 'overlay--warehouse': overlay==='warehouse' }">
-      <template v-if="overlay==='settings'">
-        <div class="settings">
-          <div class="settings__header">
-            <div class="settings__title">设置</div>
-            <button class="settings__close" @click="closeOverlay" aria-label="关闭">
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M18 6L6 18M6 6l12 12" stroke="#fff" stroke-width="2" stroke-linecap="round"/>
-              </svg>
-            </button>
-          </div>
-          <div class="settings__content">
-            <button class="settings__item" @click="onToggleMusic">
-              <span class="settings__icon">
-                <svg width="44" height="44" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M9 18V5l10-2v9" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                  <path d="M9 18a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm10-6a3 3 0 1 1-6 0" stroke="#fff" stroke-width="2" stroke-linecap="round"/>
-                </svg>
-              </span>
-              <span class="settings__label">音乐</span>
-              <span class="settings__state">{{ musicOn ? '开' : '关' }}</span>
-            </button>
-
-            <button class="settings__item" @click="onDownloadSave">
-              <span class="settings__icon">
-                <svg width="44" height="44" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M12 3v12m0 0l-4-4m4 4l4-4" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                  <path d="M4 19h16" stroke="#fff" stroke-width="2" stroke-linecap="round"/>
-                </svg>
-              </span>
-              <span class="settings__label">下载存档</span>
-            </button>
-
-            <button class="settings__item" @click="onUploadSave">
-              <span class="settings__icon">
-                <svg width="44" height="44" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M12 21V9m0 0l4 4m-4-4L8 13" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                  <path d="M4 5h16" stroke="#fff" stroke-width="2" stroke-linecap="round"/>
-                </svg>
-              </span>
-              <span class="settings__label">上传存档</span>
-            </button>
-
-            <input ref="fileInput" type="file" accept=".json" @change="onFileChange" style="display:none" />
-          </div>
+    <div v-if="overlay" class="overlay" :class="{ 'overlay--warehouse': overlay==='warehouse' }">
+      <template v-if="overlay==='warehouse'">
+        <div style="position:relative; width:100%; height:100%">
+          <TopLeftPanel @back="goBack" @open-settings="openSettings" />
+          <Warehouse ref="warehouseRef" />
         </div>
-      </template>
-      <template v-else-if="overlay==='warehouse'">
-        <WarehousePanel />
       </template>
       <template v-else>
         <div class="modal">
@@ -177,6 +159,53 @@ function onFileChange(ev) {
         </div>
       </template>
     </div>
+    <!-- 独立设置浮层，覆盖在所有内容之上 -->
+    <div v-if="showSettingsOverlay" class="overlay" style="z-index:30000; align-items:flex-start; justify-content:flex-start; background: rgba(0,0,0,0.25)">
+      <div class="settings">
+        <div class="settings__header">
+          <div class="settings__title">设置</div>
+          <button class="settings__close" @click="closeSettings" aria-label="关闭">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M18 6L6 18M6 6l12 12" stroke="#fff" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+          </button>
+        </div>
+        <div class="settings__content">
+          <button class="settings__item" @click="onToggleMusic">
+            <span class="settings__icon">
+              <svg width="44" height="44" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M9 18V5l10-2v9" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M9 18a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm10-6a3 3 0 1 1-6 0" stroke="#fff" stroke-width="2" stroke-linecap="round"/>
+              </svg>
+            </span>
+            <span class="settings__label">音乐</span>
+            <span class="settings__state">{{ musicOn ? '开' : '关' }}</span>
+          </button>
+
+          <button class="settings__item" @click="onDownloadSave">
+            <span class="settings__icon">
+              <svg width="44" height="44" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 3v12m0 0l-4-4m4 4l4-4" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M4 19h16" stroke="#fff" stroke-width="2" stroke-linecap="round"/>
+              </svg>
+            </span>
+            <span class="settings__label">下载存档</span>
+          </button>
+
+          <button class="settings__item" @click="onUploadSave">
+            <span class="settings__icon">
+              <svg width="44" height="44" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 21V9m0 0l4 4m-4-4L8 13" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M4 5h16" stroke="#fff" stroke-width="2" stroke-linecap="round"/>
+              </svg>
+            </span>
+            <span class="settings__label">上传存档</span>
+          </button>
+
+          <input ref="fileInput" type="file" accept=".json" @change="onFileChange" style="display:none" />
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -195,12 +224,12 @@ function onFileChange(ev) {
   z-index: 1000;
   user-select: none;
   -webkit-user-select: none;
-  background: rgba(255, 255, 255, 0.6);
-  backdrop-filter: saturate(1.2) blur(6px);
-  -webkit-backdrop-filter: saturate(1.2) blur(6px);
+  background: transparent;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
   padding: 8px 10px;
   border-radius: 10px;
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12);
+  box-shadow: none;
   pointer-events: auto;
 }
 .btn {
@@ -234,7 +263,7 @@ function onFileChange(ev) {
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 999;
+  z-index: 20000;
   pointer-events: auto;
 }
 .overlay--settings { background: rgba(0,0,0,0.25); align-items: flex-start; justify-content: flex-start; }

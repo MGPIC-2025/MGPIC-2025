@@ -33,6 +33,7 @@ export default defineConfig(({ mode }) => ({
     vue(),
     {
       name: 'moon build',
+      watcher: null,
       buildStart() {
         const buildMoon = () => {
           try {
@@ -55,20 +56,35 @@ export default defineConfig(({ mode }) => ({
         
         // 只在开发模式下启用文件监听
         if (process.env.NODE_ENV !== 'production') {
-          const watcher = watch('main/main/**/*', {
+          this.watcher = watch('main/main/**/*', {
             ignored: /node_modules/,
             persistent: true
           })
           
-          watcher.on('change', (path) => {
+          this.watcher.on('change', (path) => {
             console.log(`MoonBit 文件变化: ${path}`)
             buildMoon()
           })
           
-          watcher.on('add', (path) => {
+          this.watcher.on('add', (path) => {
             console.log(`新增 MoonBit 文件: ${path}`)
             buildMoon()
           })
+        }
+      },
+      buildEnd() {
+        // 构建完成后清理文件监听器
+        if (this.watcher) {
+          this.watcher.close()
+          this.watcher = null
+          console.log('MoonBit 文件监听器已关闭')
+        }
+      },
+      closeBundle() {
+        // 确保在插件关闭时清理资源
+        if (this.watcher) {
+          this.watcher.close()
+          this.watcher = null
         }
       }
     }

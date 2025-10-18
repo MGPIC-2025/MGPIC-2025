@@ -1,10 +1,10 @@
 ///|
-struct Attribute {
+pub struct Attribute {
   health : Float
   attack : Float
   defense : Float
   dodge : Float
-} derive(ToJson)
+} derive(Eq, ToJson)
 
 ///|
 pub fn Attribute::new(

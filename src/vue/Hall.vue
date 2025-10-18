@@ -1,5 +1,5 @@
 <script setup>
-import { defineEmits, ref, onMounted } from 'vue'
+import { ref, onMounted } from 'vue'
 import { getAssetUrl } from '../utils/resourceLoader.js'
 
 const emit = defineEmits(['startGame', 'openWarehouse', 'openTutorial', 'openEncyclopedia'])
@@ -9,49 +9,40 @@ function openWarehouse() { emit('openWarehouse') }
 function openTutorial() { emit('openTutorial') }
 function openEncyclopedia() { emit('openEncyclopedia') }
 
-// 设置背景图片URL（立即执行）
-const bgStart = ref(getAssetUrl('img/hall/start_game.webp'));
-const bgWarehouse = ref(getAssetUrl('img/hall/warehouse.webp'));
-const bgWiki = ref(getAssetUrl('img/hall/wiki.webp'));
-const bgTutorial = ref(getAssetUrl('img/hall/tutorial.webp'));
+const bgStart = ref(getAssetUrl('frontend_resource/start_game.webp'))
+const bgWarehouse = ref(getAssetUrl('frontend_resource/copper_warehouse.webp'))
+const bgWiki = ref(getAssetUrl('frontend_resource/game_wiki.webp'))
+const bgTutorial = ref(getAssetUrl('frontend_resource/Tutorial.webp'))
 
-// 预加载背景图片到缓存
 onMounted(async () => {
   try {
-    // URL已经在上面设置好了，这里只做预加载
-    
-    // 检查缓存状态
     if (window.getCacheStatus) {
-      const status = await window.getCacheStatus();
-      console.log('缓存状态:', status);
+      const status = await window.getCacheStatus()
+      console.log('缓存状态:', status)
     }
-    
-    // 预加载背景图片（带间隔控制）
-    const imageUrls = [bgStart.value, bgWarehouse.value, bgWiki.value, bgTutorial.value];
+    const imageUrls = [bgStart.value, bgWarehouse.value, bgWiki.value, bgTutorial.value]
     for (let i = 0; i < imageUrls.length; i++) {
-      const url = imageUrls[i];
+      const url = imageUrls[i]
       try {
-        const img = new Image();
-        img.crossOrigin = 'anonymous';
-        img.src = url;
+        const img = new Image()
+        img.crossOrigin = 'anonymous'
+        img.src = url
         await new Promise((resolve, reject) => {
-          img.onload = resolve;
-          img.onerror = reject;
-        });
-        console.log('背景图片预加载成功:', url);
-        
-        // 添加间隔，避免请求过于频繁
+          img.onload = resolve
+          img.onerror = reject
+        })
+        console.log('背景图片预加载成功:', url)
         if (i < imageUrls.length - 1) {
-          await new Promise(resolve => setTimeout(resolve, 100)); // 100ms间隔
+          await new Promise(resolve => setTimeout(resolve, 100))
         }
       } catch (error) {
-        console.warn('背景图片预加载失败:', url, error.message);
+        console.warn('背景图片预加载失败:', url, error.message)
       }
     }
   } catch (error) {
-    console.warn('背景图片预加载过程中出现错误:', error.message);
+    console.warn('背景图片预加载过程中出现错误:', error.message)
   }
-});
+})
 </script>
 
 <template>
@@ -100,6 +91,8 @@ onMounted(async () => {
   grid-template-rows: 1fr;
   gap: 36px;
   pointer-events: auto;
+  transform-style: preserve-3d;
+  perspective: 900px;
 }
 .tile {
   position: relative;
@@ -111,27 +104,43 @@ onMounted(async () => {
   box-shadow: 0 14px 32px rgba(0,0,0,0.22);
   cursor: pointer;
   height: 100%;
+  transform: rotateY(0deg);
+  transform-origin: center;
+  transition: transform .3s ease, box-shadow .3s ease, filter .3s ease;
+  will-change: transform, box-shadow;
 }
 .tile__mask {
   position: absolute; inset: 0; pointer-events: none;
   background: linear-gradient(180deg, rgba(0,0,0,0.20) 0%, rgba(0,0,0,0.05) 30%, rgba(0,0,0,0.35) 100%);
 }
-/* 背景图片现在通过内联样式设置 */
-
 .tile__caption {
   position: absolute; left: 18px; right: 18px; color: #fff;
   text-shadow: 0 2px 10px rgba(0,0,0,0.45);
 }
 .tile__caption--bottom { bottom: 16px; }
 .tile__caption--top { top: 16px; }
-
 .tile__title { font-weight: 800; font-size: 28px; }
 .tile__subtitle { margin-top: 6px; font-size: 14px; font-weight: 600; opacity: 0.95; }
 .tile:active { transform: translateY(1px); }
-
+/* 父容器悬停联动与兄弟反向旋转 */
+.menu:hover .tile { transform: rotateY(18deg); }
+.menu .tile:hover {
+  transform: rotateY(0deg) scale(1.12);
+  box-shadow: 0 25px 40px rgba(0,0,0,0.35);
+  z-index: 1;
+}
+.menu .tile:hover ~ .tile { transform: rotateY(-18deg); }
 @media (max-width: 1200px) {
   .menu { width: 94vw; gap: 18px; }
   .tile__title { font-size: 24px; }
+}
+@media (max-width: 992px) {
+  .menu { grid-template-columns: repeat(2, 1fr); height: min(680px, 82vh); }
+}
+@media (max-width: 720px) {
+  .menu { grid-template-columns: 1fr; height: min(720px, 84vh); gap: 16px; }
+  .menu:hover .tile, .menu .tile:hover, .menu .tile:hover ~ .tile { transform: none; }
+  .tile { box-shadow: 0 10px 22px rgba(0,0,0,0.20); }
 }
 </style>
 

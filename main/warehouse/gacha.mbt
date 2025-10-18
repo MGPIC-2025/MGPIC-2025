@@ -1,15 +1,7 @@
 ///|
-let random : @random.Rand = @random.Rand::new()
-
-///|
-fn summon_random_number(min : Int, max : Int) -> Int {
-  min + random.int(limit=max - min + 1)
-}
-
-///|
 fn summon_copper() -> @coppers.Copper {
   let id = @id.id_pool.get_id()
-  let copper_info = @coppers.copper_info_list[summon_random_number(
+  let copper_info = @coppers.copper_info_list[@rand.summon_random_number(
       0,
       @coppers.copper_info_list.length() - 1,
     )]

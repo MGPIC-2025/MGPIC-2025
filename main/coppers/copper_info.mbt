@@ -160,12 +160,12 @@ pub let copper_info_list : FixedArray[CopperInfo] = [
     name: "库克",
     description: "“沸腾海湾”海鲜餐厅的吉祥物兼食材处理员。那双大钳子本是用来敲开蟹壳的。大休眠后，其行为逻辑变得极具攻击性，或许是将所有非友方单位都视为了“待处理的食材”。它移动时总是横着走，据说这样能保持“风味”。",
     copper_type: Resonator,
-    icon_url: "/assets/copper/resonator/clawsteak/clawsteak.webp",
-    model_url: "/assets/copper/resonator/clawsteak/clawsteak.glb",
+    icon_url: "/assets/copper/resonator/clawster/clawster.webp",
+    model_url: "/assets/copper/resonator/clawster/clawster.glb",
     skill: Some({
       name: "蜕壳",
       description: "库克在血量小于等于 0 时，将会吸取周围八格内己方铜偶的血量，从血量最高的铜偶开始吸取，直到自己满血或者没有铜偶可以吸取为止。",
-      resource_url: "/assets/copper/resonator/clawsteak/clawsteak_skill.webp",
+      resource_url: "/assets/copper/resonator/clawsteak/clawster_skill.webp",
       cool_down: None,
     }),
   },
@@ -301,3 +301,8 @@ pub let copper_info_list : FixedArray[CopperInfo] = [
     skill: None,
   },
 ]
+
+///|
+pub let copper_info_map : Map[String, CopperInfo] = Map::from_iter(
+  copper_info_list.iter().map(copper_info => (copper_info.name, copper_info)),
+)

@@ -5,7 +5,7 @@ struct GlobalResource(Map[@resource.ResourceType, Int])
 pub fn GlobalResource::new() -> GlobalResource {
   GlobalResource(
     Map::from_array([
-      (@resource.SpiritalSpark, 0),
+      (@resource.SpiritalSpark, 50),
       (@resource.RecallGear, 0),
       (@resource.ResonantCrystal, 0),
       (@resource.RefinedCopper, 0),
@@ -36,5 +36,30 @@ pub fn GlobalResource::consume_resource(
     })
   } else {
     global.0.set(resource, resource_amount - amount)
+  }
+}
+
+///|
+pub fn GlobalResource::check_resource_cost(
+  global : GlobalResource,
+  resource_cost : @resource.ResourceCost,
+) -> Bool {
+  for res in resource_cost.cost {
+    let (res_type, amount) = res
+    if global.get_resource(res_type) < amount {
+      return false
+    }
+  }
+  true
+}
+
+///|
+pub fn GlobalResource::consume_resource_cost(
+  global : GlobalResource,
+  resource_cost : @resource.ResourceCost,
+) -> Unit {
+  for res in resource_cost.cost {
+    let (res_type, amount) = res
+    global.consume_resource(res_type, amount)
   }
 }

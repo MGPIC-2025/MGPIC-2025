@@ -3,6 +3,12 @@ dist
 src/main.js
 node_modules
 
+# IDE files
+.idea/
+.vscode/
+*.swp
+*.swo
+
 # Environment variables
 .env
 .env.local
