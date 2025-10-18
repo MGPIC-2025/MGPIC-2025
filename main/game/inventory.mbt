@@ -8,19 +8,19 @@ using @equipment {type Equipment}
 enum ItemType {
   Resource(ResourceType)
   Equipment(Equipment)
-} derive(Eq)
+} derive(Eq, ToJson)
 
 ///|
 struct Item {
   item_type : ItemType
   mut count : Int
-} derive(Eq)
+} derive(Eq, ToJson)
 
 ///|
 struct Inventory {
   capacity : Int
   items : Array[Item]
-}
+} derive(ToJson)
 
 ///|
 pub fn Item::new(item_type : ItemType, count? : Int = 1) -> Item {

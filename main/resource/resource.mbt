@@ -5,7 +5,7 @@ pub(all) enum ResourceType {
   SpiritalSpark
   RefinedCopper
   ResonantCrystal
-} derive(Show, Eq, Hash)
+} derive(Show, Eq, Hash, ToJson)
 
 ///|
 pub struct ResourceCost {
