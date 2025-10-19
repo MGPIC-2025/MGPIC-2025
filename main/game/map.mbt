@@ -1,4 +1,5 @@
 ///|
+/// Todo: 掉落物的 Occupant 还没写，这个我感觉可以单独搞一套逻辑，到时候再说吧
 enum Occupant {
   Enemy(Enemy)
   Copper(BattleCopper)
