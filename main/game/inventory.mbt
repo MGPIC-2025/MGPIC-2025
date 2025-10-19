@@ -1,13 +1,7 @@
 ///|
-using @resource {type ResourceType}
-
-///|
-using @equipment {type Equipment}
-
-///|
 enum ItemType {
-  Resource(ResourceType)
-  Equipment(Equipment)
+  Resource(@resource.ResourceType)
+  Equipment(@equipment.Equipment)
 } derive(Eq, ToJson)
 
 ///|

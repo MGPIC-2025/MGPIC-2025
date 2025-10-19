@@ -1,7 +1,7 @@
 ///|
 enum Occupant {
   Enemy(Enemy)
-  Copper(Copper)
+  Copper(BattleCopper)
   Material(Material)
   ChargingCoil
   Empty

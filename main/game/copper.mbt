@@ -1,22 +1,16 @@
 ///|
-using @coppers {type Copper}
-
-///|
-using @attribute {type Attribute}
-
-///|
 struct BattleCopper {
   id : Int
-  copper : Copper
+  copper : @coppers.Copper
   can_move : Bool
   can_attack : Bool
   mut now_health : Float
-  attribute : Attribute
+  attribute : @attribute.Attribute
   inventory : Inventory
 } derive(ToJson)
 
 ///|
-fn BattleCopper::new(copper : Copper) -> BattleCopper {
+fn BattleCopper::new(copper : @coppers.Copper) -> BattleCopper {
   {
     id: @id.id_pool.get_id(),
     copper,
