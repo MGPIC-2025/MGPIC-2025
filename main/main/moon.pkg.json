@@ -1,5 +1,9 @@
 {
-  "import": ["Lampese/MGPIC_2025/global", "Lampese/MGPIC_2025/global_msg"],
+  "import": [
+    "Lampese/MGPIC_2025/global",
+    "Lampese/MGPIC_2025/global_msg",
+    "Lampese/MGPIC_2025/game"
+  ],
   "link": {
     "js": {
       "format": "esm",
@@ -10,7 +14,8 @@
         "global_get_resource",
         "global_get_copper_list",
         "global_info_subscribe",
-        "global_upgrade_copper"
+        "global_upgrade_copper",
+        "eventloop"
       ]
     }
   }

@@ -7,7 +7,7 @@ let setted_move_blocks : Set[(Int, Int)] = Set::new()
 ///|
 /// 前端：当铜偶被点击
 /// 后端：返回铜偶信息以供渲染信息栏
-pub fn on_click_copper(id : Int) -> Unit {
+pub fn handle_on_click_copper(id : Int) -> Unit {
   @global_msg.msg_info.broadcast({
     type_msg: "handle_on_click_copper",
     content: ({ "copper": get_battle_copper_by_id(id).to_json() } : Json).stringify(),

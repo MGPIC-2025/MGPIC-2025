@@ -1,0 +1,42 @@
+// 游戏事件主循环
+// 注意数字也要转换成字符串发，我怕后端这里 as_number 再 to_int 可能有精度问题
+
+///|
+pub fn eventloop(msg : String) -> Unit {
+  let msg = try! @json.parse(msg)
+  match msg {
+    { "type": "on_click_copper", "content": { "id": id, .. }, .. } =>
+      handle_on_click_copper(string_to_int(id))
+    { "type": "on_attack_start", "content": { "id": id, .. }, .. } =>
+      handle_on_attack_start(force_get_current_map(), string_to_int(id))
+    { "type": "on_attack_end", .. } => handle_on_attack_end()
+    {
+      "type": "on_attack_apply",
+      "content": { "id": id, "position": { "x": x, "y": y, .. }, .. },
+      ..
+    } =>
+      handle_on_attack_apply(
+        string_to_int(id),
+        (string_to_int(x), string_to_int(y)),
+        force_get_current_map(),
+      )
+    { "type": "on_move_start", "content": { "id": id, .. }, .. } =>
+      handle_on_move_start(force_get_current_map(), string_to_int(id))
+    {
+      "type": "on_move_apply",
+      "content": { "id": id, "position": { "x": x, "y": y, .. }, .. },
+      ..
+    } =>
+      handle_on_move_apply(
+        string_to_int(id),
+        (string_to_int(x), string_to_int(y)),
+        force_get_current_map(),
+      )
+    _ => abort("Invalid message")
+  }
+}
+
+///|
+fn string_to_int(json : Json) -> Int {
+  try! @strconv.parse_int(json.as_string().unwrap())
+}

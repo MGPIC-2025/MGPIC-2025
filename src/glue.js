@@ -4,6 +4,7 @@ import {
   global_get_copper_list as global_get_copper_list_api,
   global_upgrade_copper as global_upgrade_copper_api,
   global_info_subscribe as global_info_subscribe_api,
+  eventloop as eventloop_api,
 } from "./main.js";
 
 function gacha() {
@@ -26,4 +27,15 @@ function info_subscribe(callback) {
   global_info_subscribe_api((info) => callback(JSON.parse(info)));
 }
 
-export { gacha, get_resource, get_copper_list, upgrade_copper, info_subscribe };
+function eventloop(msg) {
+  eventloop_api(msg);
+}
+
+export {
+  gacha,
+  get_resource,
+  get_copper_list,
+  upgrade_copper,
+  info_subscribe,
+  eventloop,
+};
