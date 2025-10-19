@@ -1,6 +1,5 @@
 ///|
 struct Room {
-  level : Int
   index_position : (Int, Int)
   blocks : Array[Array[MapBlock]]
 }
@@ -42,7 +41,6 @@ pub fn Room::new(
 ) -> Room {
   let blocks = Array::make(16, Array::make(16, MapBlock::new()))
   // 中心点设置为怪物生成器
-  let x : Set[Int] = Set::new()
   blocks[7][7].occupant = ChargingCoil
   for i in 0..<default_enemy_count[level] {
     let enemy = summon_enemy(level)
@@ -64,7 +62,7 @@ pub fn Room::new(
     escape_set.add(position)
     blocks[position.0][position.1].occupant = Material(ResonantStarCrystal)
   }
-  { level, index_position, blocks }
+  { index_position, blocks }
 }
 
 ///|

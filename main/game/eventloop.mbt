@@ -32,6 +32,8 @@ pub fn eventloop(msg : String) -> Unit {
         (string_to_int(x), string_to_int(y)),
         force_get_current_map(),
       )
+    { "type": "on_game_start", "content": { "ids": ids, .. }, .. } =>
+      handle_on_game_start(ids.as_array().unwrap().map(string_to_int))
     _ => abort("Invalid message")
   }
 }

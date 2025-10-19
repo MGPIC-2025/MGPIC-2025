@@ -4,6 +4,7 @@ let battle_copper_map : Map[Int, BattleCopper] = Map::new()
 ///|
 struct BattleCopper {
   id : Int
+  original_id : Int
   copper : @coppers.Copper
   can_move : Bool // 可移动状态，如果为 false，前端应该不允许点击移动按钮
   can_attack : Bool // 可攻击状态，如果为 false，前端应该不允许点击攻击按钮
@@ -21,11 +22,13 @@ fn get_battle_copper_by_id(id : Int) -> BattleCopper {
 ///|
 fn BattleCopper::new(
   copper : @coppers.Copper,
+  original_id : Int,
   position : (Int, Int),
 ) -> BattleCopper {
   let battle_copper = BattleCopper::{
     id: @id.id_pool.get_id(),
     copper,
+    original_id,
     can_move: true,
     can_attack: true,
     position,

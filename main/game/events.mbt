@@ -138,3 +138,20 @@ pub fn handle_on_move_apply(
   }
   setted_move_blocks.clear()
 }
+
+///|
+/// 前端：当游戏开始，注意玩家需要选择三个铜偶加入游戏，这个界面由 @fgeygfe 来做，就是给一个界面从铜偶仓库里面选出来三个，然后给出他们的 id 就好
+/// 后端：根据 id 生成铜偶，并将其加入游戏，放置铜偶在地图的开始位置，设置铜偶的朝向为朝向前方
+pub fn handle_on_game_start(ids : Array[Int]) -> Unit {
+  let warehouse = @global.global.warehouse
+  let copper_1 = BattleCopper::new(warehouse.get_copper(ids[0]), ids[0], (0, 6))
+  let copper_2 = BattleCopper::new(warehouse.get_copper(ids[1]), ids[1], (0, 7))
+  let copper_3 = BattleCopper::new(warehouse.get_copper(ids[2]), ids[2], (0, 8))
+  current_game.val = Some(Game::new())
+  set_copper(copper_1, ids[0], (0, 6))
+  set_copper(copper_2, ids[1], (0, 7))
+  set_copper(copper_3, ids[2], (0, 8))
+  change_direction(ids[0], PositiveY)
+  change_direction(ids[1], PositiveY)
+  change_direction(ids[2], PositiveY)
+}
