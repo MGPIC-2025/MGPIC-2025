@@ -118,9 +118,9 @@ pub fn handle_on_move_apply(
     let new_room = Room::new(
       get_level_by_room_count(map.rooms.length() + 1),
       new_position,
-      Set::new(),
+      Set::from_array([new_position]),
     )
-    map.rooms.push(new_room)
+    Map_::add_room(map, new_room)
     // 移除旧房间的铜偶，并将其加入新房间
     now_room.blocks[now_position.0][now_position.1].occupant = Empty
     new_room.blocks[new_position.0][new_position.1].occupant = Occupant::Copper(

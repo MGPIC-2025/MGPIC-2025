@@ -26,8 +26,10 @@ struct Map_ {
 
 ///|
 fn Map_::new(escape_set : Set[(Int, Int)]) -> Map_ {
-  let rooms = [Room::new(1, (0, 0), escape_set)]
-  { rooms, }
+  let room = Room::new(1, (0, 0), escape_set)
+  let map = Map_::{ rooms: [] }
+  Map_::add_room(map, room)
+  map
 }
 
 ///|
@@ -84,4 +86,26 @@ fn Map_::global_position_to_room_position(
     }
   }
   None
+}
+
+///|
+fn Map_::add_room(map : Map_, room : Room) -> Unit {
+  map.rooms.push(room)
+  for i in 0..<15 {
+    for j in 0..<15 {
+      put_map_block((i, j))
+      let global_position = Room::position_to_global_position(room, (i, j))
+      if room.blocks[i][j].occupant is Enemy(enemy) {
+        set_enemy(enemy, enemy.id, global_position)
+      } else if room.blocks[i][j].occupant is Copper(copper) {
+        set_copper(copper, copper.id, global_position)
+      } else if room.blocks[i][j].occupant is Material(_) {
+        // set_material(material, material.id, global_position)
+      } else if room.blocks[i][j].occupant is ChargingCoil {
+        // set_charging_coil(global_position)
+      } else {
+        // set_empty(global_position)
+      }
+    }
+  }
 }

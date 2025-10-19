@@ -75,6 +75,16 @@ pub fn Room::is_coord_in_room(room : Room, coord : (Int, Int)) -> Bool {
 }
 
 ///|
+pub fn Room::position_to_global_position(
+  room : Room,
+  coord : (Int, Int),
+) -> (Int, Int) {
+  let (x, y) = coord
+  let (room_x, room_y) = room.index_position
+  (x + room_x, y + room_y)
+}
+
+///|
 pub fn Room::get_room_direction_and_new_position(
   room : Room,
   coord : (Int, Int),
