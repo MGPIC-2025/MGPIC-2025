@@ -57,6 +57,8 @@ pub fn handle_on_attack_apply(
 }
 
 ///|
+/// 前端：当玩家开始移动
+/// 后端：设置可移动的地块
 pub fn handle_on_move_start(map : Map_, id : Int) -> Unit {
   let battle_copper = get_battle_copper_by_id(id)
   let can_move = battle_copper.get_can_move(map)
