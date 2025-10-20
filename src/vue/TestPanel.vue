@@ -1,5 +1,6 @@
 <script setup>
 import { ref } from 'vue'
+import { eventloop } from '../glue.js'
 
 const emit = defineEmits(['enter-scene'])
 
@@ -15,9 +16,75 @@ const testFunctions = ref([
   { name: '完整序列', key: 'test_sequence', desc: '演示完整的交互流程（8步）' },
 ])
 
+// EventLoop测试用例
+// 注意：铜偶的实际ID需要从set_copper消息中获取
+const actualCopperIds = ref([]) // 存储实际的铜偶ID
+
+const eventloopTests = ref([
+  { 
+    name: '🎮 游戏开始', 
+    key: 'on_game_start',
+    desc: '⚠️ 必须先执行！初始化游戏并放置铜偶[1,2,3]',
+    params: { ids: ['1', '2', '3'] },
+    required: true
+  },
+  { 
+    name: '🎯 点击铜偶', 
+    key: 'on_click_copper',
+    desc: '点击并高亮选中铜偶，显示状态信息',
+    get params() { return { id: String(actualCopperIds.value[0] || '1') } }
+  },
+  { 
+    name: '🟢 开始移动', 
+    key: 'on_move_start',
+    desc: '显示绿色移动范围（可移动的地块）',
+    get params() { return { id: String(actualCopperIds.value[0] || '1') } }
+  },
+  { 
+    name: '实施移动', 
+    key: 'on_move_apply',
+    desc: '移动到位置(3,3)',
+    get params() { 
+      return { 
+        id: String(actualCopperIds.value[0] || '1'), 
+        position: { x: '3', y: '3' } 
+      } 
+    }
+  },
+  { 
+    name: '🔴 开始攻击', 
+    key: 'on_attack_start',
+    desc: '显示红色攻击范围（可攻击的敌人）',
+    get params() { return { id: String(actualCopperIds.value[0] || '1') } }
+  },
+  { 
+    name: '⬜ 取消攻击', 
+    key: 'on_attack_end',
+    desc: '清除所有红色攻击范围地块',
+    params: {}
+  },
+  { 
+    name: '实施攻击', 
+    key: 'on_attack_apply',
+    desc: '攻击位置(4,4)的目标',
+    get params() { 
+      return { 
+        id: String(actualCopperIds.value[0] || '1'), 
+        position: { x: '4', y: '4' } 
+      } 
+    }
+  }
+])
+
+const gameInitialized = ref(false)
+
 const isOpen = ref(false)
 const executing = ref(null)
 const showCustom = ref(false)
+const showEventloop = ref(false)
+
+// 测试模式：'backend' 或 'eventloop'
+const testMode = ref('eventloop')  // 默认EventLoop模式
 
 // 自定义测试参数
 const customParams = ref({
@@ -64,6 +131,18 @@ function togglePanel() {
 
 function toggleCustom() {
   showCustom.value = !showCustom.value
+}
+
+// 切换测试模式并通知TestScene
+async function switchTestMode(mode) {
+  testMode.value = mode
+  console.log(`[TestPanel] 切换到${mode === 'backend' ? '后端测试' : 'EventLoop测试'}模式`)
+  
+  // 通知TestScene切换模型显示
+  const { messageQueue } = await import('../messageQueue.js')
+  if (messageQueue.sceneContext?.setTestMode) {
+    messageQueue.sceneContext.setTestMode(mode)
+  }
 }
 
 async function runCustomMove() {
@@ -124,6 +203,214 @@ async function runCustomRemove() {
     setTimeout(() => { executing.value = null }, 500)
   }
 }
+
+function toggleEventloop() {
+  showEventloop.value = !showEventloop.value
+  showCustom.value = false
+}
+
+// 执行EventLoop测试
+async function runEventloopTest(test) {
+  try {
+    executing.value = test.key
+    console.log(`[TestPanel] 执行EventLoop测试: ${test.name}`)
+    
+    // 检查是否需要先初始化游戏
+    if (!gameInitialized.value && test.key !== 'on_game_start') {
+      console.warn('[TestPanel] ⚠️ 游戏未初始化，请先点击 "🎮 游戏开始"')
+      alert('⚠️ 请先点击 "🎮 游戏开始" 按钮初始化游戏！')
+      return
+    }
+    
+    // 如果是游戏开始，先初始化ID收集器
+    if (test.key === 'on_game_start') {
+      window.__ACTUAL_COPPER_IDS__ = []
+      console.log('[TestPanel] ✅ 已初始化ID收集器')
+      
+      // 检查是否在3D场景中
+      import('../messageQueue.js').then(module => {
+        const sceneContext = module.messageQueue.sceneContext
+        
+        if (!sceneContext?.onSetCopper) {
+          console.warn('[TestPanel] ⚠️ 当前不在3D场景中，模型不会显示')
+          console.warn('[TestPanel] 💡 点击"🎮 进入3D场景"按钮查看3D效果')
+        } else {
+          console.log('[TestPanel] ✅ 已检测到3D场景，模型将正常创建')
+        }
+      })
+    }
+    
+    // 构造消息格式，按照eventloop.mbt的要求
+    const message = JSON.stringify({
+      type: test.key,
+      content: test.params
+    })
+    
+    console.log('[TestPanel] 发送消息:', message)
+    
+    // 如果是实施攻击，触发攻击特效
+    if (test.key === 'on_attack_apply') {
+      // 从消息中提取攻击者ID和目标位置
+      const attackerId = test.params.id
+      const targetPos = [parseInt(test.params.position.x), parseInt(test.params.position.y)]
+      
+      // 调用攻击特效
+      import('../messageQueue.js').then(module => {
+        const sceneContext = module.messageQueue.sceneContext
+        if (sceneContext?.createAttackEffect) {
+          sceneContext.createAttackEffect(parseInt(attackerId), targetPos)
+          console.log('[TestPanel] 💥 触发攻击特效')
+        }
+      })
+    }
+    
+    // 调用eventloop
+    await eventloop(message)
+    
+    // 标记游戏已初始化
+    if (test.key === 'on_game_start') {
+      // eventloop已经调用，现在等待消息到达
+      console.log('[TestPanel] ⏳ 等待游戏初始化完成...')
+      
+      // 先等待300ms让消息开始到达
+      await new Promise(resolve => setTimeout(resolve, 300))
+      
+      // 然后轮询等待ID被捕获
+      let attempts = 0
+      const maxAttempts = 100 // 最多额外等待10秒（应该足够了）
+      while (attempts < maxAttempts) {
+        if (window.__ACTUAL_COPPER_IDS__ && window.__ACTUAL_COPPER_IDS__.length >= 3) {
+          console.log(`[TestPanel] 在第 ${attempts} 次尝试时捕获到ID`)
+          break
+        }
+        await new Promise(resolve => setTimeout(resolve, 100))
+        attempts++
+      }
+      
+      console.log(`[TestPanel] 轮询结束，尝试次数: ${attempts}`)
+      
+      // 从全局变量中获取实际的铜偶ID
+      if (window.__ACTUAL_COPPER_IDS__ && window.__ACTUAL_COPPER_IDS__.length >= 3) {
+        actualCopperIds.value = [...window.__ACTUAL_COPPER_IDS__]
+        console.log('[TestPanel] ✅ 捕获到实际的铜偶ID:', actualCopperIds.value)
+        gameInitialized.value = true
+        console.log('[TestPanel] ✅ 游戏已初始化，可以进行其他操作')
+      } else {
+        console.error('[TestPanel] ❌ 未能捕获铜偶ID！')
+        console.log('[TestPanel] 当前捕获的ID数量:', window.__ACTUAL_COPPER_IDS__?.length || 0)
+        console.log('[TestPanel] ID内容:', window.__ACTUAL_COPPER_IDS__)
+        console.error('[TestPanel] ⚠️ 这是一个严重错误，可能是：')
+        console.error('[TestPanel]   1. 后端没有发送set_copper消息')
+        console.error('[TestPanel]   2. messageQueue处理消息太慢')
+        console.error('[TestPanel]   3. 需要重新编译后端：moon build --target js')
+        console.error('[TestPanel] 💡 请检查上方日志：')
+        console.error('[TestPanel]   - 是否看到 [App] 🔥 收到set_copper消息？')
+        console.error('[TestPanel]   - 是否看到 [Handler] set_copper at ... ？')
+        console.error('[TestPanel]   - 如果都没有，说明后端未发送消息，需要重新编译')
+        
+        // 不标记为已初始化
+        gameInitialized.value = false
+        executing.value = null
+        
+        alert('❌ 未能捕获铜偶ID！')
+        return // 提前返回，不继续
+      }
+    }
+    
+    console.log('[TestPanel] EventLoop测试执行成功')
+  } catch (error) {
+    console.error('[TestPanel] EventLoop测试失败:', error)
+    console.error('[TestPanel] 错误详情:', error.message)
+    console.error('[TestPanel] 当前使用的铜偶ID:', actualCopperIds.value)
+    
+    // 提供更友好的错误提示
+    if (error.message && error.message.includes('panic')) {
+      console.error('[TestPanel] 💡 提示: 大部分操作需要先初始化游戏（点击"🎮 游戏开始"）')
+      if (actualCopperIds.value.length === 0) {
+        console.error('[TestPanel] ⚠️ 未能捕获铜偶ID！请刷新页面重试')
+        alert('⚠️ 未能捕获铜偶ID，请刷新页面后重新点击"🎮 游戏开始"')
+      }
+    }
+  } finally {
+    setTimeout(() => {
+      executing.value = null
+    }, 500)
+  }
+}
+
+// 自定义EventLoop参数
+const customEventloopParams = ref({
+  type: 'on_click_copper',
+  copperId: '', // 不设默认值，强制用户输入
+  positionX: '3',
+  positionY: '3',
+  ids: '1,2,3'
+})
+
+// 自动填充实际铜偶ID
+function fillActualCopperId() {
+  if (actualCopperIds.value.length > 0) {
+    customEventloopParams.value.copperId = String(actualCopperIds.value[0])
+  } else {
+    alert('⚠️ 请先执行"🎮 游戏开始"来创建铜偶')
+  }
+}
+
+const eventloopTypes = [
+  'on_click_copper',
+  'on_attack_start', 
+  'on_attack_end',
+  'on_attack_apply',
+  'on_move_start',
+  'on_move_apply',
+  'on_game_start'
+]
+
+// 执行自定义EventLoop
+async function runCustomEventloop() {
+  try {
+    executing.value = 'custom_eventloop'
+    const type = customEventloopParams.value.type
+    let content = {}
+    
+    // 根据不同类型构造content
+    switch(type) {
+      case 'on_click_copper':
+      case 'on_attack_start':
+      case 'on_move_start':
+        content = { id: customEventloopParams.value.copperId }
+        break
+      case 'on_attack_end':
+        content = {}
+        break
+      case 'on_attack_apply':
+      case 'on_move_apply':
+        content = { 
+          id: customEventloopParams.value.copperId,
+          position: { 
+            x: customEventloopParams.value.positionX, 
+            y: customEventloopParams.value.positionY 
+          }
+        }
+        break
+      case 'on_game_start':
+        content = { 
+          ids: customEventloopParams.value.ids.split(',').map(s => s.trim()).filter(s => s)
+        }
+        break
+    }
+    
+    const message = JSON.stringify({ type, content })
+    console.log('[TestPanel] 自定义EventLoop:', message)
+    
+    await eventloop(message)
+    console.log('[TestPanel] 自定义EventLoop执行成功')
+  } catch (error) {
+    console.error('[TestPanel] 自定义EventLoop失败:', error)
+  } finally {
+    setTimeout(() => { executing.value = null }, 500)
+  }
+}
 </script>
 
 <template>
@@ -136,16 +423,142 @@ async function runCustomRemove() {
       <div class="test-panel__header">
         <h3>消息交互测试</h3>
         <p class="test-panel__subtitle">测试后端到前端的消息通信</p>
-        <button class="test-panel__scene-btn" @click="emit('enter-scene')">
-          🎮 进入3D场景
+        <button class="test-panel__scene-btn" @click="emit('enter-scene')" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+          🎮 进入3D场景 (查看模型效果)
         </button>
-        <button class="test-panel__custom-toggle" @click="toggleCustom">
-          {{ showCustom ? '← 预设测试' : '自定义测试 →' }}
+        <div class="test-panel__tabs">
+          <button 
+            class="test-panel__tab" 
+            :class="{ 'test-panel__tab--active': !showCustom && !showEventloop }"
+            @click="showCustom = false; showEventloop = false; switchTestMode('backend')"
+          >
+            🧪 后端测试
+          </button>
+          <button 
+            class="test-panel__tab" 
+            :class="{ 'test-panel__tab--active': showEventloop }"
+            @click="toggleEventloop(); switchTestMode('eventloop')"
+          >
+            🎮 EventLoop
+          </button>
+          <button 
+            class="test-panel__tab" 
+            :class="{ 'test-panel__tab--active': showCustom }"
+            @click="toggleCustom(); switchTestMode('backend')"
+          >
+            ⚙️ 自定义
+          </button>
+        </div>
+      </div>
+      
+      <!-- EventLoop测试 -->
+      <div v-if="showEventloop" class="test-panel__list">
+        <!-- 游戏状态提示 -->
+        <div class="game-status" :class="{ 'game-status--initialized': gameInitialized, 'game-status--initializing': executing === 'on_game_start' }">
+          <span class="game-status__icon">
+            {{ gameInitialized ? '✅' : executing === 'on_game_start' ? '⏳' : '⚠️' }}
+          </span>
+          <span class="game-status__text">
+            <template v-if="gameInitialized">
+              游戏已初始化
+              <span v-if="actualCopperIds.length > 0" style="opacity: 0.8; font-size: 0.9em;">
+                (铜偶ID: {{ actualCopperIds.join(', ') }})
+              </span>
+            </template>
+            <template v-else-if="executing === 'on_game_start'">
+              正在初始化游戏...
+            </template>
+            <template v-else>
+              游戏未初始化 - 请先点击"🎮 游戏开始"
+            </template>
+          </span>
+        </div>
+        
+        <button
+          v-for="test in eventloopTests"
+          :key="test.key"
+          class="test-item"
+          :class="{ 
+            'test-item--executing': executing === test.key,
+            'test-item--required': test.required,
+            'test-item--disabled': !gameInitialized && test.key !== 'on_game_start'
+          }"
+          :disabled="executing === test.key || (!gameInitialized && test.key !== 'on_game_start')"
+          @click="runEventloopTest(test)"
+        >
+          <div class="test-item__name">{{ test.name }}</div>
+          <div class="test-item__desc">{{ test.desc }}</div>
         </button>
+        
+        <!-- 自定义EventLoop -->
+        <div class="custom-eventloop">
+          <h4>自定义EventLoop调用</h4>
+          
+          <!-- 可用ID提示 -->
+          <div v-if="actualCopperIds.length > 0" class="copper-ids-hint">
+            💡 可用铜偶ID: 
+            <span v-for="(id, idx) in actualCopperIds" :key="id" class="copper-id-tag">
+              {{ id }}<span v-if="idx < actualCopperIds.length - 1">, </span>
+            </span>
+          </div>
+          <div v-else class="copper-ids-hint warning">
+            ⚠️ 未检测到铜偶，请先执行"🎮 游戏开始"
+          </div>
+          
+          <div class="custom-inputs">
+            <select v-model="customEventloopParams.type" class="custom-select">
+              <option v-for="type in eventloopTypes" :key="type" :value="type">{{ type }}</option>
+            </select>
+          </div>
+          <div v-if="['on_click_copper', 'on_attack_start', 'on_move_start'].includes(customEventloopParams.type)" class="custom-inputs">
+            <div style="display: flex; gap: 8px;">
+              <input 
+                v-model="customEventloopParams.copperId" 
+                placeholder="铜偶ID（使用上面显示的ID）" 
+                class="custom-input" 
+                style="flex: 1;"
+              />
+              <button 
+                class="fill-id-btn" 
+                @click="fillActualCopperId"
+                :disabled="actualCopperIds.length === 0"
+                title="自动填充第一个铜偶的ID"
+              >
+                📋
+        </button>
+            </div>
+          </div>
+          <div v-if="['on_attack_apply', 'on_move_apply'].includes(customEventloopParams.type)" class="custom-inputs">
+            <div style="display: flex; gap: 8px; margin-bottom: 8px;">
+              <input 
+                v-model="customEventloopParams.copperId" 
+                placeholder="铜偶ID（使用上面显示的ID）" 
+                class="custom-input" 
+                style="flex: 1;"
+              />
+              <button 
+                class="fill-id-btn" 
+                @click="fillActualCopperId"
+                :disabled="actualCopperIds.length === 0"
+                title="自动填充第一个铜偶的ID"
+              >
+                📋
+        </button>
+            </div>
+            <div style="display: flex; gap: 8px;">
+              <input v-model="customEventloopParams.positionX" placeholder="X坐标" class="custom-input" />
+              <input v-model="customEventloopParams.positionY" placeholder="Y坐标" class="custom-input" />
+            </div>
+          </div>
+          <div v-if="customEventloopParams.type === 'on_game_start'" class="custom-inputs">
+            <input v-model="customEventloopParams.ids" placeholder="IDs (逗号分隔, 如: 1,2,3)" class="custom-input" />
+          </div>
+          <button class="custom-btn" @click="runCustomEventloop" :disabled="executing">发送</button>
+        </div>
       </div>
       
       <!-- 自定义测试 -->
-      <div v-if="showCustom" class="test-panel__custom">
+      <div v-else-if="showCustom" class="test-panel__custom">
         <!-- 移动 -->
         <div class="custom-group">
           <h4>移动单位</h4>
@@ -195,7 +608,14 @@ async function runCustomRemove() {
       </div>
       
       <div class="test-panel__footer">
-        <p v-if="showCustom">💡 在3D场景中：蓝色=ID:1，红色=ID:2</p>
+        <p v-if="showEventloop">
+          💡 点击"🎮 游戏开始"后等待状态变为"✅ 游戏已初始化"
+          <br>
+          <small style="opacity: 0.7; color: rgba(255, 200, 100, 1);">
+            ⚠️ 想看3D效果？点击上方"🎮 进入3D场景"按钮！
+          </small>
+        </p>
+        <p v-else-if="showCustom">💡 在3D场景中：蓝色=ID:1，红色=ID:2</p>
         <p v-else>💡 提示：确保场景中已有模型ID=1和ID=2</p>
       </div>
     </div>
@@ -485,6 +905,176 @@ async function runCustomRemove() {
 
 .custom-btn--danger:hover:not(:disabled) {
   background: rgba(220, 38, 38, 1);
+}
+
+/* Tab按钮 */
+.test-panel__tabs {
+  display: flex;
+  gap: 6px;
+  margin-top: 10px;
+}
+
+.test-panel__tab {
+  flex: 1;
+  padding: 6px 8px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 6px;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.test-panel__tab:hover {
+  background: rgba(255, 255, 255, 0.15);
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.test-panel__tab--active {
+  background: rgba(255, 107, 107, 0.6);
+  border-color: rgba(255, 107, 107, 0.8);
+  color: #fff;
+}
+
+.test-panel__tab--active:hover {
+  background: rgba(255, 107, 107, 0.7);
+}
+
+/* 自定义EventLoop */
+.custom-eventloop {
+  background: rgba(58, 37, 25, 0.6);
+  border: 1px solid rgba(255, 200, 100, 0.3);
+  border-radius: 10px;
+  padding: 12px;
+  margin-top: 12px;
+}
+
+.custom-eventloop h4 {
+  margin: 0 0 8px 0;
+  font-size: 13px;
+  color: rgba(255, 200, 100, 1);
+  font-weight: 700;
+}
+
+.custom-eventloop .custom-inputs {
+  margin-bottom: 8px;
+}
+
+/* 铜偶ID提示 */
+.copper-ids-hint {
+  background: rgba(102, 126, 234, 0.15);
+  border: 1px solid rgba(102, 126, 234, 0.3);
+  border-radius: 6px;
+  padding: 8px;
+  margin-bottom: 10px;
+  font-size: 12px;
+  color: rgba(200, 220, 255, 0.9);
+}
+
+.copper-ids-hint.warning {
+  background: rgba(255, 193, 7, 0.15);
+  border-color: rgba(255, 193, 7, 0.3);
+  color: rgba(255, 223, 100, 1);
+}
+
+.copper-id-tag {
+  display: inline-block;
+  background: rgba(102, 126, 234, 0.3);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-weight: 700;
+  color: rgba(200, 220, 255, 1);
+}
+
+/* 填充ID按钮 */
+.fill-id-btn {
+  min-width: 36px;
+  height: 36px;
+  padding: 0;
+  background: rgba(102, 126, 234, 0.3);
+  border: 1px solid rgba(102, 126, 234, 0.5);
+  border-radius: 6px;
+  color: white;
+  cursor: pointer;
+  font-size: 16px;
+  transition: all 0.2s;
+}
+
+.fill-id-btn:hover:not(:disabled) {
+  background: rgba(102, 126, 234, 0.5);
+  transform: scale(1.05);
+}
+
+.fill-id-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+/* 游戏状态提示 */
+.game-status {
+  background: rgba(220, 38, 38, 0.2);
+  border: 1px solid rgba(220, 38, 38, 0.4);
+  border-radius: 8px;
+  padding: 10px 12px;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: #fff;
+}
+
+.game-status--initialized {
+  background: rgba(34, 197, 94, 0.2);
+  border-color: rgba(34, 197, 94, 0.4);
+}
+
+.game-status--initializing {
+  background: rgba(250, 204, 21, 0.2);
+  border-color: rgba(250, 204, 21, 0.4);
+  animation: pulse-yellow 1.5s infinite;
+}
+
+@keyframes pulse-yellow {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+.game-status__icon {
+  font-size: 16px;
+}
+
+.game-status__text {
+  flex: 1;
+  line-height: 1.4;
+}
+
+/* 必需测试项 */
+.test-item--required {
+  border: 2px solid rgba(255, 200, 100, 0.6);
+  background: rgba(255, 200, 100, 0.1);
+}
+
+.test-item--required:hover:not(:disabled) {
+  border-color: rgba(255, 200, 100, 0.8);
+  background: rgba(255, 200, 100, 0.2);
+}
+
+/* 禁用状态 */
+.test-item--disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.test-item--disabled:hover {
+  transform: none;
+  background: rgba(58, 37, 25, 0.8);
 }
 </style>
 

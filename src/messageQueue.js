@@ -21,7 +21,10 @@ class MessageQueue {
 
   // 添加消息到队列
   enqueue(message) {
-    console.log('[MessageQueue] 收到消息:', message)
+    // 过滤掉put_map_block消息的日志（太多了）
+    if (message.type_msg !== 'put_map_block') {
+      console.log('[MessageQueue] 收到消息:', message)
+    }
     this.queue.push(message)
     if (!this.isProcessing) {
       this.processNext()
@@ -36,26 +39,44 @@ class MessageQueue {
     }
 
     this.isProcessing = true
-    const message = this.queue.shift()
+    
+    //批量处理消息，每次处理多个消息后才让出控制权
+    const batchSize = 10  // 每批处理10个消息
+    let processed = 0
+    
+    while (this.queue.length > 0 && processed < batchSize) {
+      const message = this.queue.shift()
+      processed++
 
-    try {
-      const { type_msg, content } = message
-      const handler = this.handlers.get(type_msg)
-      
-      if (handler) {
-        console.log('[MessageQueue] 处理消息:', type_msg, content)
-        const data = JSON.parse(content)
-        await handler(data, this.sceneContext || {})
-      } else {
-        console.warn('[MessageQueue] 未找到处理器:', type_msg)
-        console.log('[MessageQueue] 当前已注册的处理器:', Array.from(this.handlers.keys()))
+      try {
+        const { type_msg, content } = message
+        const handler = this.handlers.get(type_msg)
+        
+        if (handler) {
+          // 过滤掉put_map_block的处理日志（太多了）
+          if (type_msg !== 'put_map_block') {
+            console.log('[MessageQueue] 处理消息:', type_msg, content)
+          }
+          const data = JSON.parse(content)
+          await handler(data, this.sceneContext || {})
+        } else {
+          console.warn('[MessageQueue] 未找到处理器:', type_msg)
+          console.log('[MessageQueue] 当前已注册的处理器:', Array.from(this.handlers.keys()))
+        }
+      } catch (error) {
+        console.error('[MessageQueue] 处理消息失败:', error)
+        console.error('[MessageQueue] 错误详情:', error.message)
       }
-    } catch (error) {
-      console.error('[MessageQueue] 处理消息失败:', error)
     }
 
-    // 继续处理下一个消息
-    setTimeout(() => this.processNext(), 100)
+    // 使用 requestAnimationFrame 让出控制权
+    // 比 setTimeout 更高效，会在下一帧渲染前执行
+    // 如果没有更多消息，不再调度
+    if (this.queue.length > 0) {
+      requestAnimationFrame(() => this.processNext())
+    } else {
+      this.isProcessing = false
+    }
   }
 }
 
@@ -76,10 +97,36 @@ function delay(ms) {
 export function registerAllHandlers() {
   console.log('[MessageQueue] 开始注册消息处理器...')
   
+  // handle_on_click_copper: 当铜偶被点击时，后端返回铜偶信息
+  messageQueue.registerHandler('handle_on_click_copper', async (data, context) => {
+    const { copper } = data
+    console.log(`[Handler] 点击铜偶: ${copper.copper.copper_info?.name || 'Unknown'} (ID=${copper.id})`)
+    console.log(`[Handler] 铜偶状态: HP=${copper.now_health}/${copper.copper.attribute.health}, 可移动=${copper.can_move}, 可攻击=${copper.can_attack}`)
+    
+    // 高亮选中的铜偶
+    if (context.highlightSelectedCopper) {
+      context.highlightSelectedCopper(copper.id)
+    }
+    
+    // TODO: 显示铜偶信息面板
+    if (context.onShowCopperInfo) {
+      context.onShowCopperInfo(copper)
+    }
+  })
+  
   // set_copper: 在指定地点放置铜偶
   messageQueue.registerHandler('set_copper', async (data, context) => {
     const { id, position, copper } = data
     console.log(`[Handler] set_copper at ${position}, id=${id}`)
+    console.log(`[Handler] 实际铜偶ID: copper.id=${copper.id}`)
+    
+    // 通知外部记录实际的铜偶ID
+    if (window.__ACTUAL_COPPER_IDS__) {
+      window.__ACTUAL_COPPER_IDS__.push(copper.id)
+      console.log(`[Handler] 已添加铜偶ID到数组，当前数量: ${window.__ACTUAL_COPPER_IDS__.length}`)
+    } else {
+      console.error('[Handler] window.__ACTUAL_COPPER_IDS__ 未初始化！')
+    }
     
     // TODO: 根据copper数据加载3D模型
     // 这里需要和model.js的loadModel配合
@@ -197,8 +244,9 @@ export function registerAllHandlers() {
     if (model && model.object && context.gridCellSize) {
       const [gridX, gridZ] = to
       const cellSize = context.gridCellSize
-      const targetX = (gridX + 0.5) * cellSize
-      const targetZ = (gridZ + 0.5) * cellSize
+      // 以(0,0)为中心，地图范围 -7 到 7
+      const targetX = (gridX - 7) * cellSize
+      const targetZ = (gridZ - 7) * cellSize
       const targetY = model.object.position.y
       
       // 使用model.js的animateModelMove
@@ -291,41 +339,78 @@ export function registerAllHandlers() {
   // put_map_block: 放置地图块
   messageQueue.registerHandler('put_map_block', async (data, context) => {
     const { position } = data
-    console.log(`[Handler] put_map_block at ${position}`)
+    // console.log(`[Handler] put_map_block at ${position}`)  // 日志太多，已注释
     
     if (context.onPutMapBlock) {
       context.onPutMapBlock(position)
     }
   })
 
+  // 计数器：跟踪范围块数量
+  let moveBlockCount = 0
+  let attackBlockCount = 0
+  
   // set_move_block: 设置地图块为可移动（绿色）
   messageQueue.registerHandler('set_move_block', async (data, context) => {
     const { position } = data
-    console.log(`[Handler] set_move_block at ${position}`)
+    moveBlockCount++
     
     if (context.onSetMoveBlock) {
       context.onSetMoveBlock(position)
     }
+    
+    // 输出每个移动范围的位置
+    console.log(`[Handler] 移动范围 #${moveBlockCount}: [${position}]`)
   })
 
   // set_attack_block: 设置地图块为可攻击（红色）
   messageQueue.registerHandler('set_attack_block', async (data, context) => {
     const { position } = data
-    console.log(`[Handler] set_attack_block at ${position}`)
+    attackBlockCount++
     
     if (context.onSetAttackBlock) {
       context.onSetAttackBlock(position)
     }
+    
+    // 只在第一个或每10个时输出日志
+    if (attackBlockCount === 1 || attackBlockCount % 10 === 0) {
+      console.log(`[Handler] 攻击范围已显示 ${attackBlockCount} 个地块`)
+    }
   })
 
-  // clear_block: 清除地图块状态
+  // clear_block: 清除地板块状态
+  let clearBlockCount = 0
+  let lastClearTime = Date.now()
+  
   messageQueue.registerHandler('clear_block', async (data, context) => {
     const { position } = data
-    console.log(`[Handler] clear_block at ${position}`)
     
     if (context.onClearBlock) {
       context.onClearBlock(position)
     }
+    
+    clearBlockCount++
+    
+    // 如果是连续清除（批量操作），只输出汇总
+    const now = Date.now()
+    if (now - lastClearTime > 500) {
+      // 新的一轮清除
+      if (clearBlockCount > 1) {
+        console.log(`[Handler] ⬜ 已清除 ${clearBlockCount} 个地板块`)
+      }
+      clearBlockCount = 0
+      
+      // 重置计数器
+      if (moveBlockCount > 0) {
+        console.log(`[Handler] 移动范围已清除（共 ${moveBlockCount} 个）`)
+        moveBlockCount = 0
+      }
+      if (attackBlockCount > 0) {
+        console.log(`[Handler] 攻击范围已清除（共 ${attackBlockCount} 个）`)
+        attackBlockCount = 0
+      }
+    }
+    lastClearTime = now
   })
 
   console.log('[MessageQueue] 已注册所有消息处理器，共', messageQueue.handlers.size, '个')

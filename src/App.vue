@@ -168,11 +168,9 @@ function onFileChange(ev) {
   } catch (_) {}
 }
 
-// 订阅后端消息
 onMounted(() => {
-  console.log('[App] 订阅后端消息...')
   info_subscribe((message) => {
-    console.log('[App] 收到后端消息:', message)
+    // Messages are handled by messageQueue
   })
 })
 
