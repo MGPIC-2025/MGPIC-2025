@@ -4,6 +4,7 @@ import Hall from "./vue/Hall.vue";
 import Warehouse from "./vue/Warehouse.vue";
 import TopLeftPanel from "./vue/TopLeftPanel.vue";
 import StartMenu from "./vue/StartMenu.vue";
+import StartGame from "./vue/StartGame.vue";
 import TestPanel from "./vue/TestPanel.vue";
 import TestScene from "./vue/TestScene.vue";
 
@@ -207,6 +208,9 @@ onBeforeUnmount(() => {
             <TopLeftPanel @back="goBack" @open-settings="openSettings" />
             <Warehouse ref="warehouseRef" />
           </div>
+        </template>
+        <template v-else-if="overlay==='start'">
+          <StartGame @close="closeOverlay" @confirm="(p)=>{ console.log('[App] 开始参数', p); closeOverlay() }" />
         </template>
         <template v-else>
           <div class="modal">
