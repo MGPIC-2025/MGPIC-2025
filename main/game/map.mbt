@@ -39,7 +39,7 @@ fn Map_::is_occupy(map : Map_, position : (Int, Int)) -> Bool {
     guard map.global_position_to_room_position(position) is Some((_, position))
     return !(room.blocks[position.0][position.1].occupant is Empty)
   }
-  true // 超出地图范围视为已占据（不可移动）
+  false
 }
 
 ///|
@@ -95,7 +95,6 @@ pub fn broadcast_room_content(room : Room) -> Unit {
     for y in 0..<15 {
       let global_pos = (room_x + x, room_y + y)
       put_map_block(global_pos)
-      
       let occupant = room.blocks[x][y].occupant
       if occupant is Enemy(enemy) {
         set_enemy(enemy, enemy.id, global_pos)

@@ -1,9 +1,9 @@
 // 📦 导入依赖
-import * as THREE from 'three';
-import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
-import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
-import GUI from 'lil-gui';
+import * as THREE from "three";
+import { OrbitControls } from "three/addons/controls/OrbitControls.js";
+import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
+import { DRACOLoader } from "three/addons/loaders/DRACOLoader.js";
+import GUI from "lil-gui";
 // 🗺️ 模型配置映射 - 改为使用模型名称作为键
 const modelConfigMap = new Map();
 // 🗺️ URL到名称的映射
@@ -24,10 +24,10 @@ function setModelConfig(name, url, config) {
     initialScale: config.initialScale || 1.0,
     lightIntensity: config.lightIntensity || 1.5,
     lightDistance: config.lightDistance || 100,
-    lightColor: config.lightColor || '#ffffff',
+    lightColor: config.lightColor || "#ffffff",
     lightPosX: config.lightPosX !== undefined ? config.lightPosX : 0.75,
     lightPosY: config.lightPosY !== undefined ? config.lightPosY : 0,
-    lightPosZ: config.lightPosZ !== undefined ? config.lightPosZ : 0
+    lightPosZ: config.lightPosZ !== undefined ? config.lightPosZ : 0,
   });
   // 建立URL到名称的映射
   modelUrlToNameMap.set(url, name);
@@ -39,19 +39,21 @@ function setModelConfig(name, url, config) {
  * @returns {Object} 配置对象
  */
 function getModelConfig(name) {
-  return modelConfigMap.get(name) || {
-    url: '',
-    initialX: 0,
-    initialY: 0,
-    initialZ: 0,
-    initialScale: 1.0,
-    lightIntensity: 1.5,
-    lightDistance: 100,
-    lightColor: '#ffffff',
-    lightPosX: 0.75,
-    lightPosY: 0,
-    lightPosZ: 0
-  };
+  return (
+    modelConfigMap.get(name) || {
+      url: "",
+      initialX: 0,
+      initialY: 0,
+      initialZ: 0,
+      initialScale: 1.0,
+      lightIntensity: 1.5,
+      lightDistance: 100,
+      lightColor: "#ffffff",
+      lightPosX: 0.75,
+      lightPosY: 0,
+      lightPosZ: 0,
+    }
+  );
 }
 
 /**
@@ -60,7 +62,7 @@ function getModelConfig(name) {
  * @returns {string} 模型名称
  */
 function getModelNameByUrl(url) {
-  return modelUrlToNameMap.get(url) || 'default_model';
+  return modelUrlToNameMap.get(url) || "default_model";
 }
 
 /**
@@ -73,7 +75,13 @@ function getModelNameByUrl(url) {
  * @param {THREE.Vector3} position - 光源相对于模型的位置
  * @returns {Object} 包含点光源对象和控制参数的对象
  */
-function createPointLight(modelObject, intensity = 1.5, distance = 100, color = '#ffffff', position = new THREE.Vector3(0.75, 0, 0)) {
+function createPointLight(
+  modelObject,
+  intensity = 1.5,
+  distance = 100,
+  color = "#ffffff",
+  position = new THREE.Vector3(0.75, 0, 0)
+) {
   // 创建Three.js的点光源对象
   const pointLight = new THREE.PointLight(color, intensity, distance);
   // 设置光源位置（相对于模型的局部坐标）
@@ -87,13 +95,13 @@ function createPointLight(modelObject, intensity = 1.5, distance = 100, color = 
   return {
     pointLight,
     lightParams: {
-      enabled: true,        // 光源启用状态
-      color: color,         // 光源颜色
+      enabled: true, // 光源启用状态
+      color: color, // 光源颜色
       intensity: intensity, // 光源强度
-      distance: distance,   // 光源距离
-      autoIntensity: true,  // 是否自动调整强度（缩放时）
-      position: position.clone() // 光源位置的副本
-    }
+      distance: distance, // 光源距离
+      autoIntensity: true, // 是否自动调整强度（缩放时）
+      position: position.clone(), // 光源位置的副本
+    },
   };
 }
 
@@ -114,7 +122,7 @@ function focusOnModel(modelObject, camera, controls) {
   const box = new THREE.Box3().setFromObject(modelObject);
   const size = box.getSize(new THREE.Vector3());
   const maxDim = Math.max(size.x, size.y, size.z);
-  
+
   // 根据相机视野(FOV)计算合适的观看距离
   const fov = camera.fov * (Math.PI / 180);
   let distance = maxDim / (2 * Math.tan(fov / 2));
@@ -125,15 +133,17 @@ function focusOnModel(modelObject, camera, controls) {
   camera.getWorldDirection(dir);
   dir.y = 0; // 保持在水平面（Y=0）
   dir.normalize(); // 标准化方向向量
-  
+
   // 计算相机目标位置：从模型原点向后退distance距离
-  const targetPosition = new THREE.Vector3().copy(worldOrigin).sub(dir.clone().multiplyScalar(distance));
+  const targetPosition = new THREE.Vector3()
+    .copy(worldOrigin)
+    .sub(dir.clone().multiplyScalar(distance));
 
   // 返回聚焦数据
   return {
     focusPosition: targetPosition.clone(), // 相机目标位置
-    focusTarget: worldOrigin.clone(),      // 相机目标点（模型原点）
-    lerpFactor: 0.08                      // 移动速度（0.08 = 较慢）
+    focusTarget: worldOrigin.clone(), // 相机目标点（模型原点）
+    lerpFactor: 0.08, // 移动速度（0.08 = 较慢）
   };
 }
 
@@ -147,30 +157,36 @@ function focusOnModel(modelObject, camera, controls) {
 function createFloor(textureUrl, floorSize, gridCellSize) {
   // 创建平面几何体
   const geometry = new THREE.PlaneGeometry(floorSize, floorSize);
-  
+
   if (textureUrl) {
     // 如果有纹理URL，加载纹理
     const textureLoader = new THREE.TextureLoader();
     const texture = textureLoader.load(textureUrl);
-    
+
     // 设置纹理为SRGB色彩空间（确保颜色显示正确）
     texture.colorSpace = THREE.SRGBColorSpace;
-    
+
     // 设置纹理重复次数（让纹理平铺整个地板）
     const repeat = floorSize / gridCellSize;
     texture.wrapS = THREE.RepeatWrapping;
     texture.wrapT = THREE.RepeatWrapping;
     texture.repeat.set(repeat, repeat);
-    
+
     // 创建材质和网格
-    const material = new THREE.MeshBasicMaterial({ map: texture, side: THREE.DoubleSide });
+    const material = new THREE.MeshBasicMaterial({
+      map: texture,
+      side: THREE.DoubleSide,
+    });
     const floor = new THREE.Mesh(geometry, material);
     floor.rotation.x = -Math.PI / 2; // 旋转90度变成水平面
-    floor.position.y = 0;            // 放在Y=0平面上
+    floor.position.y = 0; // 放在Y=0平面上
     return floor;
   } else {
     // 如果没有纹理，使用纯色地板
-    const material = new THREE.MeshBasicMaterial({ color: 0x333333, side: THREE.DoubleSide });
+    const material = new THREE.MeshBasicMaterial({
+      color: 0x333333,
+      side: THREE.DoubleSide,
+    });
     const floor = new THREE.Mesh(geometry, material);
     floor.rotation.x = -Math.PI / 2;
     floor.position.y = 0;
@@ -186,7 +202,12 @@ function createFloor(textureUrl, floorSize, gridCellSize) {
  */
 function createGridOverlay(floorSize, gridCellSize) {
   // 创建Three.js的网格辅助线
-  const grid = new THREE.GridHelper(floorSize, Math.floor(floorSize / gridCellSize), 0x000000, 0x000000);
+  const grid = new THREE.GridHelper(
+    floorSize,
+    Math.floor(floorSize / gridCellSize),
+    0x000000,
+    0x000000
+  );
   grid.position.y = 0.01; // 略高于地板，避免显示问题
   grid.material.opacity = 0.5; // 50%透明度
   grid.material.transparent = true;
@@ -206,7 +227,7 @@ function createFloorHighlight(cellSize, color = 0xffff00) {
     color,
     transparent: true,
     opacity: 0.3, // 30%透明度
-    side: THREE.DoubleSide
+    side: THREE.DoubleSide,
   });
   const highlight = new THREE.Mesh(geometry, material);
   highlight.rotation.x = -Math.PI / 2; // 旋转成水平面
@@ -225,59 +246,75 @@ function createFloorHighlight(cellSize, color = 0xffff00) {
  * @param {Function} onLoad - 加载成功回调函数
  * @param {Function} onError - 加载失败回调函数
  */
-function loadModel(gltfLoader, scene, name, gridCellSize, modelIndex,onLoad, onError) {
+function loadModel(
+  gltfLoader,
+  scene,
+  name,
+  gridCellSize,
+  modelIndex,
+  onLoad,
+  onError
+) {
   // 从配置映射中获取这个模型的设置
   const config = getModelConfig(name);
-  
+
   // 开始加载模型
   gltfLoader.load(
     config.url,
     (gltf) => {
       // 获取模型根对象
       const obj = gltf.scene;
-      
+
       // 计算模型包围盒并居中
       const box = new THREE.Box3().setFromObject(obj);
       const center = box.getCenter(new THREE.Vector3());
       obj.position.sub(center); // 将模型中心移到原点
-      scene.add(obj);           // 添加到场景
+      scene.add(obj); // 添加到场景
 
       // 应用配置的初始位置和缩放
       obj.position.x += config.initialX;
       obj.position.y += config.initialY;
       obj.position.z += config.initialZ;
-      obj.scale.set(config.initialScale, config.initialScale, config.initialScale);
+      obj.scale.set(
+        config.initialScale,
+        config.initialScale,
+        config.initialScale
+      );
 
       // 创建点光源（使用配置的参数）
-      const lightPosition = new THREE.Vector3(config.lightPosX, config.lightPosY, config.lightPosZ);
+      const lightPosition = new THREE.Vector3(
+        config.lightPosX,
+        config.lightPosY,
+        config.lightPosZ
+      );
       const { pointLight, lightParams } = createPointLight(
-        obj, 
-        config.lightIntensity, 
-        config.lightDistance, 
-        config.lightColor, 
+        obj,
+        config.lightIntensity,
+        config.lightDistance,
+        config.lightColor,
         lightPosition
       );
-      
+
       // 计算包围盒信息（用于UI显示）
       const size = box.getSize(new THREE.Vector3());
       const bboxInfo = {
         width: size.x.toFixed(6),
         depth: size.z.toFixed(6),
-        height: size.y.toFixed(6)
+        height: size.y.toFixed(6),
       };
 
       // 创建完整的模型数据对象
       const modelData = {
-        object: obj,           // 模型对象
+        object: obj, // 模型对象
         name: `Model_${modelIndex}`, // 唯一名称
         position: obj.position, // 位置引用
-        rotation: obj.rotation, // 旋转引用  
-        scale: obj.scale,       // 缩放引用
-        pointLight,            // 点光源对象
-        lightParams,          // 光源参数
-        bboxInfo,             // 包围盒信息
-        outline: null,        // 高亮轮廓（初始为空）
-        isMoving: false       // 移动状态（初始为false）
+        rotation: obj.rotation, // 旋转引用
+        scale: obj.scale, // 缩放引用
+        pointLight, // 点光源对象
+        lightParams, // 光源参数
+        bboxInfo, // 包围盒信息
+        outline: null, // 高亮轮廓（初始为空）
+        isMoving: false, // 移动状态（初始为false）
       };
 
       // 如果没有指定初始位置，则自动吸附到最近的网格中心
@@ -334,7 +371,7 @@ function createOutline(modelObject, color = 0x00ffff) {
     wireframe: true,
     depthTest: false,
     transparent: true,
-    opacity: 0.8
+    opacity: 0.8,
   });
   const outline = new THREE.Mesh(outlineGeo, outlineMaterial);
   outline.position.copy(center);
@@ -349,20 +386,21 @@ function createOutline(modelObject, color = 0x00ffff) {
  */
 function rotateModelX(modelObject, degrees, onComplete = null) {
   if (!modelObject) return;
-  
-  const targetRadians = degrees * Math.PI / 180;
+
+  const targetRadians = (degrees * Math.PI) / 180;
   const startRadians = modelObject.rotation.x;
   const duration = 300; // 300ms 动画时长
   const startTime = performance.now();
-  
+
   function animate() {
     const elapsed = performance.now() - startTime;
     const progress = Math.min(elapsed / duration, 1);
     // 使用 ease-out 缓动
     const easeProgress = 1 - Math.pow(1 - progress, 2);
-    
-    modelObject.rotation.x = startRadians + (targetRadians - startRadians) * easeProgress;
-    
+
+    modelObject.rotation.x =
+      startRadians + (targetRadians - startRadians) * easeProgress;
+
     if (progress < 1) {
       requestAnimationFrame(animate);
     } else {
@@ -370,7 +408,7 @@ function rotateModelX(modelObject, degrees, onComplete = null) {
       if (onComplete) onComplete();
     }
   }
-  
+
   animate();
 }
 
@@ -395,25 +433,29 @@ function setPointLightEnabled(modelData, enabled) {
  */
 function animateModelMove(model, targetPosition, onComplete) {
   if (!model || !model.object) return;
-  
+
   model.isMoving = true;
   const startPosition = model.object.position.clone();
   const duration = 500; // 500毫秒动画
   const startTime = performance.now();
-  
+
   function animate() {
     if (!model || !model.object) {
       if (onComplete) onComplete();
       return;
     }
-    
+
     const elapsed = performance.now() - startTime;
     const progress = Math.min(elapsed / duration, 1);
     // 使用缓动函数让动画更自然
     const easeProgress = 1 - Math.pow(1 - progress, 2);
-    
-    model.object.position.lerpVectors(startPosition, targetPosition, easeProgress);
-    
+
+    model.object.position.lerpVectors(
+      startPosition,
+      targetPosition,
+      easeProgress
+    );
+
     if (progress < 1) {
       requestAnimationFrame(animate);
     } else {
@@ -424,7 +466,7 @@ function animateModelMove(model, targetPosition, onComplete) {
       if (onComplete) onComplete();
     }
   }
-  
+
   animate();
 }
 
@@ -474,16 +516,40 @@ function updateLighting(ambientLight, directionalLight, lightingParams, scene) {
  */
 function initGUI(guiContainer, lightingParams, updateLightingCallback) {
   const gui = new GUI({ container: guiContainer });
-  const lightFolder = gui.addFolder('Global Lighting');
+  const lightFolder = gui.addFolder("Global Lighting");
   lightFolder.open();
-  lightFolder.add(lightingParams, 'ambientIntensity', 0, 2).name('Ambient Intensity').onChange(updateLightingCallback);
-  lightFolder.addColor(lightingParams, 'ambientColor').name('Ambient Color').onChange(updateLightingCallback);
-  lightFolder.add(lightingParams, 'directionalIntensity', 0, 5).name('Directional Intensity').onChange(updateLightingCallback);
-  lightFolder.addColor(lightingParams, 'directionalColor').name('Directional Color').onChange(updateLightingCallback);
-  lightFolder.add(lightingParams, 'dirLightX', -200, 200).name('Dir Light X').onChange(updateLightingCallback);
-  lightFolder.add(lightingParams, 'dirLightY', -200, 200).name('Dir Light Y').onChange(updateLightingCallback);
-  lightFolder.add(lightingParams, 'dirLightZ', -200, 200).name('Dir Light Z').onChange(updateLightingCallback);
-  lightFolder.addColor(lightingParams, 'bgColor').name('Background Color').onChange(updateLightingCallback);
+  lightFolder
+    .add(lightingParams, "ambientIntensity", 0, 2)
+    .name("Ambient Intensity")
+    .onChange(updateLightingCallback);
+  lightFolder
+    .addColor(lightingParams, "ambientColor")
+    .name("Ambient Color")
+    .onChange(updateLightingCallback);
+  lightFolder
+    .add(lightingParams, "directionalIntensity", 0, 5)
+    .name("Directional Intensity")
+    .onChange(updateLightingCallback);
+  lightFolder
+    .addColor(lightingParams, "directionalColor")
+    .name("Directional Color")
+    .onChange(updateLightingCallback);
+  lightFolder
+    .add(lightingParams, "dirLightX", -200, 200)
+    .name("Dir Light X")
+    .onChange(updateLightingCallback);
+  lightFolder
+    .add(lightingParams, "dirLightY", -200, 200)
+    .name("Dir Light Y")
+    .onChange(updateLightingCallback);
+  lightFolder
+    .add(lightingParams, "dirLightZ", -200, 200)
+    .name("Dir Light Z")
+    .onChange(updateLightingCallback);
+  lightFolder
+    .addColor(lightingParams, "bgColor")
+    .name("Background Color")
+    .onChange(updateLightingCallback);
   return gui;
 }
 
@@ -499,7 +565,12 @@ function initScene(container, floorTextureUrl, floorSize, gridCellSize) {
   const scene = new THREE.Scene();
   scene.background = new THREE.Color(0x222222);
 
-  const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 2000);
+  const camera = new THREE.PerspectiveCamera(
+    60,
+    window.innerWidth / window.innerHeight,
+    0.1,
+    2000
+  );
   camera.position.set(0, 2, 5);
 
   const renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -510,10 +581,10 @@ function initScene(container, floorTextureUrl, floorSize, gridCellSize) {
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.setPixelRatio(window.devicePixelRatio);
   }
-  
+
   updateSize();
-  window.addEventListener('resize', updateSize);
-  
+  window.addEventListener("resize", updateSize);
+
   container.appendChild(renderer.domElement);
 
   const controls = new OrbitControls(camera, renderer.domElement);
@@ -533,7 +604,9 @@ function initScene(container, floorTextureUrl, floorSize, gridCellSize) {
   scene.add(gridOverlay);
 
   const dracoLoader = new DRACOLoader();
-  dracoLoader.setDecoderPath('https://www.gstatic.com/draco/versioned/decoders/1.5.7/');
+  dracoLoader.setDecoderPath(
+    "https://www.gstatic.com/draco/versioned/decoders/1.5.7/"
+  );
   const gltfLoader = new GLTFLoader();
   gltfLoader.setDRACOLoader(dracoLoader);
 
@@ -545,7 +618,7 @@ function initScene(container, floorTextureUrl, floorSize, gridCellSize) {
     ambientLight,
     directionalLight,
     floor,
-    gltfLoader
+    gltfLoader,
   };
 }
 
@@ -561,7 +634,14 @@ function initScene(container, floorTextureUrl, floorSize, gridCellSize) {
  * @param {Object} selectedModelRef - 选中模型引用
  * @returns {Function} 清理函数
  */
-function registerMouseMoveHandler(camera, scene, models, gridCellSize, floorHighlight, selectedModelRef) {
+function registerMouseMoveHandler(
+  camera,
+  scene,
+  models,
+  gridCellSize,
+  floorHighlight,
+  selectedModelRef
+) {
   function onMouseMove(event) {
     // 如果没有选中模型，隐藏高亮
     if (!selectedModelRef.current) {
@@ -591,11 +671,11 @@ function registerMouseMoveHandler(camera, scene, models, gridCellSize, floorHigh
   }
 
   // 注册事件监听器
-  window.addEventListener('mousemove', onMouseMove);
-  
+  window.addEventListener("mousemove", onMouseMove);
+
   // 返回清理函数
   return () => {
-    window.removeEventListener('mousemove', onMouseMove);
+    window.removeEventListener("mousemove", onMouseMove);
   };
 }
 
@@ -615,16 +695,16 @@ function registerMouseMoveHandler(camera, scene, models, gridCellSize, floorHigh
  * @returns {Function} 清理函数
  */
 function registerMouseDownHandler(
-  camera, 
-  scene, 
-  models, 
-  gridCellSize, 
-  floorHighlight, 
-  selectedModelRef, 
-  setSelectedModel, 
-  focusState, 
-  cameraControls, 
-  holdDelay, 
+  camera,
+  scene,
+  models,
+  gridCellSize,
+  floorHighlight,
+  selectedModelRef,
+  setSelectedModel,
+  focusState,
+  cameraControls,
+  holdDelay,
   guiContainer
 ) {
   let currentHold = null;
@@ -645,7 +725,7 @@ function registerMouseDownHandler(
     const modelMeshes = [];
     for (let i = 0; i < models.length; i++) {
       if (!models[i].isMoving) {
-        models[i].object.traverse(child => {
+        models[i].object.traverse((child) => {
           if (child.isMesh) modelMeshes.push(child);
         });
       }
@@ -674,26 +754,30 @@ function registerMouseDownHandler(
           isMouseDown = false;
           return;
         }
-        
+
         // 选中新模型
         setSelectedModel(clickedModel);
         floorHighlight.visible = false;
         isMouseDown = true;
-        
+
         // 设置长按聚焦计时器
         let isHolding = true;
         const holdTimer = setTimeout(() => {
           if (isHolding && isMouseDown) {
-            const focusData = focusOnModel(clickedModel.object, camera, cameraControls);
+            const focusData = focusOnModel(
+              clickedModel.object,
+              camera,
+              cameraControls
+            );
             focusState.focusPosition = focusData.focusPosition;
             focusState.focusTarget = focusData.focusTarget;
             focusState.lerpFactor = focusData.lerpFactor;
           }
         }, holdDelay);
-        
-        currentHold = { 
-          cancel: () => isHolding = false,
-          timer: holdTimer
+
+        currentHold = {
+          cancel: () => (isHolding = false),
+          timer: holdTimer,
         };
         return;
       }
@@ -710,22 +794,22 @@ function registerMouseDownHandler(
           selectedModelRef.current.object.position.y,
           cellCenter.z
         );
-        
+
         animateModelMove(selectedModelRef.current, targetPosition, () => {});
-        
+
         // 移动完成后取消选中
         setTimeout(() => {
           setSelectedModel(null);
         }, 550);
       }
     }
-    
+
     // 点击空白区域取消选中
     if (selectedModelRef.current) {
       setSelectedModel(null);
       floorHighlight.visible = false;
     }
-    
+
     isMouseDown = true;
   }
 
@@ -739,15 +823,15 @@ function registerMouseDownHandler(
   }
 
   // 注册事件监听器
-  window.addEventListener('mousedown', onMouseDown);
-  window.addEventListener('mouseup', onMouseUp);
-  window.addEventListener('mouseleave', onMouseUp);
+  window.addEventListener("mousedown", onMouseDown);
+  window.addEventListener("mouseup", onMouseUp);
+  window.addEventListener("mouseleave", onMouseUp);
 
   // 返回清理函数
   return () => {
-    window.removeEventListener('mousedown', onMouseDown);
-    window.removeEventListener('mouseup', onMouseUp);
-    window.removeEventListener('mouseleave', onMouseUp);
+    window.removeEventListener("mousedown", onMouseDown);
+    window.removeEventListener("mouseup", onMouseUp);
+    window.removeEventListener("mouseleave", onMouseUp);
   };
 }
 
@@ -782,15 +866,29 @@ function setupInteraction(
   // 创建地板高亮指示器
   const floorHighlight = createFloorHighlight(gridCellSize, 0xffff00);
   scene.add(floorHighlight);
-  
+
   // 分别注册不同的事件处理器
   const cleanupMouseMove = registerMouseMoveHandler(
-    camera, scene, models, gridCellSize, floorHighlight, selectedModelRef
+    camera,
+    scene,
+    models,
+    gridCellSize,
+    floorHighlight,
+    selectedModelRef
   );
-  
+
   const cleanupMouseDown = registerMouseDownHandler(
-    camera, scene, models, gridCellSize, floorHighlight, selectedModelRef,
-    setSelectedModel, focusState, cameraControls, holdDelay, guiContainer
+    camera,
+    scene,
+    models,
+    gridCellSize,
+    floorHighlight,
+    selectedModelRef,
+    setSelectedModel,
+    focusState,
+    cameraControls,
+    holdDelay,
+    guiContainer
   );
 
   // 返回组合的清理函数
@@ -800,7 +898,7 @@ function setupInteraction(
       cleanupMouseDown();
       scene.remove(floorHighlight);
     },
-    floorHighlight: floorHighlight
+    floorHighlight: floorHighlight,
   };
 }
 
@@ -833,8 +931,10 @@ function animate(
     controls.target.lerp(focusState.focusTarget, focusState.lerpFactor);
     controls.update();
 
-    if (camera.position.distanceTo(focusState.focusPosition) < 0.01 &&
-        controls.target.distanceTo(focusState.focusTarget) < 0.01) {
+    if (
+      camera.position.distanceTo(focusState.focusPosition) < 0.01 &&
+      controls.target.distanceTo(focusState.focusTarget) < 0.01
+    ) {
       focusState.focusPosition = null;
       focusState.focusTarget = null;
     }
@@ -874,7 +974,17 @@ function animate(
   if (!focusState.focusPosition) controls.update();
   renderer.render(scene, camera);
 
-  requestAnimationFrame(() => animate(renderer, scene, camera, controls, moveState, focusState, onCameraUpdate));
+  requestAnimationFrame(() =>
+    animate(
+      renderer,
+      scene,
+      camera,
+      controls,
+      moveState,
+      focusState,
+      onCameraUpdate
+    )
+  );
 }
 
 // 📦 公共 API 函数
@@ -916,5 +1026,5 @@ export {
   enablePointLightByIndex,
   getModelsArray,
   setModelConfig,
-  setSelectedModel
+  setSelectedModel,
 };

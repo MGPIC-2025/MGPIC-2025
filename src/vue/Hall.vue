@@ -1,74 +1,108 @@
 <script setup>
-import { ref, onMounted } from 'vue'
-import { getAssetUrl } from '../utils/resourceLoader.js'
+import { ref, onMounted } from "vue";
+import { getAssetUrl } from "../utils/resourceLoader.js";
 
-const emit = defineEmits(['startGame', 'openWarehouse', 'openTutorial', 'openEncyclopedia'])
+const emit = defineEmits([
+  "startGame",
+  "openWarehouse",
+  "openTutorial",
+  "openEncyclopedia",
+]);
 
-function startGame() { emit('startGame') }
-function openWarehouse() { emit('openWarehouse') }
-function openTutorial() { emit('openTutorial') }
-function openEncyclopedia() { emit('openEncyclopedia') }
+function startGame() {
+  emit("startGame");
+}
+function openWarehouse() {
+  emit("openWarehouse");
+}
+function openTutorial() {
+  emit("openTutorial");
+}
+function openEncyclopedia() {
+  emit("openEncyclopedia");
+}
 
-const bgStart = ref(getAssetUrl('frontend_resource/start_game.webp'))
-const bgWarehouse = ref(getAssetUrl('frontend_resource/copper_warehouse.webp'))
-const bgWiki = ref(getAssetUrl('frontend_resource/game_wiki.webp'))
-const bgTutorial = ref(getAssetUrl('frontend_resource/Tutorial.webp'))
+const bgStart = ref(getAssetUrl("frontend_resource/start_game.webp"));
+const bgWarehouse = ref(getAssetUrl("frontend_resource/copper_warehouse.webp"));
+const bgWiki = ref(getAssetUrl("frontend_resource/game_wiki.webp"));
+const bgTutorial = ref(getAssetUrl("frontend_resource/Tutorial.webp"));
 
 onMounted(async () => {
   try {
     if (window.getCacheStatus) {
-      const status = await window.getCacheStatus()
-      console.log('缓存状态:', status)
+      const status = await window.getCacheStatus();
+      console.log("缓存状态:", status);
     }
-    const imageUrls = [bgStart.value, bgWarehouse.value, bgWiki.value, bgTutorial.value]
+    const imageUrls = [
+      bgStart.value,
+      bgWarehouse.value,
+      bgWiki.value,
+      bgTutorial.value,
+    ];
     for (let i = 0; i < imageUrls.length; i++) {
-      const url = imageUrls[i]
+      const url = imageUrls[i];
       try {
-        const img = new Image()
-        img.crossOrigin = 'anonymous'
-        img.src = url
+        const img = new Image();
+        img.crossOrigin = "anonymous";
+        img.src = url;
         await new Promise((resolve, reject) => {
-          img.onload = resolve
-          img.onerror = reject
-        })
-        console.log('背景图片预加载成功:', url)
+          img.onload = resolve;
+          img.onerror = reject;
+        });
+        console.log("背景图片预加载成功:", url);
         if (i < imageUrls.length - 1) {
-          await new Promise(resolve => setTimeout(resolve, 100))
+          await new Promise((resolve) => setTimeout(resolve, 100));
         }
       } catch (error) {
-        console.warn('背景图片预加载失败:', url, error.message)
+        console.warn("背景图片预加载失败:", url, error.message);
       }
     }
   } catch (error) {
-    console.warn('背景图片预加载过程中出现错误:', error.message)
+    console.warn("背景图片预加载过程中出现错误:", error.message);
   }
-})
+});
 </script>
 
 <template>
   <div class="menu">
-    <button class="tile tile--start" :style="{ backgroundImage: `url('${bgStart}')` }" @click="startGame">
+    <button
+      class="tile tile--start"
+      :style="{ backgroundImage: `url('${bgStart}')` }"
+      @click="startGame"
+    >
       <div class="tile__mask"></div>
       <div class="tile__caption tile__caption--bottom">
         <div class="tile__title">开始游戏</div>
         <div class="tile__subtitle">Start Game</div>
       </div>
     </button>
-    <button class="tile tile--warehouse" :style="{ backgroundImage: `url('${bgWarehouse}')` }" @click="openWarehouse">
+    <button
+      class="tile tile--warehouse"
+      :style="{ backgroundImage: `url('${bgWarehouse}')` }"
+      @click="openWarehouse"
+    >
       <div class="tile__mask"></div>
       <div class="tile__caption tile__caption--top">
         <div class="tile__title">铜偶仓库</div>
         <div class="tile__subtitle">Copper Warehouse</div>
       </div>
     </button>
-    <button class="tile tile--wiki" :style="{ backgroundImage: `url('${bgWiki}')` }" @click="openEncyclopedia">
+    <button
+      class="tile tile--wiki"
+      :style="{ backgroundImage: `url('${bgWiki}')` }"
+      @click="openEncyclopedia"
+    >
       <div class="tile__mask"></div>
       <div class="tile__caption tile__caption--bottom">
         <div class="tile__title">游戏百科</div>
         <div class="tile__subtitle">Game Wiki</div>
       </div>
     </button>
-    <button class="tile tile--tutorial" :style="{ backgroundImage: `url('${bgTutorial}')` }" @click="openTutorial">
+    <button
+      class="tile tile--tutorial"
+      :style="{ backgroundImage: `url('${bgTutorial}')` }"
+      @click="openTutorial"
+    >
       <div class="tile__mask"></div>
       <div class="tile__caption tile__caption--top">
         <div class="tile__title">新手教程</div>
@@ -98,50 +132,94 @@ onMounted(async () => {
   position: relative;
   border-radius: 16px;
   overflow: hidden;
-  border: 1px solid rgba(0,0,0,0.12);
+  border: 1px solid rgba(0, 0, 0, 0.12);
   background-size: cover;
   background-position: center;
-  box-shadow: 0 14px 32px rgba(0,0,0,0.22);
+  box-shadow: 0 14px 32px rgba(0, 0, 0, 0.22);
   cursor: pointer;
   height: 100%;
   transform: rotateY(0deg);
   transform-origin: center;
-  transition: transform .3s ease, box-shadow .3s ease, filter .3s ease;
+  transition: transform 0.3s ease, box-shadow 0.3s ease, filter 0.3s ease;
   will-change: transform, box-shadow;
 }
 .tile__mask {
-  position: absolute; inset: 0; pointer-events: none;
-  background: linear-gradient(180deg, rgba(0,0,0,0.20) 0%, rgba(0,0,0,0.05) 30%, rgba(0,0,0,0.35) 100%);
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(
+    180deg,
+    rgba(0, 0, 0, 0.2) 0%,
+    rgba(0, 0, 0, 0.05) 30%,
+    rgba(0, 0, 0, 0.35) 100%
+  );
 }
 .tile__caption {
-  position: absolute; left: 18px; right: 18px; color: #fff;
-  text-shadow: 0 2px 10px rgba(0,0,0,0.45);
+  position: absolute;
+  left: 18px;
+  right: 18px;
+  color: #fff;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.45);
 }
-.tile__caption--bottom { bottom: 16px; }
-.tile__caption--top { top: 16px; }
-.tile__title { font-weight: 800; font-size: 28px; }
-.tile__subtitle { margin-top: 6px; font-size: 14px; font-weight: 600; opacity: 0.95; }
-.tile:active { transform: translateY(1px); }
+.tile__caption--bottom {
+  bottom: 16px;
+}
+.tile__caption--top {
+  top: 16px;
+}
+.tile__title {
+  font-weight: 800;
+  font-size: 28px;
+}
+.tile__subtitle {
+  margin-top: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  opacity: 0.95;
+}
+.tile:active {
+  transform: translateY(1px);
+}
 /* 父容器悬停联动与兄弟反向旋转 */
-.menu:hover .tile { transform: rotateY(18deg); }
+.menu:hover .tile {
+  transform: rotateY(18deg);
+}
 .menu .tile:hover {
   transform: rotateY(0deg) scale(1.12);
-  box-shadow: 0 25px 40px rgba(0,0,0,0.35);
+  box-shadow: 0 25px 40px rgba(0, 0, 0, 0.35);
   z-index: 1;
 }
-.menu .tile:hover ~ .tile { transform: rotateY(-18deg); }
+.menu .tile:hover ~ .tile {
+  transform: rotateY(-18deg);
+}
 @media (max-width: 1200px) {
-  .menu { width: 94vw; gap: 18px; }
-  .tile__title { font-size: 24px; }
+  .menu {
+    width: 94vw;
+    gap: 18px;
+  }
+  .tile__title {
+    font-size: 24px;
+  }
 }
 @media (max-width: 992px) {
-  .menu { grid-template-columns: repeat(2, 1fr); height: min(680px, 82vh); }
+  .menu {
+    grid-template-columns: repeat(2, 1fr);
+    height: min(680px, 82vh);
+  }
 }
 @media (max-width: 720px) {
-  .menu { grid-template-columns: 1fr; height: min(720px, 84vh); gap: 16px; }
-  .menu:hover .tile, .menu .tile:hover, .menu .tile:hover ~ .tile { transform: none; }
-  .tile { box-shadow: 0 10px 22px rgba(0,0,0,0.20); }
+  .menu {
+    grid-template-columns: 1fr;
+    height: min(720px, 84vh);
+    gap: 16px;
+  }
+  .menu:hover .tile,
+  .menu .tile:hover,
+  .menu .tile:hover ~ .tile {
+    transform: none;
+  }
+  .tile {
+    box-shadow: 0 10px 22px rgba(0, 0, 0, 0.2);
+  }
 }
 </style>
-
-
