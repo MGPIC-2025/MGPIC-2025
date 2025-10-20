@@ -1,0 +1,52 @@
+name: Upload Assets to R2
+
+on:
+  push:
+    branches:
+      - assets-resources
+    paths:
+      - 'assets/**'
+      - 'scripts/**'
+      - '.github/workflows/upload-assets.yml'
+  workflow_dispatch:  # 允许手动触发
+
+# 设置权限
+permissions:
+  contents: read
+
+jobs:
+  # 上传资源到 Cloudflare R2
+  upload-assets:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: 'package.json'
+
+      - name: Install dependencies
+        run: |
+          # 删除可能存在的 lock 文件和 node_modules
+          rm -rf package-lock.json node_modules
+          # 重新安装依赖
+          npm install
+
+      - name: Upload assets to R2
+        run: npm run deploy:assets:smart
+        env:
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          CLOUDFLARE_R2_ACCESS_KEY_ID: ${{ secrets.CLOUDFLARE_R2_ACCESS_KEY_ID }}
+          CLOUDFLARE_R2_SECRET_ACCESS_KEY: ${{ secrets.CLOUDFLARE_R2_SECRET_ACCESS_KEY }}
+          CLOUDFLARE_R2_BUCKET_NAME: ${{ secrets.CLOUDFLARE_R2_BUCKET_NAME }}
+
+      - name: Upload status
+        run: |
+          echo "Assets 上传完成！"
+          echo "触发分支: ${{ github.ref }}"
+          echo "提交 SHA: ${{ github.sha }}"
+
