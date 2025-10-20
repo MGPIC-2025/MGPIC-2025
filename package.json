@@ -5,19 +5,13 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "npm run generate:assets && npm run moon:build && npm run moon:copy && vite build",
+    "build": "npm run moon:build && npm run moon:copy && vite build",
     "build:web": "vite build",
     "preview": "vite preview",
     "moon:build": "cd main && moon build --target js",
     "moon:copy": "cp main/target/js/release/build/main/main.js src/main.js",
     "moon:dev": "npm run moon:build && npm run moon:copy && npm run dev",
-    "generate:assets": "node scripts/asset-management/generate-asset-list.js",
-    "dev:full": "npm run generate:assets && npm run dev",
-    "deploy:assets": "node scripts/deploy/upload-assets.js",
-    "deploy:assets:smart": "node scripts/deploy/smart-upload.js",
-    "deploy:full": "npm run build && npm run deploy:assets:smart",
-    "deploy:gh-pages": "npm run build && gh-pages -d dist -b gh-pages",
-    "test:upload-config": "node scripts/deploy/test-upload-config.js"
+    "deploy:gh-pages": "npm run build && gh-pages -d dist -b gh-pages"
   },
   "devDependencies": {
     "@aws-sdk/client-s3": "^3.0.0",
