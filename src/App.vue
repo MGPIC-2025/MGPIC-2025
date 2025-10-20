@@ -4,6 +4,12 @@ import Hall from "./vue/Hall.vue";
 import Warehouse from "./vue/Warehouse.vue";
 import TopLeftPanel from "./vue/TopLeftPanel.vue";
 import StartMenu from "./vue/StartMenu.vue";
+import TestPanel from "./vue/TestPanel.vue";
+import TestScene from "./vue/TestScene.vue";
+
+// 导入glue.js以触发消息处理器注册
+import './glue.js'
+import { info_subscribe } from './glue.js'
 
 const isPaused = ref(false);
 const overlay = ref(null);
@@ -12,6 +18,9 @@ const warehouseRef = ref(null)
 const overlayHistory = ref([]);
 const currentPuppetIndex = ref(0)
 const showStartMenu = ref(true)
+const showTestScene = ref(false)
+const destroyStartMenu = ref(false) // 控制是否完全销毁StartMenu以释放内存
+let startMenuDestroyTimer = null
 
 // 通过全局函数与开场动画交互
 function togglePause() {
@@ -31,6 +40,30 @@ function openOverlay(type) {
   }
   window.__START_MENU_PAUSE__ && window.__START_MENU_PAUSE__();
   isPaused.value = true;
+}
+
+function closeTestScene() {
+  showTestScene.value = false
+  // 返回主界面时，如果ShowStartMenu，恢复渲染
+  if (showStartMenu.value) {
+    window.__START_MENU_RESUME__ && window.__START_MENU_RESUME__()
+  }
+}
+
+function onStartMenuStarted() {
+  showStartMenu.value = false
+  // StartMenu隐藏时自动暂停渲染，不需要手动调用pause
+  
+  // 设置定时器：5分钟后销毁StartMenu以释放内存
+  if (startMenuDestroyTimer) {
+    clearTimeout(startMenuDestroyTimer)
+  }
+  startMenuDestroyTimer = setTimeout(() => {
+    if (!showStartMenu.value) {
+      console.log('[App] 销毁StartMenu以释放内存')
+      destroyStartMenu.value = true
+    }
+  }, 5 * 60 * 1000) // 5分钟
 }
 
 function closeOverlay() {
@@ -82,9 +115,21 @@ function goBack() {
   }
   // 没有覆盖层：若当前不在开始菜单，则回到开始菜单
   if (!showStartMenu.value) {
+    // 取消销毁定时器
+    if (startMenuDestroyTimer) {
+      clearTimeout(startMenuDestroyTimer)
+      startMenuDestroyTimer = null
+    }
+    // 如果StartMenu已被销毁，需要重新创建
+    if (destroyStartMenu.value) {
+      destroyStartMenu.value = false
+      console.log('[App] 重新创建StartMenu')
+    }
     showStartMenu.value = true;
     // 恢复开始菜单动画（StartMenu 常驻，使用全局钩子控制）
-    window.__START_MENU_RESUME__ && window.__START_MENU_RESUME__();
+    setTimeout(() => {
+      window.__START_MENU_RESUME__ && window.__START_MENU_RESUME__();
+    }, 100) // 延迟以确保组件已挂载
     isPaused.value = false;
     return;
   }
@@ -122,43 +167,68 @@ function onFileChange(ev) {
   } catch (_) {}
 }
 
+// 订阅后端消息
+onMounted(() => {
+  console.log('[App] 订阅后端消息...')
+  info_subscribe((message) => {
+    console.log('[App] 收到后端消息:', message)
+  })
+})
+
+// 清理定时器
+onBeforeUnmount(() => {
+  if (startMenuDestroyTimer) {
+    clearTimeout(startMenuDestroyTimer)
+    startMenuDestroyTimer = null
+  }
+})
+
 </script>
 
 <template>
   <div class="stage">
-    <StartMenu v-show="showStartMenu" @started="showStartMenu=false" />
-    <TopLeftPanel v-if="!showStartMenu" @back="goBack" @open-settings="openSettings" />
-    <Hall
-      @startGame="openOverlay('start')"
-      @openWarehouse="openOverlay('warehouse')"
-      @openTutorial="openOverlay('tutorial')"
-      @openEncyclopedia="openOverlay('encyclopedia')"
-    />
-    <div v-if="overlay" class="overlay" :class="{ 'overlay--warehouse': overlay==='warehouse' }">
-      <template v-if="overlay==='warehouse'">
-        <div style="position:relative; width:100%; height:100%">
-          <TopLeftPanel @back="goBack" @open-settings="openSettings" />
-          <Warehouse ref="warehouseRef" />
-        </div>
-      </template>
-      <template v-else>
-        <div class="modal">
-          <h2 class="modal-title">
-            {{
-              overlay === 'warehouse'
-                ? '铜偶仓库 · Copper Warehouse'
-                : overlay === 'tutorial'
-                ? '新手教程 · Tutorial'
-                : overlay === 'encyclopedia'
-                ? '游戏百科 · Game Encyclopedia'
-                : '开始游戏 · Start Game'
-            }}
-          </h2>
-          <p class="modal-body">占位内容（后续替换为实际功能界面）。</p>
-          <button class="close-btn" @click="closeOverlay">关闭</button>
-        </div>
-      </template>
-    </div>
+    <!-- 3D测试场景 - 使用v-if完全销毁以节省资源 -->
+    <TestScene v-if="showTestScene" @back="closeTestScene" />
+    
+    <!-- 主界面 -->
+    <template v-if="!showTestScene">
+      <!-- StartMenu: 隐藏时保留5分钟，之后销毁以释放内存 -->
+      <StartMenu v-if="!destroyStartMenu" v-show="showStartMenu" :visible="showStartMenu" @started="onStartMenuStarted" />
+      <TopLeftPanel v-if="!showStartMenu" @back="goBack" @open-settings="openSettings" />
+      <TestPanel v-if="!showStartMenu" @enter-scene="showTestScene = true" />
+      <Hall
+        @startGame="openOverlay('start')"
+        @openWarehouse="openOverlay('warehouse')"
+        @openTutorial="openOverlay('tutorial')"
+        @openEncyclopedia="openOverlay('encyclopedia')"
+      />
+      <div v-if="overlay" class="overlay" :class="{ 'overlay--warehouse': overlay==='warehouse' }">
+        <template v-if="overlay==='warehouse'">
+          <div style="position:relative; width:100%; height:100%">
+            <TopLeftPanel @back="goBack" @open-settings="openSettings" />
+            <Warehouse ref="warehouseRef" />
+          </div>
+        </template>
+        <template v-else>
+          <div class="modal">
+            <h2 class="modal-title">
+              {{
+                overlay === 'warehouse'
+                  ? '铜偶仓库 · Copper Warehouse'
+                  : overlay === 'tutorial'
+                  ? '新手教程 · Tutorial'
+                  : overlay === 'encyclopedia'
+                  ? '游戏百科 · Game Encyclopedia'
+                  : '开始游戏 · Start Game'
+              }}
+            </h2>
+            <p class="modal-body">占位内容（后续替换为实际功能界面）。</p>
+            <button class="close-btn" @click="closeOverlay">关闭</button>
+          </div>
+        </template>
+      </div>
+    </template>
+    
     <!-- 独立设置浮层，覆盖在所有内容之上 -->
     <div v-if="showSettingsOverlay" class="overlay" style="z-index:30000; align-items:flex-start; justify-content:flex-start; background: rgba(0,0,0,0.25)">
       <div class="settings">

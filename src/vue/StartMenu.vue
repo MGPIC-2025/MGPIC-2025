@@ -1,9 +1,16 @@
 <script setup>
-import { onMounted, onBeforeUnmount, ref } from "vue";
+import { onMounted, onBeforeUnmount, ref, watch } from "vue";
 import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { DRACOLoader } from "three/examples/jsm/loaders/DRACOLoader.js";
 import { getAssetUrl, precacheAllResources, getCacheStatus } from "../utils/resourceLoader.js";
+
+const props = defineProps({
+  visible: {
+    type: Boolean,
+    default: true
+  }
+});
 
 const canvasRef = ref(null);
 const uiRootRef = ref(null);
@@ -18,6 +25,15 @@ const showSettings = ref(false);
 
 // 对外事件（仅对外通知 started；设置改为本地弹层）
 const emit = defineEmits(["started"]);
+
+// 监听可见性变化，自动恢复/暂停渲染
+watch(() => props.visible, (visible) => {
+  if (visible && scene && logoObject) {
+    resume();
+  } else if (!visible) {
+    pause();
+  }
+});
 
 function renderLoop() {
   animationId = requestAnimationFrame(renderLoop);
@@ -42,6 +58,10 @@ function pause() {
   if (animationId) {
     cancelAnimationFrame(animationId);
     animationId = null;
+  }
+  // 额外清理：停止渲染器的自动更新
+  if (renderer) {
+    renderer.setAnimationLoop(null);
   }
 }
 
