@@ -39,7 +39,16 @@ pub fn Room::new(
   index_position : (Int, Int),
   escape_set : Set[(Int, Int)],
 ) -> Room {
-  let blocks = Array::make(16, Array::make(16, MapBlock::new()))
+  // 修复：创建完全独立的2D数组，避免共享引用
+  let blocks = []
+  for _ in 0..<16 {
+    let row = []
+    for _ in 0..<16 {
+      row.push(MapBlock::new())  // 每个MapBlock都是独立的
+    }
+    blocks.push(row)
+  }
+  
   // 中心点设置为怪物生成器
   blocks[7][7].occupant = ChargingCoil
   for i in 0..<default_enemy_count[level] {

@@ -93,8 +93,8 @@ fn Map_::add_room(map : Map_, room : Room) -> Unit {
   map.rooms.push(room)
   for i in 0..<15 {
     for j in 0..<15 {
-      put_map_block((i, j))
       let global_position = Room::position_to_global_position(room, (i, j))
+      put_map_block(global_position)  // 修复：使用全局坐标
       if room.blocks[i][j].occupant is Enemy(enemy) {
         set_enemy(enemy, enemy.id, global_position)
       } else if room.blocks[i][j].occupant is Copper(copper) {
