@@ -20,7 +20,8 @@ let renderer = null;
 let animationId = null;
 let logoObject = null;
 let baseScale = 1.2;
-const isReady = ref(false);
+const isReady = ref(false); // logo 是否加载完成
+const showButtons = ref(true); // 按钮立即显示，不等待 logo
 const showSettings = ref(false);
 
 // 对外事件（仅对外通知 started；设置改为本地弹层）
@@ -113,28 +114,13 @@ async function initScene(onProgress = null) {
     window.getCacheStatus = getCacheStatus;
   } catch (_) {}
 
-  // 步骤1：初始化基础场景
-  if (onProgress) onProgress(0, 100, 10);
-  await new Promise(resolve => setTimeout(resolve, 30));
+  if (!scene || !renderer) {
+    console.error('[StartMenu] Scene or renderer not initialized in onMounted');
+    return;
+  }
 
-  scene = new THREE.Scene();
-  scene.background = new THREE.Color("#a0a0a0");
-
-  camera = new THREE.PerspectiveCamera(50, 1.333, 0.1, 1000);
-  camera.position.set(-3.655, 0.2, -0.006);
-  camera.rotation.set(-1.618275, -1.538307, -1.6183, "XYZ");
-
-  // 步骤2：初始化渲染器
+  // 步骤1：设置光照
   if (onProgress) onProgress(0, 100, 20);
-  await new Promise(resolve => setTimeout(resolve, 30));
-
-  renderer = new THREE.WebGLRenderer({ antialias: true, canvas: canvasRef.value });
-  renderer.setSize(window.innerWidth, window.innerHeight);
-  renderer.setPixelRatio(window.devicePixelRatio);
-
-  // 步骤3：设置光照
-  if (onProgress) onProgress(0, 100, 30);
-  await new Promise(resolve => setTimeout(resolve, 30));
 
   const ambientLight = new THREE.AmbientLight(0x404040, 0.4);
   scene.add(ambientLight);
@@ -142,18 +128,16 @@ async function initScene(onProgress = null) {
   directionalLight.position.set(-5, -2, 1);
   scene.add(directionalLight);
 
-  // 步骤4：初始化DRACO解码器
+  // 步骤2：初始化DRACO解码器
   if (onProgress) onProgress(0, 100, 40);
-  await new Promise(resolve => setTimeout(resolve, 50));
 
   const dracoLoader = new DRACOLoader();
   dracoLoader.setDecoderPath("https://www.gstatic.com/draco/versioned/decoders/1.5.7/");
   const loader = new GLTFLoader();
   loader.setDRACOLoader(dracoLoader);
 
-  // 步骤5：检查模型文件
+  // 步骤3：准备加载模型
   if (onProgress) onProgress(0, 100, 50);
-  await new Promise(resolve => setTimeout(resolve, 30));
 
   const logoUrl = (window.getAssetUrl ? window.getAssetUrl("logo.glb") : "./assets/logo.glb");
 
@@ -162,12 +146,8 @@ async function initScene(onProgress = null) {
   });
 
   try {
-    // 步骤6：下载模型文件
+    // 步骤6：加载模型文件
     if (onProgress) onProgress(0, 100, 60);
-    const head = await fetch(logoUrl, { method: "HEAD", mode: "cors", credentials: "omit" });
-    if (!head.ok) throw new Error("logo not ok");
-    
-    if (onProgress) onProgress(0, 100, 70);
     const gltf = await tryLoad();
     
     // 步骤7：设置模型
@@ -180,48 +160,23 @@ async function initScene(onProgress = null) {
     try { gltf.scene.scale.setScalar(baseScale); } catch (_) {}
     logoObject = gltf.scene;
     
-    // 步骤8：启动渲染
-    if (onProgress) onProgress(0, 100, 90);
-    await new Promise(resolve => setTimeout(resolve, 50));
-    
-    isReady.value = true;
+    // 步骤8：完成
     if (onProgress) onProgress(0, 100, 100);
+    isReady.value = true;
+    console.log('[StartMenu] Logo 加载完成')
     
-  } catch (_) {
-    try {
-      if (onProgress) onProgress(0, 100, 60);
-      const gltf = await tryLoad();
-      
-      if (onProgress) onProgress(0, 100, 80);
-      gltf.scene.position.set(0, 0, 0);
-      scene.add(gltf.scene);
-      const box = new THREE.Box3().setFromObject(gltf.scene);
-      const center = box.getCenter(new THREE.Vector3());
-      gltf.scene.position.set(-center.x, -center.y, -center.z);
-      try { gltf.scene.scale.setScalar(baseScale); } catch (_) {}
-      logoObject = gltf.scene;
-      
-      if (onProgress) onProgress(0, 100, 90);
-      await new Promise(resolve => setTimeout(resolve, 50));
-      
-      isReady.value = true;
-      if (onProgress) onProgress(0, 100, 100);
-    } catch (e) {
-      console.warn('3D模型加载失败，使用占位符');
-      // 创建占位符
-      const geometry = new THREE.BoxGeometry(1, 1, 1);
-      const material = new THREE.MeshBasicMaterial({ color: 0xf59e0b });
-      const placeholder = new THREE.Mesh(geometry, material);
-      scene.add(placeholder);
-      logoObject = placeholder;
-      
-      if (onProgress) onProgress(0, 100, 100);
-      isReady.value = true;
-    }
+  } catch (e) {
+    console.warn('[StartMenu] 3D模型加载失败，使用占位符', e);
+    // 创建占位符，不影响启动速度
+    const geometry = new THREE.BoxGeometry(1, 1, 1);
+    const material = new THREE.MeshBasicMaterial({ color: 0xf59e0b });
+    const placeholder = new THREE.Mesh(geometry, material);
+    scene.add(placeholder);
+    logoObject = placeholder;
+    
+    if (onProgress) onProgress(0, 100, 100);
+    isReady.value = true;
   }
-
-  window.addEventListener("resize", handleResize);
-  renderLoop();
 
   // 暴露全局暂停/恢复以兼容现有 App.vue 调用
   window.__START_MENU_PAUSE__ = () => pause();
@@ -238,10 +193,39 @@ function onOpenSettings() { showSettings.value = true }
 function onCloseSettings() { showSettings.value = false }
 
 onMounted(() => {
-  // 外部会在资源加载完成后调用此函数
+  // 立即初始化场景和渲染循环，不等待外部调用
+  // 这样背景和按钮能立即显示
+  if (!scene && canvasRef.value) {
+    // 先启动基础渲染（背景色）
+    scene = new THREE.Scene();
+    scene.background = new THREE.Color("#a0a0a0");
+    
+    camera = new THREE.PerspectiveCamera(50, 1.333, 0.1, 1000);
+    camera.position.set(-3.655, 0.2, -0.006);
+    camera.rotation.set(-1.618275, -1.538307, -1.6183, "XYZ");
+    
+    renderer = new THREE.WebGLRenderer({ antialias: true, canvas: canvasRef.value });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setPixelRatio(window.devicePixelRatio);
+    
+    window.addEventListener("resize", handleResize);
+    renderLoop(); // 立即启动渲染循环
+    
+    // 异步加载 logo，不阻塞 UI
+    initScene().catch(err => {
+      console.warn('[StartMenu] 场景初始化失败', err);
+    });
+  }
+  
+  // 暴露全局钩子以兼容 App.vue 的调用
   window.__INIT_THREE_SCENE__ = async (onProgress) => {
-    if (scene && logoObject) return; // 场景已存在，跳过重复初始化
-    await initScene(onProgress);
+    if (scene && logoObject) {
+      console.log('[StartMenu] 场景已初始化，跳过重复加载');
+      return; // 场景已存在，跳过重复初始化
+    }
+    if (!scene) {
+      await initScene(onProgress);
+    }
   };
 });
 
@@ -253,7 +237,7 @@ onBeforeUnmount(() => {
 <template>
   <div class="startmenu">
     <canvas ref="canvasRef" class="startmenu__canvas" />
-    <div ref="uiRootRef" class="startmenu-ui" v-show="isReady">
+    <div ref="uiRootRef" class="startmenu-ui" v-show="showButtons" :class="{ 'fade-in': showButtons }">
       <button id="start-btn" class="startmenu-btn" aria-label="开始" @click="onStart">开始</button>
       <button id="settings-btn" class="startmenu-btn" aria-label="设置" @click="onOpenSettings">设置</button>
     </div>
@@ -276,9 +260,11 @@ onBeforeUnmount(() => {
 .startmenu { position: fixed; inset: 0; z-index: 10001; background: #a0a0a0; }
 .startmenu__canvas { width: 100%; height: 100%; display: block; background: #a0a0a0; }
 .startmenu-ui{position:fixed;left:50%;top:72%;transform:translate(-50%,-50%);z-index:10000;display:flex;flex-direction:column;align-items:center;gap:28px;pointer-events:none}
+.startmenu-ui.fade-in{animation:fadeInUp 0.4s ease-out forwards}
 .startmenu-btn{pointer-events:auto;padding:20px 64px;border-radius:20px;border:none;background:#2a1a0f;color:#fff;font-size:32px;font-weight:800;cursor:pointer;box-shadow:0 12px 28px rgba(0,0,0,0.35);width:min(560px,64vw);min-height:72px;transition:transform .12s ease,box-shadow .12s ease}
 .startmenu-btn:hover{transform:translateY(-1px);box-shadow:0 16px 36px rgba(0,0,0,0.32)}
 .startmenu-btn:active{transform:translateY(0)}
+@keyframes fadeInUp{0%{opacity:0;transform:translate(-50%,-50%) translateY(20px)}100%{opacity:1;transform:translate(-50%,-50%) translateY(0)}}
 @media (max-width:900px){.startmenu-ui{top:70%}.startmenu-btn{width:86vw;padding:16px 0;font-size:26px;border-radius:16px;min-height:64px}}
 
 /* 本地设置弹层样式 */

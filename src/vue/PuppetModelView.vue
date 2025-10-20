@@ -404,29 +404,73 @@ onMounted(() => {
 
 onBeforeUnmount(() => {
   console.log('[PuppetModelView] Cleaning up...')
-  cancelAnimationFrame(animationId)
-  clearCurrentModel()
-  if (scene) {
-    scene.traverse(obj => {
-      if (obj.isMesh) {
-        if (obj.geometry) obj.geometry.dispose()
-        if (Array.isArray(obj.material)) {
-          obj.material.forEach(m => { if (m.map) m.map.dispose(); if (m.dispose) m.dispose() })
-        } else if (obj.material) {
-          if (obj.material.map) obj.material.map.dispose()
-          if (obj.material.dispose) obj.material.dispose()
-        }
-      }
-    })
-  }
-  if (renderer) { renderer.dispose(); renderer.forceContextLoss && renderer.forceContextLoss() }
-  if (resizeObserver && mountEl.value) resizeObserver.unobserve(mountEl.value)
   
-  // 重置所有状态
-  renderer = null; scene = null; camera = null
+  // 立即停止动画循环
+  cancelAnimationFrame(animationId)
+  
+  // 立即清理当前模型（轻量级操作）
+  clearCurrentModel()
+  
+  // 立即停止 ResizeObserver
+  if (resizeObserver && mountEl.value) {
+    try { resizeObserver.unobserve(mountEl.value) } catch (_) {}
+  }
+  
+  // 缓存需要清理的对象
+  const sceneToClean = scene
+  const rendererToClean = renderer
+  
+  // 立即重置状态，让组件能快速卸载
+  renderer = null
+  scene = null
+  camera = null
   isInitialized = false
   loadSequence = 0
-  console.log('[PuppetModelView] Cleanup completed')
+  
+  // 将耗时的清理操作延迟到空闲时执行，不阻塞 UI
+  const deferredCleanup = () => {
+    console.log('[PuppetModelView] Starting deferred cleanup...')
+    
+    // 清理场景资源
+    if (sceneToClean) {
+      sceneToClean.traverse(obj => {
+        if (obj.isMesh) {
+          try {
+            if (obj.geometry) obj.geometry.dispose()
+            if (Array.isArray(obj.material)) {
+              obj.material.forEach(m => { 
+                try { if (m.map) m.map.dispose(); if (m.dispose) m.dispose() } catch (_) {}
+              })
+            } else if (obj.material) {
+              try { 
+                if (obj.material.map) obj.material.map.dispose()
+                if (obj.material.dispose) obj.material.dispose() 
+              } catch (_) {}
+            }
+          } catch (_) {}
+        }
+      })
+    }
+    
+    // 清理渲染器
+    if (rendererToClean) { 
+      try {
+        rendererToClean.dispose()
+        rendererToClean.forceContextLoss && rendererToClean.forceContextLoss()
+      } catch (_) {}
+    }
+    
+    console.log('[PuppetModelView] Deferred cleanup completed')
+  }
+  
+  // 使用 requestIdleCallback（如果支持），否则使用 setTimeout
+  if (typeof window !== 'undefined' && window.requestIdleCallback) {
+    window.requestIdleCallback(deferredCleanup, { timeout: 1000 })
+  } else {
+    setTimeout(deferredCleanup, 100)
+  }
+  
+  console.log('[PuppetModelView] Quick cleanup completed, heavy cleanup deferred')
 })
 </script>
 

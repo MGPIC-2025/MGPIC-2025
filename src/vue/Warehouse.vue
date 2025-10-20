@@ -123,7 +123,7 @@ const resources = ref([])
 
 onMounted(async () => {
   try {
-    const plain = get_resource()
+    const plain = await get_resource()
     resources.value = mapResources(plain)
   } catch (_) {
     resources.value = mapResources({})
@@ -152,9 +152,9 @@ onMounted(() => {
 const puppets = ref([])
 
 // 拉取铜偶列表
-onMounted(() => {
+onMounted(async () => {
   try {
-    const plainCopper = get_copper_list()
+    const plainCopper = await get_copper_list()
     let arr = (plainCopper && Array.isArray(plainCopper.coppers)) ? plainCopper.coppers : []
     if (!Array.isArray(arr)) {
       const p = findKeyPath(plainCopper, 'coppers')
@@ -240,11 +240,11 @@ defineExpose({ handleBack })
 async function onGachaResult(payload) {
   try {
     // 刷新资源
-    const resPlain = get_resource()
+    const resPlain = await get_resource()
     resources.value = mapResources(resPlain)
 
     // 刷新铜偶列表
-    const listPlain = get_copper_list()
+    const listPlain = await get_copper_list()
     const arr = Array.isArray(listPlain?.coppers) ? listPlain.coppers : []
     puppets.value = mapPuppets(arr)
 
@@ -260,7 +260,7 @@ async function upgradeSelected() {
     return
   }
   const id = selectedPuppet.value.id
-  const res = upgrade_copper(id)
+  const res = await upgrade_copper(id)
   if (!res || res.type !== 'success') {
     alert(res && res.content ? res.content : '升级失败')
     return
@@ -268,11 +268,11 @@ async function upgradeSelected() {
 
   try {
     // 刷新资源（升级消耗的是灵性火花）
-    const resPlain = get_resource()
+    const resPlain = await get_resource()
     resources.value = mapResources(resPlain)
 
     // 刷新铜偶列表
-    const listPlain = get_copper_list()
+    const listPlain = await get_copper_list()
     const arr = Array.isArray(listPlain?.coppers) ? listPlain.coppers : []
     puppets.value = mapPuppets(arr)
 

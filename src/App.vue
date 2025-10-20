@@ -44,10 +44,8 @@ function openOverlay(type) {
 
 function closeTestScene() {
   showTestScene.value = false
-  // 返回主界面时，如果ShowStartMenu，恢复渲染
-  if (showStartMenu.value) {
-    window.__START_MENU_RESUME__ && window.__START_MENU_RESUME__()
-  }
+  // 从测试场景返回时，保持在大厅状态
+  // 不需要恢复StartMenu的渲染，因为应该停留在大厅
 }
 
 function onStartMenuStarted() {
@@ -101,15 +99,9 @@ function goBack() {
     const prev = overlayHistory.value.pop() ?? null;
     overlay.value = prev;
     if (!prev) {
-      // 若覆盖层关闭后当前未处于开始菜单，则回到开始菜单
-      if (!showStartMenu.value) {
-        showStartMenu.value = true;
-        window.__START_MENU_RESUME__ && window.__START_MENU_RESUME__();
-        isPaused.value = false;
-      } else {
-        window.__START_MENU_RESUME__ && window.__START_MENU_RESUME__();
-        isPaused.value = false;
-      }
+      // 覆盖层关闭后，不需要做额外处理，保持在大厅状态
+      // 不再自动返回开始菜单
+      isPaused.value = false;
     }
     return;
   }
@@ -127,8 +119,17 @@ function goBack() {
     }
     showStartMenu.value = true;
     // 恢复开始菜单动画（StartMenu 常驻，使用全局钩子控制）
+    // 增加延迟确保组件完全挂载和场景初始化
     setTimeout(() => {
-      window.__START_MENU_RESUME__ && window.__START_MENU_RESUME__();
+      if (window.__INIT_THREE_SCENE__) {
+        window.__INIT_THREE_SCENE__().then(() => {
+          window.__START_MENU_RESUME__ && window.__START_MENU_RESUME__();
+        }).catch(() => {
+          window.__START_MENU_RESUME__ && window.__START_MENU_RESUME__();
+        })
+      } else {
+        window.__START_MENU_RESUME__ && window.__START_MENU_RESUME__();
+      }
     }, 100) // 延迟以确保组件已挂载
     isPaused.value = false;
     return;
@@ -335,6 +336,8 @@ onBeforeUnmount(() => {
   justify-content: center;
   z-index: 20000;
   pointer-events: auto;
+  transition: opacity 0.15s ease-out;
+  will-change: opacity;
 }
 .overlay--settings { background: rgba(0,0,0,0.25); align-items: flex-start; justify-content: flex-start; }
 .overlay--warehouse { background: transparent; }

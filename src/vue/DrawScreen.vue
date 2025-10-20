@@ -32,7 +32,7 @@ function showToast(text) {
 
 async function refreshCanDraw() {
   try {
-    const data = get_resource()
+    const data = await get_resource()
     const plain = data
     const spark = Number(plain?.SpiritalSpark ?? 0)
     canDraw.value = spark >= 10
@@ -76,7 +76,7 @@ function runDrawSequence() {
     // 初始先展示卡背
     cardFlipped.value = true
     try {
-      const data = gacha()
+      const data = await gacha()
       if (data && data.type === 'success' && data.copper && data.copper.copper_info) {
         const info = data.copper.copper_info
         tempName.value = info.name || '新铜偶'
