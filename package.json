@@ -1,35 +1,17 @@
 {
-  "name": "mgpic-2025",
+  "name": "mgpic-2025-assets",
   "private": true,
   "version": "0.0.0",
   "type": "module",
+  "description": "Assets and deployment scripts for MGPIC-2025",
   "scripts": {
-    "dev": "vite",
-    "build": "npm run generate:assets && npm run moon:build && npm run moon:copy && vite build",
-    "build:web": "vite build",
-    "preview": "vite preview",
-    "moon:build": "cd main && moon build --target js",
-    "moon:copy": "cp main/target/js/release/build/main/main.js src/main.js",
-    "moon:dev": "npm run moon:build && npm run moon:copy && npm run dev",
     "generate:assets": "node scripts/asset-management/generate-asset-list.js",
-    "dev:full": "npm run generate:assets && npm run dev",
     "deploy:assets": "node scripts/deploy/upload-assets.js",
     "deploy:assets:smart": "node scripts/deploy/smart-upload.js",
-    "deploy:full": "npm run build && npm run deploy:assets:smart",
-    "deploy:gh-pages": "npm run build && gh-pages -d dist -b gh-pages",
     "test:upload-config": "node scripts/deploy/test-upload-config.js"
   },
   "devDependencies": {
     "@aws-sdk/client-s3": "^3.0.0",
-    "@vitejs/plugin-vue": "^5.0.0",
-    "chokidar": "^3.5.3",
-    "gh-pages": "^6.1.0",
-    "vite": "^5.0.0",
     "dotenv": "^16.0.0"
-  },
-  "dependencies": {
-    "dotenv": "^17.2.3",
-    "three": "^0.180.0",
-    "vue": "^3.5.21"
   }
 }

@@ -1,8 +1,0 @@
-{
-  "import": [
-    "Lampese/MGPIC_2025/coppers",
-    "Lampese/MGPIC_2025/resource",
-    "Lampese/MGPIC_2025/warehouse",
-    "Lampese/MGPIC_2025/global_resource"
-  ]
-}

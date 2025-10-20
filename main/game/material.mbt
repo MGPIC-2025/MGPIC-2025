@@ -1,5 +1,0 @@
-///|
-enum Material {
-  RefinedCopperIngot
-  ResonantStarCrystal
-}
