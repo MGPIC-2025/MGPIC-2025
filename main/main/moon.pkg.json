@@ -26,7 +26,8 @@
         "move_to",
         "move_to_xy",
         "change_direction_str",
-        "remove_unit"
+        "remove_unit",
+        "eventloop"
       ]
     }
   }

@@ -325,26 +325,22 @@ async function upgradeSelected() {
       </div>
 
       <div class="warehouse__detail" ref="detailWrap">
-        <div v-if="selectedPuppet" class="puppet-detail">
-          <!-- 3D模型区域 - 固定位置，不参与transition -->
+        <transition name="fade-slide" mode="out-in">
+        <div v-if="selectedPuppet" class="puppet-detail" :key="selectedPuppet?.id || 'none'">
+          <div class="puppet-detail__header">
+            <h2 class="puppet-detail__name">{{ selectedPuppet.name }}</h2>
+          </div>
           
-          
-          <!-- 文字内容区域 - 使用transition -->
-          <transition name="fade-slide" mode="out-in">
-            <div :key="selectedPuppet?.id" class="puppet-detail__info">
-              <div class="puppet-detail__header">
-                <h2 class="puppet-detail__name">{{ selectedPuppet.name }}</h2>
+          <div class="puppet-detail__content">
+            <div class="puppet-detail__row">
+              <div class="puppet-detail__model">
+                <PuppetModelView :puppet="selectedPuppet" />
               </div>
               
-              <div class="puppet-detail__content">
-                <div class="puppet-detail__top-row">
-                  <div class="puppet-detail__model-wrapper">
-                    <PuppetModelView :puppet="selectedPuppet" />
-                  </div>
-                  <div class="puppet-detail__description">
-                    {{ selectedPuppet.description }}
-                  </div>
-                </div>
+              <div class="puppet-detail__description">
+                {{ selectedPuppet.description }}
+              </div>
+            </div>
             
             <div class="puppet-detail__row">
               <div class="puppet-detail__stats">
@@ -415,19 +411,17 @@ async function upgradeSelected() {
           
           <div class="puppet-detail__upgrade">
             <div class="upgrade-cost">
-              <img v-if="selectedPuppet.level < 5" :src="RESOURCE_META.SpiritalSpark.icon" :alt="RESOURCE_META.SpiritalSpark.name" class="cost-icon-img" />
               <span class="cost-amount">{{ selectedPuppet.level >= 5 ? '已满级' : ('X ' + selectedPuppet.upgradeCost) }}</span>
             </div>
             <button class="upgrade-btn" @click="upgradeSelected" :disabled="selectedPuppet?.level >= 5">
-              <span class="upgrade-icon">⬆</span>
+              <span class="upgrade-icon">⏫</span>
             </button>
           </div>
-            </div>
-          </transition>
         </div>
-        <div v-else class="warehouse__placeholder">
+        <div v-else class="warehouse__placeholder" key="placeholder">
           <p>请选择英雄以浏览</p>
         </div>
+        </transition>
       </div>
     </div>
 
@@ -448,8 +442,8 @@ async function upgradeSelected() {
 .resource-value { font-size: 24px; font-weight: 700; color: #fff; }
 .warehouse__main { flex: 1; display: flex; margin-top: 20px; min-height: 0; }
 .warehouse__sidebar { width: 70%; background: #3a2519; padding: 20px; display: flex; flex-direction: column; overflow: hidden; min-height: 0; border-radius: 12px; }
-.warehouse__title { font-size: 24px; font-weight: 900; margin-bottom: 5px; color: #fff; }
-.puppet-list { display: flex; flex-wrap: wrap; gap: 4px; overflow-y: auto; flex: 1; padding-right: 5px; min-height: 0; -webkit-overflow-scrolling: touch;padding:5px;}
+.warehouse__title { font-size: 24px; font-weight: 900; margin-bottom: 20px; color: #fff; }
+.puppet-list { display: flex; flex-wrap: wrap; gap: 4px; overflow-y: auto; flex: 1; padding-right: 8px; min-height: 0; -webkit-overflow-scrolling: touch; }
 .puppet-card { position: relative; background: transparent; border-radius: 12px; padding: 0; cursor: pointer; transition: all 0.2s ease; width: 200px; height: 200px; display: flex; flex-direction: column; overflow: hidden; }
 .puppet-card:hover { background: transparent; }
 .puppet-card--selected { background: transparent; border: 2px solid #f59e0b; }
@@ -464,40 +458,16 @@ async function upgradeSelected() {
 .puppet-card__add-text { font-size: 16px; color: #999; }
 .warehouse__detail { width: 30%; background: #3a2519; margin: 20px; border-radius: 12px; display: flex; flex-direction: column; overflow-y: auto; max-height: calc(100vh - 140px); }
 .warehouse__placeholder { text-align: center; color: #ccc; font-size: 18px; padding: 40px; }
-.puppet-detail { 
-  padding: 20px; 
-  color: #fff; 
-  min-height: 100%; 
-  display: flex; 
-  gap: 20px;
-}
-
-/* 3D模型区域 - 左侧固定 */
-.puppet-detail__model-wrapper { 
-  position: relative; 
-  background: #4b2e1f; 
-  border-radius: 8px; 
-  width: 200px; 
-  height: 200px; 
-  flex-shrink: 0; 
-  overflow: hidden; 
-}
-
-/* 描述文字区域 - 右侧自适应 */
-.puppet-detail__description {
-  flex: 1;
-  color: #ccc; 
-  font-size: 12px; 
-  line-height: 1.6;
-  padding-left: 20px;
-}
-
-.puppet-detail__header { margin-bottom: 10px; }
+.puppet-detail { padding: 20px; color: #fff; min-height: 100%; display: flex; flex-direction: column; }
+.puppet-detail__header { margin-bottom: 20px; }
 .puppet-detail__name { font-size: 28px; font-weight: 900; color: #fff; margin: 0; }
 .puppet-detail__content { flex: 1; display: flex; flex-direction: column; gap: 20px; }
-.puppet-detail__top-row { display: flex; gap: 20px; align-items: stretch; }
 .puppet-detail__row { display: flex; gap: 20px; }
+.puppet-detail__model { position: relative; background: #4b2e1f; border-radius: 8px; width: 200px; height: 200px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; overflow: hidden; }
 .model-placeholder { color: #999; font-size: 16px; }
+.model-canvas { width: 100%; height: 100%; }
+.model-canvas canvas { position: absolute; inset: 0; width: 100% !important; height: 100% !important; display: block; }
+.puppet-detail__description { flex: 1; color: #ccc; font-size: 12px; line-height: 1.6; }
 .puppet-detail__stats { flex: 1; display: flex; flex-direction: column; gap: 8px; }
 .stats-section { display: flex; flex-direction: column; gap: 8px; }
 .stat-item { display: flex; justify-content: space-between; align-items: center; }

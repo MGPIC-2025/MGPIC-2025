@@ -1,6 +1,7 @@
 ///|
 pub struct Enemy {
   id : Int
+  position : (Int, Int)
   mut now_health : Float
   enemy_base : EnemyBase
 } derive(ToJson)
@@ -22,8 +23,13 @@ struct EnemyBase {
 } derive(ToJson)
 
 ///|
-fn Enemy::new(enemy_base : EnemyBase) -> Enemy {
-  { id: @id.id_pool.get_id(), now_health: enemy_base.health, enemy_base }
+fn Enemy::new(enemy_base : EnemyBase, position : (Int, Int)) -> Enemy {
+  {
+    id: @id.id_pool.get_id(),
+    position,
+    now_health: enemy_base.health,
+    enemy_base,
+  }
 }
 
 ///|

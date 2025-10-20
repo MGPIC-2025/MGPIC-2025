@@ -417,6 +417,6 @@ let enemy_list : Array[EnemyBase] = [
 ]
 
 ///|
-let enemy_map : Map[String, EnemyBase] = Map::from_iter(
+let enemy_info_map : Map[String, EnemyBase] = Map::from_iter(
   enemy_list.iter().map(enemy => (enemy.name, enemy)),
 )

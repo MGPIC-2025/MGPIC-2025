@@ -57,11 +57,20 @@ function info_subscribe(callback) {
   }
 }
 
+function eventloop(msg) {
+  if (mainModule?.eventloop) {
+    mainModule.eventloop(msg);
+  } else {
+    console.warn('[Glue] eventloop 不可用')
+  }
+}
+
 export { 
   gacha, 
   get_resource, 
   get_copper_list, 
   upgrade_copper, 
   info_subscribe,
+  eventloop,
   messageQueue 
 };
