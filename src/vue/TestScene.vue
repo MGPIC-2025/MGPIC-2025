@@ -369,29 +369,18 @@ function setupMessageQueue() {
     highlightSelectedCopper,
     floorBlocks,
     createAttackEffect, // 攻击特效
-    // 🔥 地板块操作
     onSetMoveBlock: (position) => {
-      // ✅ 过滤掉地图外的位置（地图范围：0-14）
-      if (position[0] < 0 || position[0] > 14 || position[1] < 0 || position[1] > 14) {
-        console.warn(`[TestScene] ⚠️ 忽略地图外的移动范围: ${position}`)
-        return
-      }
       createOrUpdateFloorBlock(position, 0x44ff44, 'move')
-      console.log(`[TestScene] 🟢 显示移动范围: ${position}`)
+      console.log(`[TestScene] 显示移动范围: ${position}`)
     },
     onSetAttackBlock: (position) => {
-      // ✅ 过滤掉地图外的位置（地图范围：0-14）
-      if (position[0] < 0 || position[0] > 14 || position[1] < 0 || position[1] > 14) {
-        console.warn(`[TestScene] ⚠️ 忽略地图外的攻击范围: ${position}`)
-        return
-      }
       createOrUpdateFloorBlock(position, 0xff4444, 'attack')
-      console.log(`[TestScene] 🔴 显示攻击范围: ${position}`)
+      console.log(`[TestScene] 显示攻击范围: ${position}`)
     },
     onClearBlock: (position) => {
       clearFloorBlock(position)
     },
-    // 🔥 添加：从后端消息创建铜偶模型
+    // 从后端消息创建铜偶模型
     onSetCopper: (id, position, copper) => {
       console.log(`[TestScene] 创建铜偶模型: id=${copper.id}, pos=${position}`)
       
@@ -436,9 +425,8 @@ function setupMessageQueue() {
       }
       models.push(modelData)
       
-      console.log(`[TestScene] ✅ 铜偶创建成功: ${modelData.name} (ID=${copper.id})`)
+      console.log(`[TestScene] 铜偶创建成功: ${modelData.name} (ID=${copper.id})`)
     },
-    // 🔥 添加：从后端消息创建敌人模型
     onSetEnemy: (id, position, enemy) => {
       console.log(`[TestScene] 创建敌人模型: id=${enemy.id}, pos=${position}`)
       
@@ -463,7 +451,7 @@ function setupMessageQueue() {
         type: 'enemy'
       })
       
-      console.log(`[TestScene] ✅ 敌人创建成功: Enemy_${enemy.id}`)
+      console.log(`[TestScene] 敌人创建成功: Enemy_${enemy.id}`)
     },
     onDisplayCanMove: (unitId, canMove) => {
       console.log(`[TestScene] 显示可移动状态: id=${unitId}, show=${canMove}`)

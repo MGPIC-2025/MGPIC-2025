@@ -149,39 +149,15 @@ pub fn handle_on_game_start(ids : Array[Int]) -> Unit {
   let copper_3 = BattleCopper::new(warehouse.get_copper(ids[2]), ids[2], (0, 8))
   current_game.val = Some(Game::new())
   
-  // 获取地图，广播地图块和敌人给前端
   let map = force_get_current_map()
-  
-  //  测试：将铜偶添加到地图的occupant中（第一个房间，位置(0,0)）
   let first_room = map.rooms[0]
+  
   first_room.blocks[0][6].occupant = Occupant::Copper(copper_1)
   first_room.blocks[0][7].occupant = Occupant::Copper(copper_2)
   first_room.blocks[0][8].occupant = Occupant::Copper(copper_3)
   
-  for room in map.rooms {
-    let (room_x, room_y) = room.index_position
-    // 广播地图块
-    for x in 0..<15 {
-      for y in 0..<15 {
-        let global_pos = (room_x + x, room_y + y)
-        put_map_block(global_pos)
-      }
-    }
-    // 广播敌人和其他占据物
-    for x in 0..<15 {
-      for y in 0..<15 {
-        let occupant = room.blocks[x][y].occupant
-        if occupant is Enemy(enemy) {
-          let global_pos = (room_x + x, room_y + y)
-          set_enemy(enemy, enemy.id, global_pos)
-        }
-      }
-    }
-  }
+  broadcast_room_content(first_room)
   
-  set_copper(copper_1, ids[0], (0, 6))
-  set_copper(copper_2, ids[1], (0, 7))
-  set_copper(copper_3, ids[2], (0, 8))
   change_direction(ids[0], PositiveY)
   change_direction(ids[1], PositiveY)
   change_direction(ids[2], PositiveY)

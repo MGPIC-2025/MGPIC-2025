@@ -39,7 +39,7 @@ fn Map_::is_occupy(map : Map_, position : (Int, Int)) -> Bool {
     guard map.global_position_to_room_position(position) is Some((_, position))
     return !(room.blocks[position.0][position.1].occupant is Empty)
   }
-  false
+  true // 超出地图范围视为已占据（不可移动）
 }
 
 ///|
@@ -89,23 +89,29 @@ fn Map_::global_position_to_room_position(
 }
 
 ///|
-fn Map_::add_room(map : Map_, room : Room) -> Unit {
-  map.rooms.push(room)
-  for i in 0..<15 {
-    for j in 0..<15 {
-      let global_position = Room::position_to_global_position(room, (i, j))
-      put_map_block(global_position)  // 修复：使用全局坐标
-      if room.blocks[i][j].occupant is Enemy(enemy) {
-        set_enemy(enemy, enemy.id, global_position)
-      } else if room.blocks[i][j].occupant is Copper(copper) {
-        set_copper(copper, copper.id, global_position)
-      } else if room.blocks[i][j].occupant is Material(_) {
-        // set_material(material, material.id, global_position)
-      } else if room.blocks[i][j].occupant is ChargingCoil {
-        // set_charging_coil(global_position)
-      } else {
-        // set_empty(global_position)
+pub fn broadcast_room_content(room : Room) -> Unit {
+  let (room_x, room_y) = room.index_position
+  for x in 0..<15 {
+    for y in 0..<15 {
+      let global_pos = (room_x + x, room_y + y)
+      put_map_block(global_pos)
+      
+      let occupant = room.blocks[x][y].occupant
+      if occupant is Enemy(enemy) {
+        set_enemy(enemy, enemy.id, global_pos)
+      } else if occupant is Copper(copper) {
+        set_copper(copper, copper.id, global_pos)
+      } else if occupant is Material(_) {
+        // set_material(material, material.id, global_pos)
+      } else if occupant is ChargingCoil {
+        // set_charging_coil(global_pos)
       }
     }
   }
+}
+
+///|
+fn Map_::add_room(map : Map_, room : Room) -> Unit {
+  map.rooms.push(room)
+  broadcast_room_content(room)
 }
