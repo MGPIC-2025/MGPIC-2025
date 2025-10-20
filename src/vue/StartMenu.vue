@@ -20,8 +20,9 @@ let renderer = null;
 let animationId = null;
 let logoObject = null;
 let baseScale = 1.2;
-const isReady = ref(false); // logo 是否加载完成
-const showButtons = ref(true); // 按钮立即显示，不等待 logo
+const isReady = ref(false);
+const showLoading = ref(true);
+const showButtons = ref(false);
 const showSettings = ref(false);
 
 // 对外事件（仅对外通知 started；设置改为本地弹层）
@@ -165,6 +166,9 @@ async function initScene(onProgress = null) {
     isReady.value = true;
     console.log('[StartMenu] Logo 加载完成')
     
+    showLoading.value = false;
+    showButtons.value = true;
+    
   } catch (e) {
     console.warn('[StartMenu] 3D模型加载失败，使用占位符', e);
     // 创建占位符，不影响启动速度
@@ -176,6 +180,9 @@ async function initScene(onProgress = null) {
     
     if (onProgress) onProgress(0, 100, 100);
     isReady.value = true;
+    
+    showLoading.value = false;
+    showButtons.value = true;
   }
 
   // 暴露全局暂停/恢复以兼容现有 App.vue 调用
@@ -193,10 +200,13 @@ function onOpenSettings() { showSettings.value = true }
 function onCloseSettings() { showSettings.value = false }
 
 onMounted(() => {
-  // 立即初始化场景和渲染循环，不等待外部调用
-  // 这样背景和按钮能立即显示
+  showLoading.value = true;
+  showButtons.value = false;
+  isReady.value = false;
+  
+  console.log('[StartMenu] 组件挂载，开始加载...');
+  
   if (!scene && canvasRef.value) {
-    // 先启动基础渲染（背景色）
     scene = new THREE.Scene();
     scene.background = new THREE.Color("#a0a0a0");
     
@@ -209,19 +219,31 @@ onMounted(() => {
     renderer.setPixelRatio(window.devicePixelRatio);
     
     window.addEventListener("resize", handleResize);
-    renderLoop(); // 立即启动渲染循环
+    renderLoop();
     
-    // 异步加载 logo，不阻塞 UI
     initScene().catch(err => {
       console.warn('[StartMenu] 场景初始化失败', err);
+      showLoading.value = false;
+      showButtons.value = true;
     });
+  } else if (scene && !logoObject) {
+    console.log('[StartMenu] 场景已存在，重新加载logo...');
+    initScene().catch(err => {
+      console.warn('[StartMenu] Logo重新加载失败', err);
+      showLoading.value = false;
+      showButtons.value = true;
+    });
+  } else if (logoObject) {
+    console.log('[StartMenu] Logo已存在，直接显示');
+    showLoading.value = false;
+    showButtons.value = true;
+    isReady.value = true;
   }
   
-  // 暴露全局钩子以兼容 App.vue 的调用
   window.__INIT_THREE_SCENE__ = async (onProgress) => {
     if (scene && logoObject) {
       console.log('[StartMenu] 场景已初始化，跳过重复加载');
-      return; // 场景已存在，跳过重复初始化
+      return;
     }
     if (!scene) {
       await initScene(onProgress);
@@ -237,6 +259,16 @@ onBeforeUnmount(() => {
 <template>
   <div class="startmenu">
     <canvas ref="canvasRef" class="startmenu__canvas" />
+    
+    <transition name="fade">
+      <div v-if="showLoading" class="loading-overlay">
+        <div class="loading-spinner">
+          <div class="spinner"></div>
+          <div class="loading-text">加载中...</div>
+        </div>
+      </div>
+    </transition>
+    
     <div ref="uiRootRef" class="startmenu-ui" v-show="showButtons" :class="{ 'fade-in': showButtons }">
       <button id="start-btn" class="startmenu-btn" aria-label="开始" @click="onStart">开始</button>
       <button id="settings-btn" class="startmenu-btn" aria-label="设置" @click="onOpenSettings">设置</button>
@@ -259,6 +291,52 @@ onBeforeUnmount(() => {
 <style scoped>
 .startmenu { position: fixed; inset: 0; z-index: 10001; background: #a0a0a0; }
 .startmenu__canvas { width: 100%; height: 100%; display: block; background: #a0a0a0; }
+
+.loading-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(42, 26, 15, 0.95);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10003;
+  backdrop-filter: blur(8px);
+}
+
+.loading-spinner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+}
+
+.spinner {
+  width: 64px;
+  height: 64px;
+  border: 4px solid rgba(255, 255, 255, 0.1);
+  border-top-color: #f59e0b;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+.loading-text {
+  color: #fff;
+  font-size: 20px;
+  font-weight: 600;
+  letter-spacing: 2px;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.fade-enter-active, .fade-leave-active {
+  transition: opacity 0.3s ease;
+}
+.fade-enter-from, .fade-leave-to {
+  opacity: 0;
+}
+
 .startmenu-ui{position:fixed;left:50%;top:72%;transform:translate(-50%,-50%);z-index:10000;display:flex;flex-direction:column;align-items:center;gap:28px;pointer-events:none}
 .startmenu-ui.fade-in{animation:fadeInUp 0.4s ease-out forwards}
 .startmenu-btn{pointer-events:auto;padding:20px 64px;border-radius:20px;border:none;background:#2a1a0f;color:#fff;font-size:32px;font-weight:800;cursor:pointer;box-shadow:0 12px 28px rgba(0,0,0,0.35);width:min(560px,64vw);min-height:72px;transition:transform .12s ease,box-shadow .12s ease}
