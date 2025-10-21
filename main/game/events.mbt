@@ -21,7 +21,7 @@ pub fn handle_on_attack_start(map : Map_, id : Int) -> Unit {
   let battle_copper = get_battle_copper_by_id(id)
   let attack_target = battle_copper.get_can_attack(map)
   for target in attack_target {
-    let position = target.position
+    let position = target.get_position_from_can_attack_target()
     set_attack_block(position)
     setted_attack_blocks.add(position)
   }
@@ -46,13 +46,18 @@ pub fn handle_on_attack_apply(
   map : Map_,
 ) -> Unit {
   let battle_copper = get_battle_copper_by_id(id)
-  let enemy = map.get_occupant(position)
-  guard enemy is Enemy(enemy)
-  let result = enemy.apply_attack(battle_copper.attribute.attack)
-  // 单位被击杀
-  if result {
-    remove_unit(enemy.id)
-    map.remove_occupant(position)
+  let target = map.get_occupant(position)
+  match target {
+    Enemy(enemy) => {
+      let result = enemy.apply_attack(battle_copper.attribute.attack)
+      // 单位被击杀
+      if result {
+        remove_unit(enemy.id)
+        map.remove_occupant(position)
+      }
+    }
+    Copper(copper) => copper.apply_mechanic_heal(battle_copper.attribute.attack)
+    _ => abort("Target is not enemy or copper")
   }
 }
 
@@ -150,16 +155,12 @@ pub fn handle_on_game_start(ids : Array[Int]) -> Unit {
   let copper_2 = BattleCopper::new(warehouse.get_copper(ids[1]), ids[1], (0, 7))
   let copper_3 = BattleCopper::new(warehouse.get_copper(ids[2]), ids[2], (0, 8))
   current_game.val = Some(Game::new())
-  
   let map = force_get_current_map()
   let first_room = map.rooms[0]
-  
   first_room.blocks[0][6].occupant = Occupant::Copper(copper_1)
   first_room.blocks[0][7].occupant = Occupant::Copper(copper_2)
   first_room.blocks[0][8].occupant = Occupant::Copper(copper_3)
-  
   broadcast_room_content(first_room)
-  
   change_direction(ids[0], PositiveY)
   change_direction(ids[1], PositiveY)
   change_direction(ids[2], PositiveY)

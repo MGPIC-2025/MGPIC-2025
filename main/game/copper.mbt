@@ -59,12 +59,23 @@ fn BattleCopper::apply_attack(
 }
 
 ///|
+fn BattleCopper::apply_mechanic_heal(
+  battle_copper : BattleCopper,
+  attack : Float,
+) -> Unit {
+  battle_copper.now_health += attack
+  if battle_copper.now_health > battle_copper.attribute.health {
+    battle_copper.now_health = battle_copper.attribute.health
+  }
+}
+
+///|
 fn BattleCopper::get_attack_range(battle_copper : BattleCopper) -> Int {
   match battle_copper.copper.copper_type {
     IronWall => 1
     Arcanist => 3
     Mechanic => 1
-    Resonator | CraftsMan => 0  //  无攻击能力的单位返回0（会生成空攻击范围）
+    Resonator | CraftsMan => 0 //  无攻击能力的单位返回0（会生成空攻击范围）
   }
 }
 
@@ -82,10 +93,26 @@ fn generate_offset(attack_range : Int) -> Array[(Int, Int)] {
 }
 
 ///|
+enum CanAttackTarget {
+  Enemy(Enemy)
+  Copper(BattleCopper)
+} derive(ToJson)
+
+///|
+fn CanAttackTarget::get_position_from_can_attack_target(
+  can_attack_target : CanAttackTarget,
+) -> (Int, Int) {
+  match can_attack_target {
+    Enemy(enemy) => enemy.position
+    Copper(copper) => copper.position
+  }
+}
+
+///|
 fn BattleCopper::get_can_attack(
   battle_copper : BattleCopper,
   map : Map_,
-) -> Array[Enemy] {
+) -> Array[CanAttackTarget] {
   let attack_range = battle_copper.get_attack_range()
   let offset = generate_offset(attack_range)
   let can_attack = []
@@ -97,7 +124,10 @@ fn BattleCopper::get_can_attack(
     if map.is_occupy(position) {
       let occupant = map.get_occupant(position)
       if occupant is Enemy(enemy) {
-        can_attack.push(enemy)
+        can_attack.push(CanAttackTarget::Enemy(enemy))
+      } else if battle_copper.copper.copper_type is Mechanic &&
+        occupant is Copper(copper) {
+        can_attack.push(CanAttackTarget::Copper(copper))
       }
     }
   }

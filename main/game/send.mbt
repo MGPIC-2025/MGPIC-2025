@@ -22,6 +22,13 @@ pub fn set_enemy(enemy : Enemy, id : Int, position : (Int, Int)) -> Unit {
   })
 }
 
+pub fn set_material(material : Material, id : Int, position : (Int, Int)) -> Unit {
+  @global_msg.msg_info.broadcast({
+    type_msg: "set_material",
+    content: ({ "id": id, "position": position, "material": material.to_json() } : Json).stringify(),
+  })
+}
+
 ///|
 /// 删除一个单位，我希望有一个删除动画，然后删除单位（比如缓缓消失）
 pub fn remove_unit(id : Int) -> Unit {

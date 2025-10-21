@@ -63,13 +63,13 @@ pub fn Room::new(
   if @rand.check_probability(0.5) {
     let position = sumoon_postion(escape_set)
     escape_set.add(position)
-    blocks[position.0][position.1].occupant = Material(RefinedCopperIngot)
+    blocks[position.0][position.1].occupant = Material(Material::new(refined_copper_ingot))
   }
   // 生成 ResonantStarCrystal
   if @rand.check_probability(0.5) {
     let position = sumoon_postion(escape_set)
     escape_set.add(position)
-    blocks[position.0][position.1].occupant = Material(ResonantStarCrystal)
+    blocks[position.0][position.1].occupant = Material(Material::new(resonant_star_crystal))
   }
   { index_position, blocks }
 }
