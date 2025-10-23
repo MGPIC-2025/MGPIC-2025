@@ -10,7 +10,7 @@ pub fn Equipment::new(equipment_base : EquipmentBase) -> Equipment {
 }
 
 ///|
-struct EquipmentBase {
+pub struct EquipmentBase {
   name : String
   description : String
   resource_url : String

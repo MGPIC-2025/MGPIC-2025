@@ -114,3 +114,22 @@ fn Map_::add_room(map : Map_, room : Room) -> Unit {
   map.rooms.push(room)
   broadcast_room_content(room)
 }
+
+///|
+fn Map_::add_resource(
+  map : Map_,
+  position : (Int, Int),
+  resource : Item,
+) -> Unit {
+  if resource.item_type is Resource(_) {
+    let (room, position) = Map_::force_get_room_position(map, position)
+    for i in 0..<room.blocks[position.0][position.1].resources.length() {
+      if room.blocks[position.0][position.1].resources[i].item_type ==
+        resource.item_type {
+        room.blocks[position.0][position.1].resources[i].count += resource.count
+        return
+      }
+    }
+    room.blocks[position.0][position.1].resources.push(resource)
+  }
+}

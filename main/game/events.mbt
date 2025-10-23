@@ -38,10 +38,21 @@ fn check_and_reset_block(
 ///|
 /// 前端：当铜偶被点击
 /// 后端：返回铜偶信息以供渲染信息栏
+/// 注意：这里的资源是地图块上的资源，不是铜偶背包里的资源
 pub fn handle_on_click_copper(id : Int) -> Unit {
+  let battle_copper = get_battle_copper_by_id(id)
+  let position = battle_copper.position
+  let map = force_get_current_map()
+  let map_block = map.global_position_to_room_position(position)
+  guard map_block is Some((room, position))
+  let resource = room.blocks[position.0][position.1].resources
   @global_msg.msg_info.broadcast({
     type_msg: "handle_on_click_copper",
-    content: ({ "copper": get_battle_copper_by_id(id).to_json() } : Json).stringify(),
+    content: (
+      {
+        "copper": get_battle_copper_by_id(id).to_json(),
+        "resources": resource.to_json(),
+      } : Json).stringify(),
   })
 }
 
@@ -84,6 +95,10 @@ pub fn handle_on_attack_apply(
       let result = enemy.apply_attack(battle_copper.attribute.attack)
       // 单位被击杀
       if result {
+        let drop_items = enemy.get_drop_items()
+        for drop_item in drop_items {
+          map.add_resource(enemy.position, drop_item)
+        }
         remove_unit(enemy.id)
         map.remove_occupant(position)
       }
@@ -253,4 +268,95 @@ pub fn handle_on_transfer_apply(position : (Int, Int)) -> Unit {
   setted_transfer_blocks.clear()
   transfer_from_id.val = None
   item_to_be_transfer.val = None
+}
+
+///|
+/// 前端：当玩家拾取地上的物品
+/// 后端：计算拾取结果
+/// 注意这里的 index 是地图块上的资源索引，从 0 开始。
+/// 这个 event 开始的时候，前端应该已经开始尝试拾取资源了（资源在 click 的时候就已经给前端了）
+/// 前端只需要在 event 执行完毕后刷新资源栏即可（比如再发送一次 click 事件来获取）
+pub fn handle_on_copper_pick_up(id : Int, index : Int) -> Unit {
+  let battle_copper = get_battle_copper_by_id(id)
+  let map = force_get_current_map()
+  let map_block = map.global_position_to_room_position(battle_copper.position)
+  guard map_block is Some((room, position))
+  let resource = room.blocks[position.0][position.1].resources
+  let item = resource[index]
+  if battle_copper.inventory.check_can_add_item(item.item_type) {
+    battle_copper.inventory.add_item(item)
+    room.blocks[position.0][position.1].resources.remove(index) |> ignore
+  } else {
+    @global_msg.msg_info.broadcast({
+      type_msg: "cannot_pick_up_item",
+      content: "无法拾取该物品",
+    })
+  }
+}
+
+///|
+/// 前端：当玩家丢出物品
+/// 后端：计算丢出结果
+pub fn handle_on_copper_drop_item(id : Int, index : Int) -> Unit {
+  let battle_copper = get_battle_copper_by_id(id)
+  let item = battle_copper.inventory.items[index]
+  battle_copper.inventory.remove_item(index) |> ignore
+  let map = force_get_current_map()
+  map.add_resource(battle_copper.position, item)
+}
+
+///|
+/// 前端：当玩家装备物品
+/// 后端：计算装备结果
+/// index 为装备在物品栏中的索引，前端应该限制只能选中装备
+pub fn handle_on_copper_equip_item(id : Int, index : Int) -> Unit {
+  let battle_copper = get_battle_copper_by_id(id)
+  let item = battle_copper.inventory.items[index]
+  guard item.item_type is Equipment(equipment)
+  let (new_equipment_slot, success) = battle_copper.copper.equipment_slot.equip(
+    equipment,
+  )
+  if success {
+    battle_copper.copper.equipment_slot = new_equipment_slot
+    battle_copper.copper.attribute = battle_copper.copper.attribute.merge(
+      equipment.equipment_base.attribute,
+    )
+  } else {
+    @global_msg.msg_info.broadcast({
+      type_msg: "equipment_slot_full",
+      content: "装备槽已满",
+    })
+  }
+}
+
+///|
+/// 前端：当玩家卸下装备
+/// 后端：计算卸下结果
+/// index 为装备在装备槽中的索引（从 0 开始），这个操作是可能会失败的，前端需要记得刷新一下装备栏
+pub fn handle_on_copper_unequip_item(id : Int, index : Int) -> Unit {
+  let battle_copper = get_battle_copper_by_id(id)
+  let equipment_slot_before = battle_copper.copper.equipment_slot
+  let equipment = match index {
+    0 => equipment_slot_before.slot1.unwrap()
+    1 => equipment_slot_before.slot2.unwrap()
+    _ => abort("Invalid index")
+  }
+  let negative_attribute = @attribute.Attribute::new(
+    health=-equipment.equipment_base.attribute.health,
+    attack=-equipment.equipment_base.attribute.attack,
+    defense=-equipment.equipment_base.attribute.defense,
+    dodge=-equipment.equipment_base.attribute.dodge,
+  )
+  if battle_copper.inventory.check_can_add_item(Equipment(equipment)) {
+    let equipment_slot = battle_copper.copper.equipment_slot.unequip(index)
+    battle_copper.copper.equipment_slot = equipment_slot
+    battle_copper.copper.attribute = battle_copper.copper.attribute.merge(
+      negative_attribute,
+    )
+  } else {
+    @global_msg.msg_info.broadcast({
+      type_msg: "inventory_full",
+      content: "背包已满",
+    })
+  }
 }

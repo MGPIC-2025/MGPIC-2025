@@ -50,6 +50,26 @@ pub fn eventloop(msg : String) -> Unit {
       "content": { "position": { "x": x, "y": y, .. }, .. },
       ..
     } => handle_on_transfer_apply((string_to_int(x), string_to_int(y)))
+    {
+      "type": "on_copper_pick_up",
+      "content": { "id": id, "index": index, .. },
+      ..
+    } => handle_on_copper_pick_up(string_to_int(id), string_to_int(index))
+    {
+      "type": "on_copper_drop_item",
+      "content": { "id": id, "index": index, .. },
+      ..
+    } => handle_on_copper_drop_item(string_to_int(id), string_to_int(index))
+    {
+      "type": "on_copper_equip_item",
+      "content": { "id": id, "index": index, .. },
+      ..
+    } => handle_on_copper_equip_item(string_to_int(id), string_to_int(index))
+    {
+      "type": "on_copper_unequip_item",
+      "content": { "id": id, "index": index, .. },
+      ..
+    } => handle_on_copper_unequip_item(string_to_int(id), string_to_int(index))
     _ => abort("Invalid message")
   }
 }

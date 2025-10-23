@@ -33,6 +33,18 @@ fn Enemy::new(enemy_base : EnemyBase, position : (Int, Int)) -> Enemy {
 }
 
 ///|
+fn Enemy::get_drop_items(enemy : Enemy) -> Array[Item] {
+  let items = []
+  for drop_item in enemy.enemy_base.drop_items {
+    let (item, probability) = drop_item
+    if @rand.check_probability(probability) {
+      items.push(item)
+    }
+  }
+  items
+}
+
+///|
 fn Enemy::apply_attack(enemy : Enemy, attack : Float) -> Bool {
   let attack = attack - enemy.enemy_base.defense
   if attack > 0 {

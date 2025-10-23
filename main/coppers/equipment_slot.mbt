@@ -1,5 +1,5 @@
 ///|
-struct EquipmentSlot {
+pub struct EquipmentSlot {
   slot1 : @equipment.Equipment?
   slot2 : @equipment.Equipment?
   is_slot2_locked : Bool
@@ -27,10 +27,18 @@ pub fn EquipmentSlot::equip(
   } else if equipment_slot.slot2 is None {
     ({ ..equipment_slot, slot2: Some(equipment) }, true)
   } else {
-    @global_msg.msg_info.broadcast({
-      type_msg: "equipment_slot_full",
-      content: "装备槽已满",
-    })
     (equipment_slot, false)
+  }
+}
+
+///|
+pub fn EquipmentSlot::unequip(
+  equipment_slot : EquipmentSlot,
+  index : Int,
+) -> EquipmentSlot {
+  match index {
+    0 => { ..equipment_slot, slot1: None }
+    1 => { ..equipment_slot, slot2: None }
+    _ => abort("Invalid index")
   }
 }

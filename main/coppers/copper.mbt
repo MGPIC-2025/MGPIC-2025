@@ -4,9 +4,9 @@ pub(all) struct Copper {
   level : Int
   suffix : Int
   live_left : Int
-  attribute : @attribute.Attribute
+  mut attribute : @attribute.Attribute
   copper_type : CopperType
-  equipment_slot : EquipmentSlot
+  mut equipment_slot : EquipmentSlot
   copper_info : CopperInfo
 } derive(ToJson)
 
