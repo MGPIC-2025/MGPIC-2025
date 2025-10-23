@@ -28,9 +28,9 @@ pub(all) struct Copper {
   level : Int
   suffix : Int
   live_left : Int
-  attribute : @attribute.Attribute
+  mut attribute : @attribute.Attribute
   copper_type : CopperType
-  equipment_slot : EquipmentSlot
+  mut equipment_slot : EquipmentSlot
   copper_info : CopperInfo
 }
 fn Copper::apply_upgrade(Self) -> Self
@@ -58,10 +58,15 @@ pub enum CopperType {
 fn CopperType::to_json(Self) -> Json // from trait `ToJson`
 impl ToJson for CopperType
 
-type EquipmentSlot
+pub struct EquipmentSlot {
+  slot1 : @equipment.Equipment?
+  slot2 : @equipment.Equipment?
+  is_slot2_locked : Bool
+}
 fn EquipmentSlot::equip(Self, @equipment.Equipment) -> (Self, Bool)
 fn EquipmentSlot::new() -> Self
 fn EquipmentSlot::to_json(Self) -> Json // from trait `ToJson`
+fn EquipmentSlot::unequip(Self, Int) -> Self
 fn EquipmentSlot::unlock_slot2(Self) -> Self
 impl ToJson for EquipmentSlot
 

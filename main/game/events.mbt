@@ -106,6 +106,8 @@ pub fn handle_on_attack_apply(
     Copper(copper) => copper.apply_mechanic_heal(battle_copper.attribute.attack)
     _ => abort("Target is not enemy or copper")
   }
+  battle_copper.can_attack = false
+  battle_copper.update_move_and_attack_status_by_position()
   for position in setted_attack_blocks {
     clear_block(position)
     check_and_reset_block(position, Attack)
@@ -193,6 +195,8 @@ pub fn handle_on_move_apply(
     // 移动铜偶到新位置
     move_to(id, new_position)
   }
+  battle_copper.can_move = false
+  battle_copper.update_move_and_attack_status_by_position()
   for position in setted_move_blocks {
     clear_block(position)
     check_and_reset_block(position, Move)
@@ -358,5 +362,28 @@ pub fn handle_on_copper_unequip_item(id : Int, index : Int) -> Unit {
       type_msg: "inventory_full",
       content: "背包已满",
     })
+  }
+}
+
+///|
+/// 前端：当游戏回合结束
+/// 后端：清除可攻击和可移动的地块，并恢复铜偶的可移动和可攻击状态
+fn handle_game_round_pass() -> Unit {
+  for attack_block in setted_attack_blocks {
+    clear_block(attack_block)
+  }
+  setted_attack_blocks.clear()
+  for move_block in setted_move_blocks {
+    clear_block(move_block)
+  }
+  setted_move_blocks.clear()
+  for transfer_block in setted_transfer_blocks {
+    clear_block(transfer_block)
+  }
+  setted_transfer_blocks.clear()
+  for battle_copper in battle_copper_map.values() {
+    battle_copper.can_move = true
+    battle_copper.can_attack = true
+    battle_copper.update_move_and_attack_status_by_position()
   }
 }

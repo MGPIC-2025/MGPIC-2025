@@ -11,6 +11,7 @@ struct StructureBase {
   description : String
   asset_url : String
   model_url : String
+  cost : @resource.ResourceCost
 } derive(ToJson)
 
 ///|

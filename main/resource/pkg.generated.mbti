@@ -10,6 +10,8 @@ pub struct ResourceCost {
   cost : Array[(ResourceType, Int)]
 }
 fn ResourceCost::new(Array[(ResourceType, Int)]) -> Self
+fn ResourceCost::to_json(Self) -> Json // from trait `ToJson`
+impl ToJson for ResourceCost
 
 pub(all) enum ResourceType {
   HeartCrystalDust

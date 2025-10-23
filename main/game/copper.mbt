@@ -6,8 +6,8 @@ struct BattleCopper {
   id : Int
   original_id : Int
   copper : @coppers.Copper
-  can_move : Bool // 可移动状态，如果为 false，前端应该不允许点击移动按钮
-  can_attack : Bool // 可攻击状态，如果为 false，前端应该不允许点击攻击按钮
+  mut can_move : Bool // 可移动状态，如果为 false，前端应该不允许点击移动按钮
+  mut can_attack : Bool // 可攻击状态，如果为 false，前端应该不允许点击攻击按钮
   mut position : (Int, Int)
   mut now_health : Float
   attribute : @attribute.Attribute
@@ -203,4 +203,17 @@ fn BattleCopper::transfer(
     count: -item.count,
   })
   target_copper.inventory.add_item(item)
+}
+
+///|
+fn BattleCopper::update_move_and_attack_status_by_position(
+  copper : BattleCopper,
+) -> Unit {
+  clear_state(copper.id)
+  if copper.can_move {
+    display_can_move(copper.id, true)
+  }
+  if copper.can_attack {
+    display_can_attack(copper.id, true)
+  }
 }

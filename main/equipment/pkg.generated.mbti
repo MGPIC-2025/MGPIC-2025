@@ -1,6 +1,10 @@
 // Generated using `moon info`, DON'T EDIT IT
 package "Lampese/MGPIC_2025/equipment"
 
+import(
+  "Lampese/MGPIC_2025/attribute"
+)
+
 // Values
 let equipment_list : FixedArray[EquipmentBase]
 
@@ -21,7 +25,12 @@ fn Equipment::to_json(Self) -> Json // from trait `ToJson`
 impl Eq for Equipment
 impl ToJson for Equipment
 
-type EquipmentBase
+pub struct EquipmentBase {
+  name : String
+  description : String
+  resource_url : String
+  attribute : @attribute.Attribute
+}
 fn EquipmentBase::equal(Self, Self) -> Bool // from trait `Eq`
 #deprecated
 fn EquipmentBase::op_equal(Self, Self) -> Bool // from trait `Eq`

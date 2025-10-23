@@ -3,6 +3,7 @@ package "Lampese/MGPIC_2025/game"
 
 import(
   "Lampese/MGPIC_2025/resource"
+  "Lampese/MGPIC_2025/structure"
   "moonbitlang/core/set"
 )
 
@@ -27,8 +28,6 @@ fn display_can_move(Int, Bool) -> Unit
 
 fn eventloop(String) -> Unit
 
-fn force_get_current_map() -> Map_
-
 fn handle_on_attack_apply(Int, (Int, Int), Map_) -> Unit
 
 fn handle_on_attack_end() -> Unit
@@ -36,6 +35,14 @@ fn handle_on_attack_end() -> Unit
 fn handle_on_attack_start(Map_, Int) -> Unit
 
 fn handle_on_click_copper(Int) -> Unit
+
+fn handle_on_copper_drop_item(Int, Int) -> Unit
+
+fn handle_on_copper_equip_item(Int, Int) -> Unit
+
+fn handle_on_copper_pick_up(Int, Int) -> Unit
+
+fn handle_on_copper_unequip_item(Int, Int) -> Unit
 
 fn handle_on_game_start(Array[Int]) -> Unit
 
@@ -66,6 +73,8 @@ fn set_enemy(Enemy, Int, (Int, Int)) -> Unit
 fn set_material(Material, Int, (Int, Int)) -> Unit
 
 fn set_move_block((Int, Int)) -> Unit
+
+fn set_structure(@structure.Structure, Int, (Int, Int)) -> Unit
 
 fn test_blocks() -> Unit
 

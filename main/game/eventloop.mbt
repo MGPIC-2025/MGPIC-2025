@@ -70,6 +70,7 @@ pub fn eventloop(msg : String) -> Unit {
       "content": { "id": id, "index": index, .. },
       ..
     } => handle_on_copper_unequip_item(string_to_int(id), string_to_int(index))
+    { "type": "on_game_round_pass", .. } => handle_game_round_pass()
     _ => abort("Invalid message")
   }
 }

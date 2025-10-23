@@ -10,7 +10,7 @@ pub(all) enum ResourceType {
 ///|
 pub struct ResourceCost {
   cost : Array[(ResourceType, Int)]
-}
+} derive(ToJson)
 
 ///|
 pub fn ResourceCost::new(cost : Array[(ResourceType, Int)]) -> ResourceCost {

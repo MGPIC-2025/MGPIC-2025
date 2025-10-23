@@ -12,6 +12,6 @@ fn Game::new() -> Game {
 }
 
 ///|
-pub fn force_get_current_map() -> Map_ {
+fn force_get_current_map() -> Map_ {
   current_game.val.unwrap().map
 }
