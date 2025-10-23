@@ -168,11 +168,39 @@ fn BattleCopper::get_can_move(
 }
 
 ///|
-fn BattleCopper::move(
+fn BattleCopper::get_transfer_position(
   battle_copper : BattleCopper,
+  item : Item,
   map : Map_,
-  target_position : (Int, Int),
+) -> Array[(Int, Int)] {
+  let result = []
+  let offset = [(-1, 0), (1, 0), (0, -1), (0, 1)]
+  for offset_ in offset {
+    let position = (
+      battle_copper.position.0 + offset_.0,
+      battle_copper.position.1 + offset_.1,
+    )
+    if map.is_occupy(position) {
+      if map.get_occupant(position) is Copper(copper) {
+        if copper.inventory.check_can_add_item(item.item_type) {
+          result.push(position)
+        }
+      }
+    }
+  }
+  result
+}
+
+///|
+fn BattleCopper::transfer(
+  battle_copper : BattleCopper,
+  to_id : Int,
+  item : Item,
 ) -> Unit {
-  move_to(battle_copper.id, target_position)
-  battle_copper.position = target_position
+  let target_copper = get_battle_copper_by_id(to_id)
+  battle_copper.inventory.add_item({
+    item_type: item.item_type,
+    count: -item.count,
+  })
+  target_copper.inventory.add_item(item)
 }

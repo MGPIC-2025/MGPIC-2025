@@ -5,6 +5,37 @@ let setted_attack_blocks : Set[(Int, Int)] = Set::new()
 let setted_move_blocks : Set[(Int, Int)] = Set::new()
 
 ///|
+let setted_transfer_blocks : Set[(Int, Int)] = Set::new()
+
+///|
+let transfer_from_id : Ref[Int?] = Ref::new(None)
+
+///|
+let item_to_be_transfer : Ref[Item?] = Ref::new(None)
+
+///|
+enum IgnoreBlock {
+  Attack
+  Move
+}
+
+///|
+fn check_and_reset_block(
+  position : (Int, Int),
+  ignore_block : IgnoreBlock,
+) -> Unit {
+  if ignore_block is Attack && setted_attack_blocks.contains(position) {
+    set_attack_block(position)
+  }
+  if ignore_block is Move && setted_move_blocks.contains(position) {
+    set_move_block(position)
+  }
+  if ignore_block is Attack && setted_transfer_blocks.contains(position) {
+    set_attack_block(position)
+  }
+}
+
+///|
 /// 前端：当铜偶被点击
 /// 后端：返回铜偶信息以供渲染信息栏
 pub fn handle_on_click_copper(id : Int) -> Unit {
@@ -33,6 +64,7 @@ pub fn handle_on_attack_start(map : Map_, id : Int) -> Unit {
 pub fn handle_on_attack_end() -> Unit {
   for position in setted_attack_blocks {
     clear_block(position)
+    check_and_reset_block(position, Attack)
   }
   setted_attack_blocks.clear()
 }
@@ -59,6 +91,11 @@ pub fn handle_on_attack_apply(
     Copper(copper) => copper.apply_mechanic_heal(battle_copper.attribute.attack)
     _ => abort("Target is not enemy or copper")
   }
+  for position in setted_attack_blocks {
+    clear_block(position)
+    check_and_reset_block(position, Attack)
+  }
+  setted_attack_blocks.clear()
 }
 
 ///|
@@ -79,6 +116,7 @@ pub fn handle_on_move_start(map : Map_, id : Int) -> Unit {
 pub fn handle_on_move_end() -> Unit {
   for position in setted_move_blocks {
     clear_block(position)
+    check_and_reset_block(position, Move)
   }
   setted_move_blocks.clear()
 }
@@ -142,6 +180,7 @@ pub fn handle_on_move_apply(
   }
   for position in setted_move_blocks {
     clear_block(position)
+    check_and_reset_block(position, Move)
   }
   setted_move_blocks.clear()
 }
@@ -164,4 +203,54 @@ pub fn handle_on_game_start(ids : Array[Int]) -> Unit {
   change_direction(ids[0], PositiveY)
   change_direction(ids[1], PositiveY)
   change_direction(ids[2], PositiveY)
+}
+
+///|
+/// 前端：当玩家开始转移某个铜偶物品到其他铜偶
+/// 后端：设置可转移的地块
+/// index 是物品在铜偶背包中的索引，从 0 开始
+pub fn handle_on_transfer_start(id : Int, index : Int, count : Int) -> Unit {
+  transfer_from_id.val = Some(id)
+  let battle_copper = get_battle_copper_by_id(id)
+  let item_type = battle_copper.inventory.items[index].item_type
+  item_to_be_transfer.val = Some(Item::new(item_type, count~))
+  let map = force_get_current_map()
+  let transfer_position = battle_copper.get_transfer_position(
+    item_to_be_transfer.val.unwrap(),
+    map,
+  )
+  for position in transfer_position {
+    set_attack_block(position)
+    setted_transfer_blocks.add(position)
+  }
+}
+
+///|
+/// 前端：当玩家取消转移
+/// 后端：清除可转移的地块
+pub fn handle_on_transfer_end() -> Unit {
+  for position in setted_transfer_blocks {
+    clear_block(position)
+    check_and_reset_block(position, Attack)
+  }
+  setted_transfer_blocks.clear()
+  transfer_from_id.val = None
+  item_to_be_transfer.val = None
+}
+
+///|
+/// 前端：当玩家实施转移
+/// 后端：计算转移结果
+pub fn handle_on_transfer_apply(position : (Int, Int)) -> Unit {
+  let battle_copper = get_battle_copper_by_id(transfer_from_id.val.unwrap())
+  let map = force_get_current_map()
+  guard map.get_occupant(position) is Copper(copper)
+  battle_copper.transfer(copper.id, item_to_be_transfer.val.unwrap())
+  for position in setted_transfer_blocks {
+    clear_block(position)
+    check_and_reset_block(position, Attack)
+  }
+  setted_transfer_blocks.clear()
+  transfer_from_id.val = None
+  item_to_be_transfer.val = None
 }

@@ -34,6 +34,22 @@ pub fn eventloop(msg : String) -> Unit {
       )
     { "type": "on_game_start", "content": { "ids": ids, .. }, .. } =>
       handle_on_game_start(ids.as_array().unwrap().map(string_to_int))
+    {
+      "type": "on_transfer_start",
+      "content": { "id": id, "index": index, "count": count, .. },
+      ..
+    } =>
+      handle_on_transfer_start(
+        string_to_int(id),
+        string_to_int(index),
+        string_to_int(count),
+      )
+    { "type": "on_transfer_end", .. } => handle_on_transfer_end()
+    {
+      "type": "on_transfer_apply",
+      "content": { "position": { "x": x, "y": y, .. }, .. },
+      ..
+    } => handle_on_transfer_apply((string_to_int(x), string_to_int(y)))
     _ => abort("Invalid message")
   }
 }
