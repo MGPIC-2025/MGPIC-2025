@@ -5,7 +5,7 @@ struct Material {
 } derive(ToJson)
 
 ///|
-struct MaterialBase {
+priv struct MaterialBase {
   name : String
   model_url : String
 } derive(ToJson)

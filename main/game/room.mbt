@@ -44,11 +44,11 @@ pub fn Room::new(
   for _ in 0..<16 {
     let row = []
     for _ in 0..<16 {
-      row.push(MapBlock::new())  // 每个MapBlock都是独立的
+      row.push(MapBlock::new()) // 每个MapBlock都是独立的
     }
     blocks.push(row)
   }
-  
+
   // 中心点设置为怪物生成器
   blocks[7][7].occupant = ChargingCoil
   for i in 0..<default_enemy_count[level] {
@@ -63,13 +63,17 @@ pub fn Room::new(
   if @rand.check_probability(0.5) {
     let position = sumoon_postion(escape_set)
     escape_set.add(position)
-    blocks[position.0][position.1].occupant = Material(Material::new(refined_copper_ingot))
+    blocks[position.0][position.1].occupant = Material(
+      Material::new(refined_copper_ingot),
+    )
   }
   // 生成 ResonantStarCrystal
   if @rand.check_probability(0.5) {
     let position = sumoon_postion(escape_set)
     escape_set.add(position)
-    blocks[position.0][position.1].occupant = Material(Material::new(resonant_star_crystal))
+    blocks[position.0][position.1].occupant = Material(
+      Material::new(resonant_star_crystal),
+    )
   }
   { index_position, blocks }
 }

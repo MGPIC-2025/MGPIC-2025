@@ -1,0 +1,22 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "Lampese/MGPIC_2025/structure"
+
+// Values
+let structure_map : Map[String, StructureBase]
+
+// Errors
+
+// Types and methods
+type Structure
+fn Structure::new(StructureBase) -> Self
+fn Structure::to_json(Self) -> Json // from trait `ToJson`
+impl ToJson for Structure
+
+type StructureBase
+fn StructureBase::to_json(Self) -> Json // from trait `ToJson`
+impl ToJson for StructureBase
+
+// Type aliases
+
+// Traits
+

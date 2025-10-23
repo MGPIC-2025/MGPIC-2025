@@ -1,4 +1,7 @@
 ///|
+using @structure {type Structure}
+
+///|
 /// 在指定地点放下一个铜偶
 pub fn set_copper(
   copper : BattleCopper,
@@ -22,10 +25,30 @@ pub fn set_enemy(enemy : Enemy, id : Int, position : (Int, Int)) -> Unit {
   })
 }
 
-pub fn set_material(material : Material, id : Int, position : (Int, Int)) -> Unit {
+///|
+pub fn set_structure(
+  structure : Structure,
+  id : Int,
+  position : (Int, Int),
+) -> Unit {
+  @global_msg.msg_info.broadcast({
+    type_msg: "set_structure",
+    content: (
+      { "id": id, "position": position, "structure": structure.to_json() } :
+      Json).stringify(),
+  })
+}
+
+///|
+pub fn set_material(
+  material : Material,
+  id : Int,
+  position : (Int, Int),
+) -> Unit {
   @global_msg.msg_info.broadcast({
     type_msg: "set_material",
-    content: ({ "id": id, "position": position, "material": material.to_json() } : Json).stringify(),
+    content: (
+      { "id": id, "position": position, "material": material.to_json() } : Json).stringify(),
   })
 }
 

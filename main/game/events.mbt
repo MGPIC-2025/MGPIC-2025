@@ -14,7 +14,7 @@ let transfer_from_id : Ref[Int?] = Ref::new(None)
 let item_to_be_transfer : Ref[Item?] = Ref::new(None)
 
 ///|
-enum IgnoreBlock {
+priv enum IgnoreBlock {
   Attack
   Move
 }

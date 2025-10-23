@@ -8,7 +8,7 @@ pub fn test_simple_move() -> Unit {
   // 假设前端已经有一些模型
   // 移动ID为1的单位到(2, 2)
   move_to(1, (2, 2))
-  
+
   // 改变方向
   change_direction(1, PositiveX)
 }
@@ -18,7 +18,7 @@ pub fn test_simple_move() -> Unit {
 pub fn test_display_states() -> Unit {
   // 显示可移动状态（绿圈）
   display_can_move(1, true)
-  
+
   // 显示可攻击状态（红圈）  
   display_can_attack(1, true)
 }
@@ -55,13 +55,13 @@ pub fn test_blocks() -> Unit {
   put_map_block((5, 5))
   put_map_block((6, 5))
   put_map_block((7, 5))
-  
+
   // 设置可移动块（绿色）
   set_move_block((5, 5))
-  
+
   // 设置可攻击块（红色）
   set_attack_block((7, 5))
-  
+
   // 清除地图块状态
   clear_block((6, 5))
 }
@@ -70,28 +70,28 @@ pub fn test_blocks() -> Unit {
 /// 测试8：完整序列演示
 pub fn test_sequence() -> Unit {
   // 假设场景中已有ID=1和ID=2的单位
-  
+
   // 1. 显示单位1可移动
   display_can_move(1, true)
-  
+
   // 2. 移动单位1
   move_to(1, (3, 3))
-  
+
   // 3. 清除状态
   clear_state(1)
-  
+
   // 4. 显示可攻击
   display_can_attack(1, true)
-  
+
   // 5. 改变朝向
   change_direction(1, PositiveX)
-  
+
   // 6. 聚焦
   animate_move(1)
-  
+
   // 7. 移除单位2
   remove_unit(2)
-  
+
   // 8. 复位视角
   animate_reset()
 }

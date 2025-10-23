@@ -11,6 +11,8 @@ fn animate_move(Int) -> Unit
 
 fn animate_reset() -> Unit
 
+fn broadcast_room_content(Room) -> Unit
+
 fn change_direction(Int, UnitDirection) -> Unit
 
 fn clear_block((Int, Int)) -> Unit
@@ -22,6 +24,32 @@ fn cost_drop_item(Array[(Item, Double)]) -> Item?
 fn display_can_attack(Int, Bool) -> Unit
 
 fn display_can_move(Int, Bool) -> Unit
+
+fn eventloop(String) -> Unit
+
+fn force_get_current_map() -> Map_
+
+fn handle_on_attack_apply(Int, (Int, Int), Map_) -> Unit
+
+fn handle_on_attack_end() -> Unit
+
+fn handle_on_attack_start(Map_, Int) -> Unit
+
+fn handle_on_click_copper(Int) -> Unit
+
+fn handle_on_game_start(Array[Int]) -> Unit
+
+fn handle_on_move_apply(Int, (Int, Int), Map_) -> Unit
+
+fn handle_on_move_end() -> Unit
+
+fn handle_on_move_start(Map_, Int) -> Unit
+
+fn handle_on_transfer_apply((Int, Int)) -> Unit
+
+fn handle_on_transfer_end() -> Unit
+
+fn handle_on_transfer_start(Int, Int, Int) -> Unit
 
 fn move_to(Int, (Int, Int)) -> Unit
 
@@ -35,7 +63,25 @@ fn set_copper(BattleCopper, Int, (Int, Int)) -> Unit
 
 fn set_enemy(Enemy, Int, (Int, Int)) -> Unit
 
+fn set_material(Material, Int, (Int, Int)) -> Unit
+
 fn set_move_block((Int, Int)) -> Unit
+
+fn test_blocks() -> Unit
+
+fn test_camera_control() -> Unit
+
+fn test_camera_reset() -> Unit
+
+fn test_clear_states() -> Unit
+
+fn test_display_states() -> Unit
+
+fn test_remove() -> Unit
+
+fn test_sequence() -> Unit
+
+fn test_simple_move() -> Unit
 
 // Errors
 
@@ -44,10 +90,15 @@ type BattleCopper
 fn BattleCopper::to_json(Self) -> Json // from trait `ToJson`
 impl ToJson for BattleCopper
 
+type CanAttackTarget
+fn CanAttackTarget::to_json(Self) -> Json // from trait `ToJson`
+impl ToJson for CanAttackTarget
+
 type Direction
 
 pub struct Enemy {
   id : Int
+  position : (Int, Int)
   mut now_health : Float
   enemy_base : EnemyBase
 }
@@ -57,6 +108,8 @@ impl ToJson for Enemy
 type EnemyBase
 fn EnemyBase::to_json(Self) -> Json // from trait `ToJson`
 impl ToJson for EnemyBase
+
+type Game
 
 type Inventory
 fn Inventory::add_item(Self, Item) -> Unit
@@ -91,6 +144,8 @@ fn MapBlock::new() -> Self
 type Map_
 
 type Material
+fn Material::to_json(Self) -> Json // from trait `ToJson`
+impl ToJson for Material
 
 type Occupant
 
@@ -98,6 +153,7 @@ type Room
 fn Room::get_room_direction_and_new_position(Self, (Int, Int)) -> (Direction, (Int, Int))
 fn Room::is_coord_in_room(Self, (Int, Int)) -> Bool
 fn Room::new(Int, (Int, Int), @set.Set[(Int, Int)]) -> Self
+fn Room::position_to_global_position(Self, (Int, Int)) -> (Int, Int)
 
 type UnitDirection
 fn UnitDirection::output(Self, &Logger) -> Unit // from trait `Show`
