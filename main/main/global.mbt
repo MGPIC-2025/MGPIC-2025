@@ -65,6 +65,11 @@ pub fn test_sequence() -> Unit {
 }
 
 ///|
+pub fn test_game_round_pass() -> Unit {
+  @game.test_game_round_pass()
+}
+
+///|
 /// 自定义测试API：移动单位到指定位置
 pub fn move_to(id : Int, to : (Int, Int)) -> Unit {
   @game.move_to(id, to)

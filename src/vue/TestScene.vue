@@ -1,9 +1,19 @@
 <script setup>
-import { ref, onMounted, onBeforeUnmount } from "vue";
+import { ref, computed, onMounted, onBeforeUnmount } from "vue";
 import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import { messageQueue } from "../glue.js";
+import { eventloop } from "../glue.js";
 import TestPanel from "./TestPanel.vue";
+import CopperActionPanel from "./CopperActionPanel.vue";
+import TurnSystem from "./TurnSystem.vue";
+
+const props = defineProps({
+  isGameMode: {
+    type: Boolean,
+    default: false // false = 测试模式，true = 游戏模式
+  }
+});
 
 const container = ref(null);
 const emit = defineEmits(["back"]);
@@ -11,6 +21,26 @@ const emit = defineEmits(["back"]);
 let scene, camera, renderer, controls;
 let models = [];
 let focusState = { focusPosition: null, focusTarget: null, lerpFactor: 0.08 };
+let raycaster = null;
+let mouse = new THREE.Vector2();
+
+// 选中的铜偶信息
+const selectedCopper = ref(null);
+const selectedCopperResources = ref([]);
+const copperActionPanelRef = ref(null);
+const hasAttackTargets = ref(false); // 是否有可攻击的目标
+
+// 回合系统
+const currentRound = ref(1);
+const playerCoppers = ref([]); // 玩家的铜偶列表
+const currentCopperIndex = ref(0);
+const currentActionMode = ref(null); // 'moving' | 'attacking' | null
+
+const currentCopperId = computed(() => {
+  if (playerCoppers.value.length === 0) return null;
+  const copper = playerCoppers.value[currentCopperIndex.value];
+  return copper ? copper.id : null;
+});
 
 onMounted(async () => {
   initScene();
@@ -26,6 +56,8 @@ onMounted(async () => {
 });
 
 onBeforeUnmount(() => {
+  window.removeEventListener("resize", onWindowResize);
+  window.removeEventListener("click", onSceneClick);
   if (renderer) {
     renderer.dispose();
   }
@@ -47,6 +79,9 @@ function initScene() {
     2000
   );
   camera.position.set(0, 5, 10);
+
+  // 初始化raycaster用于点击检测
+  raycaster = new THREE.Raycaster();
 
   // 创建渲染器
   renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -90,6 +125,11 @@ function initScene() {
   grid.material.opacity = 0.5;
   grid.material.transparent = true;
   scene.add(grid);
+
+  // 添加点击事件监听（仅游戏模式）
+  if (props.isGameMode) {
+    window.addEventListener("click", onSceneClick);
+  }
 
   // 创建测试用的立方体（用于后端测试，ID=1和2）
   createTestUnits();
@@ -210,7 +250,7 @@ function setupMessageQueue() {
           model.object.material.emissiveIntensity = 0.3;
         }
         selectedCopperId = copperId;
-        console.log(`[TestScene] ✨ 高亮铜偶: ${model.name} (ID=${copperId})`);
+        console.log(`[TestScene] 高亮铜偶: ${model.name} (ID=${copperId})`);
       }
     } else {
       selectedCopperId = null;
@@ -254,9 +294,16 @@ function setupMessageQueue() {
   const clearFloorBlock = (position) => {
     const key = `${position[0]},${position[1]}`;
     const block = floorBlocks.get(key);
+    console.log(`[TestScene] 尝试清除地板块: 坐标=${position}, key=${key}, 找到=${!!block}, 总数=${floorBlocks.size}`);
     if (block) {
       scene.remove(block);
+      // 释放几何体和材质
+      if (block.geometry) block.geometry.dispose();
+      if (block.material) block.material.dispose();
       floorBlocks.delete(key);
+      console.log(`[TestScene] 已清除地板块: ${key}, 剩余=${floorBlocks.size}`);
+    } else {
+      console.log(`[TestScene] 未找到地板块: ${key}, 现有keys:`, Array.from(floorBlocks.keys()));
     }
   };
 
@@ -364,7 +411,7 @@ function setupMessageQueue() {
 
     animateEffect();
     console.log(
-      `[TestScene] 💥 攻击特效: 攻击者ID=${attackerId} → 目标位置${targetPosition}`
+      `[TestScene] 攻击特效: 攻击者ID=${attackerId} → 目标位置${targetPosition}`
     );
   };
 
@@ -377,15 +424,69 @@ function setupMessageQueue() {
     gridCellSize: 1.0,
     focusState,
     focusOnModel: focusOnModelFunc,
+    // 显示铜偶信息
+    onShowCopperInfo: (copper, resources, has_attack_targets) => {
+      selectedCopper.value = copper;
+      selectedCopperResources.value = resources || [];
+      // 使用后端返回的攻击目标状态
+      hasAttackTargets.value = has_attack_targets || false;
+      console.log(`[TestScene] 更新铜偶信息: ID=${copper.id}, has_attack_targets=${hasAttackTargets.value}`);
+    },
     highlightSelectedCopper,
     floorBlocks,
     createAttackEffect, // 攻击特效
+    // 移动完成后的回调
+    onMoveComplete: (id) => {
+      if (!props.isGameMode) return;
+      
+      console.log('[TestScene] 移动完成，准备切换铜偶');
+      // 重置状态
+      currentActionMode.value = null;
+      if (copperActionPanelRef.value) {
+        copperActionPanelRef.value.restore();
+      }
+      
+      // 重新获取铜偶最新状态，然后判断是否切换
+      setTimeout(async () => {
+        // 重新点击当前铜偶获取最新状态
+        await handleClickCopper(id);
+        
+        // 等待状态更新后再判断是否切换
+        setTimeout(() => {
+          tryNextCopper();
+        }, 100);
+      }, 300);
+    },
+    // 攻击完成后的回调
+    onAttackComplete: (id) => {
+      if (!props.isGameMode) return;
+      
+      console.log('[TestScene] 攻击完成，准备切换铜偶');
+      // 重置状态
+      currentActionMode.value = null;
+      if (copperActionPanelRef.value) {
+        copperActionPanelRef.value.restore();
+      }
+      
+      // 重新获取铜偶最新状态，然后判断是否切换
+      setTimeout(async () => {
+        // 重新点击当前铜偶获取最新状态
+        await handleClickCopper(id);
+        
+        // 等待状态更新后再判断是否切换
+        setTimeout(() => {
+          tryNextCopper();
+        }, 100);
+      }, 300);
+    },
     onSetMoveBlock: (position) => {
+      const key = `${position[0]},${position[1]}`;
       createOrUpdateFloorBlock(position, 0x44ff44, "move");
-      console.log(`[TestScene] 显示移动范围: ${position}`);
+      console.log(`[TestScene] 显示移动范围: 坐标=${position}, key=${key}`);
     },
     onSetAttackBlock: (position) => {
       createOrUpdateFloorBlock(position, 0xff4444, "attack");
+      hasAttackTargets.value = true; // 有攻击范围说明有目标
       console.log(`[TestScene] 显示攻击范围: ${position}`);
     },
     onClearBlock: (position) => {
@@ -400,6 +501,28 @@ function setupMessageQueue() {
       if (existing) {
         console.log(`[TestScene] 铜偶ID=${copper.id}已存在，跳过`);
         return;
+      }
+
+      // 添加到玩家铜偶列表（游戏模式）
+      if (props.isGameMode) {
+        const copperData = {
+          id: copper.id,
+          name: copper.copper.copper_info?.name || `铜偶 #${copper.id}`,
+          turnDone: false
+        };
+        const isFirstCopper = playerCoppers.value.length === 0;
+        if (!playerCoppers.value.find(c => c.id === copper.id)) {
+          playerCoppers.value.push(copperData);
+          console.log(`[TestScene] 添加玩家铜偶: ${copperData.name}`);
+          
+          // 如果是第一个铜偶，自动点击显示动作面板
+          if (isFirstCopper) {
+            setTimeout(() => {
+              console.log(`[TestScene] 自动点击第一个铜偶: ${copperData.name}`);
+              handleClickCopper(copper.id);
+            }, 500); // 延迟500ms确保模型已完全创建
+          }
+        }
       }
 
       // 创建立方体代表铜偶（不同颜色区分类型）
@@ -430,6 +553,7 @@ function setupMessageQueue() {
 
       // ✅ 以(0,0)为中心，地图范围 -7 到 7
       cube.position.set((position[0] - 7) * 1.0, 0.4, (position[1] - 7) * 1.0);
+      cube.userData.modelId = copper.id; // 设置ID以便点击检测
 
       scene.add(cube);
 
@@ -471,12 +595,30 @@ function setupMessageQueue() {
     onDisplayCanMove: (unitId, canMove) => {
       console.log(`[TestScene] 显示可移动状态: id=${unitId}, show=${canMove}`);
       createIndicator(unitId, "move", canMove);
+      
+      // 如果是当前选中的铜偶，同步更新状态（创建新对象触发响应式）
+      if (selectedCopper.value && selectedCopper.value.id === unitId) {
+        selectedCopper.value = {
+          ...selectedCopper.value,
+          can_move: canMove
+        };
+        console.log(`[TestScene] 同步更新selectedCopper.can_move=${canMove}`);
+      }
     },
     onDisplayCanAttack: (unitId, canAttack) => {
       console.log(
         `[TestScene] 显示可攻击状态: id=${unitId}, show=${canAttack}`
       );
       createIndicator(unitId, "attack", canAttack);
+      
+      // 如果是当前选中的铜偶，同步更新状态（创建新对象触发响应式）
+      if (selectedCopper.value && selectedCopper.value.id === unitId) {
+        selectedCopper.value = {
+          ...selectedCopper.value,
+          can_attack: canAttack
+        };
+        console.log(`[TestScene] 同步更新selectedCopper.can_attack=${canAttack}`);
+      }
     },
     onClearState: (unitId) => {
       console.log(`[TestScene] 清除状态: id=${unitId}`);
@@ -653,6 +795,250 @@ function animate() {
 function goBack() {
   emit("back");
 }
+
+// 点击场景中的对象
+function onSceneClick(event) {
+  // 忽略UI点击
+  if (event.target.tagName !== 'CANVAS') return;
+
+  // 计算鼠标位置（归一化设备坐标）
+  mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+  mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+
+  // 更新射线
+  raycaster.setFromCamera(mouse, camera);
+
+  // 如果在移动/攻击模式，检测地板点击
+  if (currentActionMode.value === 'moving' || currentActionMode.value === 'attacking') {
+    handleFloorClick(mouse);
+    return;
+  }
+
+  // 检测铜偶点击
+  const clickableObjects = models
+    .filter(m => m.type === 'copper' && m.object)
+    .map(m => m.object);
+
+  const intersects = raycaster.intersectObjects(clickableObjects, true);
+
+  if (intersects.length > 0) {
+    // 找到被点击的模型
+    let clickedObject = intersects[0].object;
+    while (clickedObject.parent && !clickedObject.userData.modelId) {
+      clickedObject = clickedObject.parent;
+    }
+
+    const modelId = clickedObject.userData.modelId;
+    if (modelId !== undefined) {
+      console.log('[TestScene] 点击铜偶，ID:', modelId);
+      // 发送点击事件到后端
+      handleClickCopper(modelId);
+    }
+  } else {
+    // 点击空白处，关闭面板
+    selectedCopper.value = null;
+  }
+}
+
+// 处理地板点击（移动/攻击）
+async function handleFloorClick(mousePos) {
+  // 创建一个平面用于射线检测
+  const plane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
+  const raycaster = new THREE.Raycaster();
+  raycaster.setFromCamera(mousePos, camera);
+  
+  const intersectPoint = new THREE.Vector3();
+  raycaster.ray.intersectPlane(plane, intersectPoint);
+  
+  if (intersectPoint) {
+    // 转换为网格坐标 (考虑以(0,0)为中心，范围-7到7)
+    const gridX = Math.round(intersectPoint.x + 7);
+    const gridZ = Math.round(intersectPoint.z + 7);
+    
+    console.log(`[TestScene] 点击地板: (${gridX}, ${gridZ})`);
+    
+    if (currentActionMode.value === 'moving') {
+      await handleMoveApply(gridX, gridZ);
+    } else if (currentActionMode.value === 'attacking') {
+      await handleAttackApply(gridX, gridZ);
+    }
+  }
+}
+
+// 执行移动
+async function handleMoveApply(x, z) {
+  if (!selectedCopper.value) return;
+  
+  console.log(`[TestScene] 请求移动到: (${x}, ${z})`);
+  const message = JSON.stringify({
+    type: 'on_move_apply',
+    content: {
+      id: String(selectedCopper.value.id),
+      position: { x: String(x), y: String(z) }
+    }
+  });
+  await eventloop(message);
+  
+  // 不在这里切换铜偶，等待后端验证成功后的 move_to 消息
+}
+
+// 执行攻击
+async function handleAttackApply(x, z) {
+  if (!selectedCopper.value) return;
+  
+  console.log(`[TestScene] 请求攻击位置: (${x}, ${z})`);
+  const message = JSON.stringify({
+    type: 'on_attack_apply',
+    content: {
+      id: String(selectedCopper.value.id),
+      position: { x: String(x), y: String(z) }
+    }
+  });
+  await eventloop(message);
+  
+  // 不在这里切换铜偶，等待后端攻击完成后再处理
+}
+
+// 处理点击铜偶
+async function handleClickCopper(copperId) {
+  const message = JSON.stringify({
+    type: 'on_click_copper',
+    content: { id: String(copperId) }
+  });
+  await eventloop(message);
+}
+
+// 关闭铜偶面板
+function closeCopperPanel() {
+  selectedCopper.value = null;
+  selectedCopperResources.value = [];
+  currentActionMode.value = null;
+}
+
+// 处理铜偶操作
+function handleCopperAction(action) {
+  console.log('[TestScene] 铜偶操作:', action);
+  
+  if (action.type === 'moveStart') {
+    currentActionMode.value = 'moving';
+  } else if (action.type === 'attackStart') {
+    currentActionMode.value = 'attacking';
+  } else if (action.type === 'cancel') {
+    currentActionMode.value = null;
+  } else if (action.type === 'wait') {
+    console.log('[TestScene] 铜偶选择等待，跳转到下一个');
+    // 跳转到下一个铜偶
+    nextCopper();
+  }
+}
+
+// 尝试切换到下一个铜偶（检查是否还有可操作的铜偶）
+function tryNextCopper() {
+  if (playerCoppers.value.length === 0) return;
+  
+  // 检查当前铜偶是否还能操作
+  if (selectedCopper.value) {
+    const canMove = selectedCopper.value.can_move;
+    const canAttack = selectedCopper.value.can_attack;
+    
+    console.log(`[TestScene] 检查铜偶状态: ID=${selectedCopper.value.id}, can_move=${canMove}, can_attack=${canAttack}, hasAttackTargets=${hasAttackTargets.value}`);
+    
+    // 实际可执行的操作：
+    // 1. 可以移动
+    // 2. 可以攻击 且 有攻击目标
+    const hasValidActions = canMove || (canAttack && hasAttackTargets.value);
+    
+    if (hasValidActions) {
+      console.log('[TestScene] 当前铜偶还能操作，不切换');
+      return;
+    }
+  }
+  
+  console.log('[TestScene] 当前铜偶不能操作，切换到下一个');
+  // 当前铜偶不能操作了，尝试切换到下一个
+  nextCopper();
+}
+
+// 切换到下一个铜偶
+async function nextCopper() {
+  if (playerCoppers.value.length === 0) return;
+  
+  // 关闭当前面板
+  selectedCopper.value = null;
+  currentActionMode.value = null;
+  
+  const startIndex = currentCopperIndex.value;
+  let attempts = 0;
+  const maxAttempts = playerCoppers.value.length;
+  
+  // 循环查找下一个可操作的铜偶
+  while (attempts < maxAttempts) {
+    // 切换索引
+    currentCopperIndex.value = (currentCopperIndex.value + 1) % playerCoppers.value.length;
+    const nextCopper = playerCoppers.value[currentCopperIndex.value];
+    
+    console.log(`[TestScene] 检查铜偶: ${nextCopper.name || nextCopper.id} (尝试 ${attempts + 1}/${maxAttempts})`);
+    
+    // 点击铜偶获取最新状态
+    await new Promise(resolve => {
+      setTimeout(async () => {
+        await handleClickCopper(nextCopper.id);
+        resolve();
+      }, 300);
+    });
+    
+    // 等待状态更新
+    await new Promise(resolve => setTimeout(resolve, 200));
+    
+    // 检查这个铜偶是否真的可以操作
+    // 实际可执行的操作：
+    // 1. 可以移动
+    // 2. 可以攻击 且 有攻击目标
+    const canMove = selectedCopper.value?.can_move || false;
+    const canAttack = selectedCopper.value?.can_attack || false;
+    const hasValidActions = canMove || (canAttack && hasAttackTargets.value);
+    
+    console.log(`[TestScene] 铜偶 ${nextCopper.name}: can_move=${canMove}, can_attack=${canAttack}, hasTargets=${hasAttackTargets.value}, valid=${hasValidActions}`);
+    
+    if (selectedCopper.value && hasValidActions) {
+      console.log(`[TestScene] 找到可操作的铜偶: ${nextCopper.name || nextCopper.id}`);
+      return; // 找到可操作的铜偶，停止
+    }
+    
+    attempts++;
+  }
+  
+  // 所有铜偶都不能操作了
+  console.log('[TestScene] 所有铜偶都不能操作，回合可以结束');
+  selectedCopper.value = null;
+  
+  // 提示玩家可以结束回合
+  if (props.isGameMode) {
+    console.log('[TestScene] 提示：所有铜偶都已完成操作，可以点击"结束回合"按钮');
+  }
+}
+
+// 结束回合
+function endRound() {
+  currentRound.value++;
+  currentCopperIndex.value = 0;
+  selectedCopper.value = null;
+  currentActionMode.value = null;
+  
+  // 重置所有铜偶的turnDone状态
+  playerCoppers.value.forEach(c => c.turnDone = false);
+  
+  console.log(`[TestScene] 进入回合 ${currentRound.value}`);
+  
+  // 新回合开始，自动点击第一个铜偶显示动作面板
+  if (playerCoppers.value.length > 0) {
+    setTimeout(() => {
+      const firstCopper = playerCoppers.value[0];
+      console.log(`[TestScene] 新回合开始，自动点击第一个铜偶: ${firstCopper.name}`);
+      handleClickCopper(firstCopper.id);
+    }, 500);
+  }
+}
 </script>
 
 <template>
@@ -660,13 +1046,36 @@ function goBack() {
     <div ref="container" class="scene-container"></div>
 
     <!-- 返回按钮 -->
-    <button class="back-btn" @click="goBack" title="返回主菜单">← 返回</button>
+    <button class="back-btn" @click="goBack" :title="isGameMode ? '返回大厅' : '返回主菜单'">
+      ← {{ isGameMode ? '返回大厅' : '返回' }}
+    </button>
 
-    <!-- 测试面板 -->
-    <TestPanel />
+    <!-- 测试面板（仅测试模式显示） -->
+    <TestPanel v-if="!isGameMode" />
 
-    <!-- 提示信息 -->
-    <div class="info-panel">
+    <!-- 回合系统（仅游戏模式显示） -->
+    <TurnSystem
+      v-if="isGameMode"
+      :currentCopperId="currentCopperId"
+      :copperList="playerCoppers"
+      :roundNumber="currentRound"
+      @nextCopper="nextCopper"
+      @endRound="endRound"
+    />
+
+    <!-- 铜偶操作面板（仅游戏模式显示） -->
+    <CopperActionPanel
+      v-if="isGameMode && selectedCopper"
+      ref="copperActionPanelRef"
+      :copper="selectedCopper"
+      :resources="selectedCopperResources"
+      :hasAttackTargets="hasAttackTargets"
+      @close="closeCopperPanel"
+      @action="handleCopperAction"
+    />
+
+    <!-- 提示信息（仅测试模式显示） -->
+    <div v-if="!isGameMode" class="info-panel">
       <h3>3D测试场景</h3>
       <p style="color: #ffd700; font-weight: 600">💡 两种测试模式：</p>
 
@@ -728,7 +1137,7 @@ function goBack() {
   font-size: 16px;
   font-weight: 600;
   cursor: pointer;
-  z-index: 10001;
+  z-index: 10000;
   backdrop-filter: blur(10px);
   transition: all 0.2s ease;
 }
@@ -747,7 +1156,7 @@ function goBack() {
   color: white;
   border-radius: 12px;
   border: 1px solid rgba(255, 255, 255, 0.1);
-  z-index: 10001;
+  z-index: 10000;
   backdrop-filter: blur(10px);
   max-width: 300px;
 }

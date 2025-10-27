@@ -82,7 +82,10 @@ fn Map_::global_position_to_room_position(
 ) -> (Room, (Int, Int))? {
   for room in map.rooms {
     if Room::is_coord_in_room(room, position) {
-      return Some((room, position))
+      // 转换为房间内的本地坐标
+      let local_x = position.0 - room.index_position.0
+      let local_y = position.1 - room.index_position.1
+      return Some((room, (local_x, local_y)))
     }
   }
   None
@@ -91,8 +94,8 @@ fn Map_::global_position_to_room_position(
 ///|
 pub fn broadcast_room_content(room : Room) -> Unit {
   let (room_x, room_y) = room.index_position
-  for x in 0..<15 {
-    for y in 0..<15 {
+  for x in 0..<16 {
+    for y in 0..<16 {
       let global_pos = (room_x + x, room_y + y)
       put_map_block(global_pos)
       let occupant = room.blocks[x][y].occupant

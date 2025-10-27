@@ -82,7 +82,7 @@ pub fn Room::new(
 pub fn Room::is_coord_in_room(room : Room, coord : (Int, Int)) -> Bool {
   let (x, y) = coord
   let (room_x, room_y) = room.index_position
-  x >= room_x && x < room_x + 15 && y >= room_y && y < room_y + 15
+  x >= room_x && x < room_x + 16 && y >= room_y && y < room_y + 16
 }
 
 ///|
@@ -106,23 +106,23 @@ pub fn Room::get_room_direction_and_new_position(
   let relative_y = y - room_y
   if relative_x < 0 {
     if relative_y < 0 {
-      (LeftDown, (room_x - 15, room_y))
-    } else if relative_y >= 15 {
-      (LeftUp, (room_x - 15, room_y + 15))
+      (LeftDown, (room_x - 16, room_y))
+    } else if relative_y >= 16 {
+      (LeftUp, (room_x - 16, room_y + 16))
     } else {
-      (Left, (room_x - 15, room_y))
+      (Left, (room_x - 16, room_y))
     }
-  } else if relative_x >= 15 {
+  } else if relative_x >= 16 {
     if relative_y < 0 {
-      (RightDown, (room_x + 15, room_y))
-    } else if relative_y >= 15 {
-      (RightUp, (room_x + 15, room_y + 15))
+      (RightDown, (room_x + 16, room_y))
+    } else if relative_y >= 16 {
+      (RightUp, (room_x + 16, room_y + 16))
     } else {
-      (Right, (room_x + 15, room_y))
+      (Right, (room_x + 16, room_y))
     }
   } else if relative_y < 0 {
-    (Down, (room_x, room_y - 15))
+    (Down, (room_x, room_y - 16))
   } else {
-    (Up, (room_x, room_y + 15))
+    (Up, (room_x, room_y + 16))
   }
 }

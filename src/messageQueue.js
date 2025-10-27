@@ -21,9 +21,11 @@ class MessageQueue {
 
   // 添加消息到队列
   enqueue(message) {
-    // 过滤掉put_map_block消息的日志（太多了）
-    if (message.type_msg !== "put_map_block") {
-      console.log("[MessageQueue] 收到消息:", message);
+    // 性能优化：关闭大部分日志输出，避免控制台输出阻塞主线程
+    // 只记录关键消息类型
+    const criticalTypes = ['handle_on_click_copper', 'on_game_start'];
+    if (criticalTypes.includes(message.type_msg)) {
+      console.log("[MessageQueue] 收到消息:", message.type_msg);
     }
     this.queue.push(message);
     if (!this.isProcessing) {
@@ -41,7 +43,7 @@ class MessageQueue {
     this.isProcessing = true;
 
     //批量处理消息，每次处理多个消息后才让出控制权
-    const batchSize = 10; // 每批处理10个消息
+    const batchSize = 50; // 每批处理50个消息（提高处理速度，应对大量地图块消息）
     let processed = 0;
 
     while (this.queue.length > 0 && processed < batchSize) {
@@ -53,12 +55,18 @@ class MessageQueue {
         const handler = this.handlers.get(type_msg);
 
         if (handler) {
-          // 过滤掉put_map_block的处理日志（太多了）
-          if (type_msg !== "put_map_block") {
-            console.log("[MessageQueue] 处理消息:", type_msg, content);
-          }
+          // 性能优化：完全关闭处理消息日志，避免阻塞主线程
+          // 如需调试，可临时启用
+          // console.log("[MessageQueue] 处理消息:", type_msg);
           const data = JSON.parse(content);
-          await handler(data, this.sceneContext || {});
+          
+          // 对于简单的消息类型（如put_map_block），同步处理，不使用await
+          // 避免大量Promise创建导致性能问题
+          const result = handler(data, this.sceneContext || {});
+          // 只有当handler返回Promise时才await（保持兼容性）
+          if (result && typeof result.then === 'function') {
+            await result;
+          }
         } else {
           console.warn("[MessageQueue] 未找到处理器:", type_msg);
           console.log(
@@ -104,14 +112,14 @@ export function registerAllHandlers() {
   messageQueue.registerHandler(
     "handle_on_click_copper",
     async (data, context) => {
-      const { copper } = data;
+      const { copper, resources, has_attack_targets } = data;
       console.log(
         `[Handler] 点击铜偶: ${
           copper.copper.copper_info?.name || "Unknown"
         } (ID=${copper.id})`
       );
       console.log(
-        `[Handler] 铜偶状态: HP=${copper.now_health}/${copper.copper.attribute.health}, 可移动=${copper.can_move}, 可攻击=${copper.can_attack}`
+        `[Handler] 铜偶状态: HP=${copper.now_health}/${copper.copper.attribute.health}, 可移动=${copper.can_move}, 可攻击=${copper.can_attack}, 有攻击目标=${has_attack_targets}`
       );
 
       // 高亮选中的铜偶
@@ -119,9 +127,9 @@ export function registerAllHandlers() {
         context.highlightSelectedCopper(copper.id);
       }
 
-      // TODO: 显示铜偶信息面板
+      // 显示铜偶信息面板
       if (context.onShowCopperInfo) {
-        context.onShowCopperInfo(copper);
+        context.onShowCopperInfo(copper, resources, has_attack_targets);
       }
     }
   );
@@ -282,14 +290,19 @@ export function registerAllHandlers() {
           );
         });
       }
+      
+      // 移动完成后调用回调
+      if (context.onMoveComplete) {
+        context.onMoveComplete(id);
+      }
     }
   });
 
-  // display_can_move: 显示可移动状态（绿色圈圈）
-  messageQueue.registerHandler("display_can_move", async (data, context) => {
+  // display_can_move: 显示可移动状态（绿色圈圈）（同步处理）
+  messageQueue.registerHandler("display_can_move", (data, context) => {
     const { id, can_move } = data;
     const canMove = can_move === "true" || can_move === true;
-    console.log(`[Handler] display_can_move id=${id}, can_move=${canMove}`);
+    // console.log(`[Handler] display_can_move id=${id}, can_move=${canMove}`);
 
     // TODO: 在模型脚下添加/移除绿色圈圈指示器
     if (context.onDisplayCanMove) {
@@ -297,13 +310,11 @@ export function registerAllHandlers() {
     }
   });
 
-  // display_can_attack: 显示可攻击状态（红色圈圈）
-  messageQueue.registerHandler("display_can_attack", async (data, context) => {
+  // display_can_attack: 显示可攻击状态（红色圈圈）（同步处理）
+  messageQueue.registerHandler("display_can_attack", (data, context) => {
     const { id, can_attack } = data;
     const canAttack = can_attack === "true" || can_attack === true;
-    console.log(
-      `[Handler] display_can_attack id=${id}, can_attack=${canAttack}`
-    );
+    // console.log(`[Handler] display_can_attack id=${id}, can_attack=${canAttack}`);
 
     // TODO: 在模型脚下添加/移除红色圈圈指示器
     if (context.onDisplayCanAttack) {
@@ -311,10 +322,10 @@ export function registerAllHandlers() {
     }
   });
 
-  // clear_state: 清除单位的所有状态
-  messageQueue.registerHandler("clear_state", async (data, context) => {
+  // clear_state: 清除单位的所有状态（同步处理）
+  messageQueue.registerHandler("clear_state", (data, context) => {
     const { id } = data;
-    console.log(`[Handler] clear_state id=${id}`);
+    // console.log(`[Handler] clear_state id=${id}`);
 
     if (context.onClearState) {
       context.onClearState(id);
@@ -365,22 +376,23 @@ export function registerAllHandlers() {
     }
   });
 
-  // put_map_block: 放置地图块
-  messageQueue.registerHandler("put_map_block", async (data, context) => {
+  // put_map_block: 放置地图块（同步处理，避免大量Promise创建）
+  messageQueue.registerHandler("put_map_block", (data, context) => {
     const { position } = data;
     // console.log(`[Handler] put_map_block at ${position}`)  // 日志太多，已注释
 
     if (context.onPutMapBlock) {
       context.onPutMapBlock(position);
     }
+    // 不返回Promise，同步处理
   });
 
   // 计数器：跟踪范围块数量
   let moveBlockCount = 0;
   let attackBlockCount = 0;
 
-  // set_move_block: 设置地图块为可移动（绿色）
-  messageQueue.registerHandler("set_move_block", async (data, context) => {
+  // set_move_block: 设置地图块为可移动（绿色）（同步处理）
+  messageQueue.registerHandler("set_move_block", (data, context) => {
     const { position } = data;
     moveBlockCount++;
 
@@ -388,12 +400,12 @@ export function registerAllHandlers() {
       context.onSetMoveBlock(position);
     }
 
-    // 输出每个移动范围的位置
-    console.log(`[Handler] 移动范围 #${moveBlockCount}: [${position}]`);
+    // 只输出汇总，不输出每个地块
+    // console.log(`[Handler] 移动范围 #${moveBlockCount}: [${position}]`);
   });
 
-  // set_attack_block: 设置地图块为可攻击（红色）
-  messageQueue.registerHandler("set_attack_block", async (data, context) => {
+  // set_attack_block: 设置地图块为可攻击（红色）（同步处理）
+  messageQueue.registerHandler("set_attack_block", (data, context) => {
     const { position } = data;
     attackBlockCount++;
 
@@ -407,11 +419,11 @@ export function registerAllHandlers() {
     }
   });
 
-  // clear_block: 清除地板块状态
+  // clear_block: 清除地板块状态（同步处理）
   let clearBlockCount = 0;
   let lastClearTime = Date.now();
 
-  messageQueue.registerHandler("clear_block", async (data, context) => {
+  messageQueue.registerHandler("clear_block", (data, context) => {
     const { position } = data;
 
     if (context.onClearBlock) {
@@ -440,6 +452,30 @@ export function registerAllHandlers() {
       }
     }
     lastClearTime = now;
+  });
+
+  // attack_complete: 攻击完成
+  messageQueue.registerHandler("attack_complete", (data, context) => {
+    const { id } = data;
+    console.log(`[Handler] attack_complete id=${id}`);
+    
+    // 攻击完成后调用回调
+    if (context.onAttackComplete) {
+      context.onAttackComplete(id);
+    }
+  });
+
+  // on_game_round_pass: 回合结束（清除所有状态并恢复）（同步处理）
+  messageQueue.registerHandler("on_game_round_pass", (data, context) => {
+    console.log("[Handler] 回合结束 - 恢复所有铜偶状态");
+    
+    // 该处理器主要由后端处理，前端只需要确认消息接收
+    // 后端会自动：
+    // 1. 清除所有移动/攻击/传输地块
+    // 2. 恢复所有铜偶的可移动和可攻击状态
+    // 3. 重新显示状态指示器（绿圈/红圈）
+    
+    console.log("[Handler] 回合结束处理完成");
   });
 
   console.log(

@@ -171,3 +171,12 @@ pub fn clear_block(position : (Int, Int)) -> Unit {
     content: ({ "position": position } : Json).stringify(),
   })
 }
+
+///|
+/// 攻击完成
+pub fn attack_complete(id : Int) -> Unit {
+  @global_msg.msg_info.broadcast({
+    type_msg: "attack_complete",
+    content: ({ "id": id } : Json).stringify(),
+  })
+}

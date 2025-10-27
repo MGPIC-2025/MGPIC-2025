@@ -26,6 +26,11 @@ const testFunctions = ref([
   { name: "复位视角", key: "test_camera_reset", desc: "相机复位到默认位置" },
   { name: "地图块", key: "test_blocks", desc: "放置并设置地图块状态" },
   { name: "完整序列", key: "test_sequence", desc: "演示完整的交互流程（8步）" },
+  { 
+    name: "🔄 回合结束", 
+    key: "test_game_round_pass", 
+    desc: "清除地块并恢复所有铜偶的可移动/攻击状态" 
+  },
 ]);
 
 // EventLoop测试用例
@@ -91,6 +96,12 @@ const eventloopTests = ref([
         position: { x: "4", y: "4" },
       };
     },
+  },
+  {
+    name: "🔄 回合结束",
+    key: "on_game_round_pass",
+    desc: "清除所有地块，恢复所有铜偶状态",
+    params: {},
   },
 ]);
 
@@ -427,6 +438,7 @@ const eventloopTypes = [
   "on_move_start",
   "on_move_apply",
   "on_game_start",
+  "on_game_round_pass",
 ];
 
 // 执行自定义EventLoop
@@ -444,6 +456,7 @@ async function runCustomEventloop() {
         content = { id: customEventloopParams.value.copperId };
         break;
       case "on_attack_end":
+      case "on_game_round_pass":
         content = {};
         break;
       case "on_attack_apply":
@@ -818,7 +831,7 @@ async function runCustomEventloop() {
   position: fixed;
   bottom: 20px;
   right: 20px;
-  z-index: 10000;
+  z-index: 10002;
   pointer-events: auto;
 }
 

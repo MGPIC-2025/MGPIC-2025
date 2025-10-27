@@ -49,10 +49,18 @@ async function startGame() {
   try {
     if (!window.__ACTUAL_COPPER_IDS__) window.__ACTUAL_COPPER_IDS__ = [];
     const message = JSON.stringify({ type: 'on_game_start', content: { ids } });
-    await eventloop(message);
+    
+    // 不等待eventloop完成，直接发送消息
+    // 因为broadcast_room_content会发送大量消息（225个地图块），会阻塞界面
+    eventloop(message).catch(e => {
+      console.error('[StartGame] eventloop执行失败', e);
+    });
+    
+    // 立即关闭界面，让消息队列在后台处理
+    console.log('[StartGame] 游戏开始消息已发送，ID:', ids);
+    emit("confirm", { ids });
   } catch (e) {
     console.error('[StartGame] 发送开始游戏消息失败', e);
-  } finally {
     emit("confirm", { ids });
   }
 }

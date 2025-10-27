@@ -20,6 +20,7 @@ const overlayHistory = ref([]);
 const currentPuppetIndex = ref(0);
 const showStartMenu = ref(true);
 const showTestScene = ref(false);
+const isInGameMode = ref(false); // 控制是游戏模式还是测试模式
 const destroyStartMenu = ref(false); // 控制是否完全销毁StartMenu以释放内存
 let startMenuDestroyTimer = null;
 
@@ -45,6 +46,7 @@ function openOverlay(type) {
 
 function closeTestScene() {
   showTestScene.value = false;
+  isInGameMode.value = false; // 重置游戏模式
   // 从测试场景返回时，保持在大厅状态
   // 不需要恢复StartMenu的渲染，因为应该停留在大厅
 }
@@ -70,6 +72,15 @@ function closeOverlay() {
   overlayHistory.value = [];
   window.__START_MENU_RESUME__ && window.__START_MENU_RESUME__();
   isPaused.value = false;
+}
+
+function handleGameStart(params) {
+  console.log('[App] 游戏开始，铜偶ID:', params.ids);
+  closeOverlay();
+  // 跳转到游戏场景（游戏模式）
+  isInGameMode.value = true;
+  showTestScene.value = true;
+  console.log('[App] 已切换到游戏场景（游戏模式）');
 }
 
 function openSettings() {
@@ -201,8 +212,12 @@ onBeforeUnmount(() => {
 
 <template>
   <div class="stage">
-    <!-- 3D测试场景 - 使用v-if完全销毁以节省资源 -->
-    <TestScene v-if="showTestScene" @back="closeTestScene" />
+    <!-- 3D游戏/测试场景 - 使用v-if完全销毁以节省资源 -->
+    <TestScene 
+      v-if="showTestScene" 
+      :isGameMode="isInGameMode"
+      @back="closeTestScene" 
+    />
 
     <!-- 主界面 -->
     <template v-if="!showTestScene">
@@ -218,7 +233,7 @@ onBeforeUnmount(() => {
         @back="goBack"
         @open-settings="openSettings"
       />
-      <TestPanel v-if="!showStartMenu" @enter-scene="showTestScene = true" />
+      <TestPanel v-if="!showStartMenu" @enter-scene="() => { isInGameMode = false; showTestScene = true; }" />
       <Hall
         @startGame="openOverlay('start')"
         @openWarehouse="openOverlay('warehouse')"
@@ -237,7 +252,10 @@ onBeforeUnmount(() => {
           </div>
         </template>
         <template v-else-if="overlay==='start'">
-          <StartGame @close="closeOverlay" @confirm="(p)=>{ console.log('[App] 开始参数', p); closeOverlay() }" />
+          <StartGame 
+            @close="closeOverlay" 
+            @confirm="handleGameStart" 
+          />
         </template>
         <template v-else>
           <div class="modal">
