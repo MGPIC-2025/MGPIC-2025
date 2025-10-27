@@ -4,6 +4,7 @@ import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { DRACOLoader } from "three/examples/jsm/loaders/DRACOLoader.js";
 import { getAssetUrl, loadResourceWithCache } from "../utils/resourceLoader.js";
+import modelCache from "../utils/modelCache.js";
 
 const props = defineProps({
   puppet: { type: Object, default: null },
@@ -20,6 +21,7 @@ let currentMixer = null;
 let clock = new THREE.Clock();
 let resizeObserver = null;
 let dracoLoader = null;
+let gltfLoader = null; // 复用GLTFLoader实例
 let loadSequence = 0; // 防止旧的异步加载结果覆盖新的选择
 let isInitialized = false; // 添加初始化状态标记
 
@@ -192,21 +194,8 @@ async function loadPuppetModel(puppet) {
   clearCurrentModel();
   const token = ++loadSequence;
 
-  const loader = new GLTFLoader();
-  loader.setCrossOrigin("anonymous");
-
-  // 确保 Draco 解码器存在
-  if (!dracoLoader) {
-    console.log("[PuppetModelView] Creating Draco loader...");
-    dracoLoader = new DRACOLoader();
-    dracoLoader.setDecoderPath(
-      "https://www.gstatic.com/draco/versioned/decoders/1.5.6/"
-    );
-    dracoLoader.setCrossOrigin("anonymous");
-  }
-
-  loader.setDRACOLoader(dracoLoader);
-  console.log("[PuppetModelView] Draco loader set:", !!dracoLoader);
+  // 使用全局模型缓存管理器
+  console.log("[PuppetModelView] 使用全局模型缓存管理器");
 
   let modelUrl = puppet.modelUrl || "";
   console.log("[PuppetModelView] Original modelUrl:", modelUrl);
@@ -238,92 +227,11 @@ async function loadPuppetModel(puppet) {
 
   try {
     console.log("[PuppetModelView] Starting to load:", modelUrl);
-    console.log(
-      "[PuppetModelView] Memory cache size:",
-      gltfMemoryCache.size,
-      "entries"
-    );
-    console.log(
-      "[PuppetModelView] Memory cache has this URL?",
-      gltfMemoryCache.has(modelUrl)
-    );
+    console.log("[PuppetModelView] Cache status:", modelCache.getCacheStatus());
 
-    // 首先检查内存缓存
-    let gltf;
-    if (gltfMemoryCache.has(modelUrl)) {
-      console.log(
-        "[PuppetModelView] Loading from memory cache (instant):",
-        modelUrl
-      );
-      const cachedGltf = gltfMemoryCache.get(modelUrl);
-      // 克隆原始场景，每次都会应用新的变换
-      gltf = {
-        scene: cachedGltf.scene.clone(true),
-        scenes: cachedGltf.scenes,
-        animations: cachedGltf.animations,
-        cameras: cachedGltf.cameras,
-        asset: cachedGltf.asset,
-        parser: cachedGltf.parser,
-        userData: cachedGltf.userData,
-      };
-      console.log("[PuppetModelView] GLTF cloned from memory cache:", gltf);
-    } else {
-      // 内存缓存未命中，从 Cache Storage 或网络加载
-      try {
-        console.log("[PuppetModelView] Checking Cache Storage for:", modelUrl);
-        const cachedResponse = await loadResourceWithCache(modelUrl);
-        if (cachedResponse) {
-          console.log(
-            "[PuppetModelView] Loading from Cache Storage:",
-            modelUrl
-          );
-          // 从缓存的响应创建 ArrayBuffer
-          const arrayBuffer = await cachedResponse.arrayBuffer();
-          // 使用 GLTFLoader 的 parse 方法直接解析
-          gltf = await new Promise((resolve, reject) => {
-            loader.parse(arrayBuffer, "", resolve, reject);
-          });
-          console.log(
-            "[PuppetModelView] GLTF loaded from Cache Storage:",
-            gltf
-          );
-          // 保存原始 GLTF 到内存缓存（避免后续修改影响缓存）
-          const gltfForCache = {
-            scene: gltf.scene.clone(true),
-            scenes: gltf.scenes,
-            animations: gltf.animations,
-            cameras: gltf.cameras,
-            asset: gltf.asset,
-            parser: gltf.parser,
-            userData: gltf.userData,
-          };
-          gltfMemoryCache.set(modelUrl, gltfForCache);
-          console.log("[PuppetModelView] Original GLTF saved to memory cache");
-        } else {
-          throw new Error("No cached response available");
-        }
-      } catch (cacheError) {
-        console.log(
-          "[PuppetModelView] Cache miss, loading from network:",
-          modelUrl
-        );
-        // 缓存失败，直接从网络加载
-        gltf = await loader.loadAsync(modelUrl);
-        console.log("[PuppetModelView] GLTF loaded from network:", gltf);
-        // 保存原始 GLTF 到内存缓存（避免后续修改影响缓存）
-        const gltfForCache = {
-          scene: gltf.scene.clone(true),
-          scenes: gltf.scenes,
-          animations: gltf.animations,
-          cameras: gltf.cameras,
-          asset: gltf.asset,
-          parser: gltf.parser,
-          userData: gltf.userData,
-        };
-        gltfMemoryCache.set(modelUrl, gltfForCache);
-        console.log("[PuppetModelView] Original GLTF saved to memory cache");
-      }
-    }
+    // 使用全局模型缓存管理器加载模型
+    const modelInstance = await modelCache.loadModel(modelUrl);
+    console.log("[PuppetModelView] Model loaded from cache manager:", modelInstance);
     // 检查是否是最新的加载请求
     if (token !== loadSequence) {
       console.log(
@@ -368,17 +276,14 @@ async function loadPuppetModel(puppet) {
       }
     }
 
-    currentModel = gltf.scene || gltf.scenes?.[0];
+    // 应用模型到场景
+    currentModel = modelInstance;
     if (!currentModel) {
-      console.error("[PuppetModelView] No scene found in GLTF");
+      console.error("[PuppetModelView] No model instance received");
       return;
     }
     scene.add(currentModel);
-    if (gltf.animations && gltf.animations.length) {
-      currentMixer = new THREE.AnimationMixer(currentModel);
-      const action = currentMixer.clipAction(gltf.animations[0]);
-      action.play();
-    }
+    // 注意：全局缓存管理器不保存动画信息，如果需要动画需要重新加载
     fitCameraToObject(currentModel);
     console.log(
       "[PuppetModelView] Model loaded successfully:",
@@ -398,17 +303,18 @@ async function loadPuppetModel(puppet) {
     if (e.message.includes("DRACOLoader")) {
       console.log("[PuppetModelView] Retrying without Draco decoder...");
       try {
+        // 创建一个临时的fallback loader，不使用Draco
         const fallbackLoader = new GLTFLoader();
         fallbackLoader.setCrossOrigin("anonymous");
         // 不设置 Draco 解码器
-        const gltf = await fallbackLoader.loadAsync(modelUrl);
+        const fallbackGltf = await fallbackLoader.loadAsync(modelUrl);
         if (token === loadSequence) {
-          currentModel = gltf.scene || gltf.scenes?.[0];
+          currentModel = fallbackGltf.scene || fallbackGltf.scenes?.[0];
           if (currentModel) {
             scene.add(currentModel);
-            if (gltf.animations && gltf.animations.length) {
+            if (fallbackGltf.animations && fallbackGltf.animations.length) {
               currentMixer = new THREE.AnimationMixer(currentModel);
-              const action = currentMixer.clipAction(gltf.animations[0]);
+              const action = currentMixer.clipAction(fallbackGltf.animations[0]);
               action.play();
             }
             fitCameraToObject(currentModel);
