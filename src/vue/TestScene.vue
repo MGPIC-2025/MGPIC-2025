@@ -1,7 +1,6 @@
 <script setup>
 import { ref, computed, onMounted, onBeforeUnmount } from "vue";
 import * as THREE from "three";
-import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import { DRACOLoader } from "three/addons/loaders/DRACOLoader.js";
 import { messageQueue } from "../glue.js";
@@ -38,6 +37,82 @@ let raycaster = null;
 let mouse = new THREE.Vector2();
 let gltfLoader = null;
 
+// 第一人称控制
+const keys = {
+  w: false,
+  a: false,
+  s: false,
+  d: false,
+  shift: false,
+  space: false
+};
+const moveSpeed = 0.2;
+const rotationSpeed = 0.003;
+const mouseSensitivity = 0.002;
+
+// 键盘事件处理
+function handleKeyDown(event) {
+  const key = event.key.toLowerCase();
+  if (key === 'w' || key === 'a' || key === 's' || key === 'd') {
+    keys[key] = true;
+  } else if (key === 'shift') {
+    keys.shift = true;
+  } else if (key === ' ') {
+    keys.space = true;
+    event.preventDefault(); // 防止页面滚动
+  }
+}
+
+function handleKeyUp(event) {
+  const key = event.key.toLowerCase();
+  if (key === 'w' || key === 'a' || key === 's' || key === 'd') {
+    keys[key] = false;
+  } else if (key === 'shift') {
+    keys.shift = false;
+  } else if (key === ' ') {
+    keys.space = false;
+  }
+}
+
+// 第一人称鼠标控制
+let isMouseDown = false;
+let lastMouseX = 0;
+let lastMouseY = 0;
+let pitch = 0; // 上下旋转
+let yaw = 0;   // 左右旋转
+
+function handleMouseDown(event) {
+  isMouseDown = true;
+  lastMouseX = event.clientX;
+  lastMouseY = event.clientY;
+}
+
+function handleMouseUp() {
+  isMouseDown = false;
+}
+
+function handleMouseMove(event) {
+  if (!isMouseDown) return;
+  
+  const deltaX = event.clientX - lastMouseX;
+  const deltaY = event.clientY - lastMouseY;
+  
+  // 更新旋转角度
+  yaw -= deltaX * mouseSensitivity;
+  pitch -= deltaY * mouseSensitivity;
+  
+  // 限制上下旋转角度
+  pitch = Math.max(-Math.PI/2, Math.min(Math.PI/2, pitch));
+  
+  // 应用旋转到相机
+  camera.rotation.order = 'YXZ';
+  camera.rotation.y = yaw;
+  camera.rotation.x = pitch;
+  
+  lastMouseX = event.clientX;
+  lastMouseY = event.clientY;
+}
+
 // 选中的铜偶信息
 const selectedCopper = ref(null);
 const selectedCopperResources = ref([]);
@@ -66,17 +141,28 @@ onMounted(async () => {
     messageQueue.sceneContext.setTestMode("eventloop");
   }
 
+  // 添加键盘和鼠标事件监听
+  window.addEventListener("keydown", handleKeyDown);
+  window.addEventListener("keyup", handleKeyUp);
+  window.addEventListener("mousedown", handleMouseDown);
+  window.addEventListener("mouseup", handleMouseUp);
+  window.addEventListener("mousemove", handleMouseMove);
+
   animate();
 });
 
 onBeforeUnmount(() => {
   window.removeEventListener("resize", onWindowResize);
   window.removeEventListener("click", onSceneClick);
+  
+  // 移除键盘和鼠标事件监听
+  window.removeEventListener("keydown", handleKeyDown);
+  window.removeEventListener("keyup", handleKeyUp);
+  window.removeEventListener("mousedown", handleMouseDown);
+  window.removeEventListener("mouseup", handleMouseUp);
+  window.removeEventListener("mousemove", handleMouseMove);
   if (renderer) {
     renderer.dispose();
-  }
-  if (controls) {
-    controls.dispose();
   }
 });
 
@@ -103,9 +189,8 @@ function initScene() {
   renderer.setPixelRatio(window.devicePixelRatio);
   container.value.appendChild(renderer.domElement);
 
-  // 添加控制器
-  controls = new OrbitControls(camera, renderer.domElement);
-  controls.enableDamping = true;
+  // 不使用OrbitControls，使用纯第一人称控制
+  controls = null;
 
   // 添加光源
   const ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
@@ -975,21 +1060,38 @@ function onWindowResize() {
 function animate() {
   requestAnimationFrame(animate);
 
-  // 处理聚焦
+  // 第一人称移动控制
+  if (keys.w || keys.a || keys.s || keys.d || keys.shift || keys.space) {
+    const velocity = new THREE.Vector3();
+    
+    // 根据相机朝向计算移动方向
+    if (keys.w) velocity.z -= 1; // 向前
+    if (keys.s) velocity.z += 1; // 向后
+    if (keys.a) velocity.x -= 1; // 向左
+    if (keys.d) velocity.x += 1; // 向右
+    
+    // 垂直移动
+    if (keys.shift) velocity.y -= 1; // 向下
+    if (keys.space) velocity.y += 1; // 向上
+    
+    // 应用相机旋转到水平移动
+    velocity.applyQuaternion(camera.quaternion);
+    
+    // 重置Y轴，只保留水平移动
+    velocity.y = keys.shift ? -1 : keys.space ? 1 : 0;
+    
+    // 移动相机位置
+    camera.position.add(velocity.multiplyScalar(moveSpeed));
+  }
+
+  // 处理聚焦（简化版，不使用controls）
   if (focusState.focusPosition && focusState.focusTarget) {
     camera.position.lerp(focusState.focusPosition, focusState.lerpFactor);
-    controls.target.lerp(focusState.focusTarget, focusState.lerpFactor);
-    controls.update();
 
-    if (
-      camera.position.distanceTo(focusState.focusPosition) < 0.01 &&
-      controls.target.distanceTo(focusState.focusTarget) < 0.01
-    ) {
+    if (camera.position.distanceTo(focusState.focusPosition) < 0.01) {
       focusState.focusPosition = null;
       focusState.focusTarget = null;
     }
-  } else {
-    controls.update();
   }
 
   renderer.render(scene, camera);
