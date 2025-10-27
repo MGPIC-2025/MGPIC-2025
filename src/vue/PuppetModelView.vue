@@ -21,7 +21,6 @@ let currentMixer = null;
 let clock = new THREE.Clock();
 let resizeObserver = null;
 let dracoLoader = null;
-let gltfLoader = null; // 复用GLTFLoader实例
 let loadSequence = 0; // 防止旧的异步加载结果覆盖新的选择
 let isInitialized = false; // 添加初始化状态标记
 

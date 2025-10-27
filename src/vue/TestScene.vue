@@ -11,6 +11,8 @@ import {
   getCopperModelUrl,
   getEnemyModelUrl,
 } from "../utils/resourceLoader.js";
+import modelCache from "../utils/modelCache.js";
+import modelPreloadManager from "../utils/modelPreloadManager.js";
 import {
   getCopperEnglishName,
   getCopperTypeFolder,
@@ -199,29 +201,22 @@ function createTestUnits() {
   // 当切换到EventLoop模式时会隐藏它们
 }
 
-// 辅助函数：加载铜偶GLTF模型
+// 辅助函数：加载铜偶GLTF模型（使用全局缓存）
 async function loadGLTFModel(copperType, copperName, position, scale = 1.0) {
-  if (!gltfLoader) {
-    console.warn("[TestScene] GLTF加载器未初始化");
-    return null;
-  }
-
   const modelUrl = getCopperModelUrl(copperType, copperName);
 
   try {
-    const gltf = await new Promise((resolve, reject) => {
-      gltfLoader.load(modelUrl, resolve, undefined, reject);
-    });
-
-    const obj = gltf.scene;
+    // 使用全局模型缓存管理器
+    const modelInstance = await modelCache.loadModel(modelUrl, true);
+    console.log(`[TestScene] 从缓存加载铜偶模型: ${copperName}`);
 
     // 计算包围盒
-    const box = new THREE.Box3().setFromObject(obj);
+    const box = new THREE.Box3().setFromObject(modelInstance);
     const size = box.getSize(new THREE.Vector3());
 
     // 创建一个容器组
     const group = new THREE.Group();
-    group.add(obj);
+    group.add(modelInstance);
 
     // 设置容器位置和缩放
     group.position.set((position[0] - 7) * 1.0, 0, (position[1] - 7) * 1.0);
@@ -243,29 +238,22 @@ async function loadGLTFModel(copperType, copperName, position, scale = 1.0) {
   }
 }
 
-// 辅助函数：加载敌人模型
+// 辅助函数：加载敌人模型（使用全局缓存）
 async function loadEnemyModel(enemyName, position, scale = 1.0) {
-  if (!gltfLoader) {
-    console.warn("[TestScene] GLTF加载器未初始化");
-    return null;
-  }
-
   const modelUrl = getEnemyModelUrl(enemyName);
 
   try {
-    const gltf = await new Promise((resolve, reject) => {
-      gltfLoader.load(modelUrl, resolve, undefined, reject);
-    });
-
-    const obj = gltf.scene;
+    // 使用全局模型缓存管理器
+    const modelInstance = await modelCache.loadModel(modelUrl, true);
+    console.log(`[TestScene] 从缓存加载敌人模型: ${enemyName}`);
 
     // 计算包围盒
-    const box = new THREE.Box3().setFromObject(obj);
+    const box = new THREE.Box3().setFromObject(modelInstance);
     const size = box.getSize(new THREE.Vector3());
 
     // 创建一个容器组
     const group = new THREE.Group();
-    group.add(obj);
+    group.add(modelInstance);
 
     // 设置容器位置和缩放
     group.position.set((position[0] - 7) * 1.0, 0, (position[1] - 7) * 1.0);

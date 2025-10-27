@@ -2,6 +2,7 @@
 import { ref, onMounted, onBeforeUnmount, computed, watch } from "vue";
 import { get_copper_list, eventloop } from "../glue.js";
 import { getAssetUrl, getCopperModelUrl } from "../utils/resourceLoader.js";
+import modelCache from "../utils/modelCache.js";
 import {
   getCopperEnglishName,
   getCopperTypeFolder,
@@ -144,19 +145,17 @@ async function loadCopperModel(copper, index) {
   );
 
   try {
-    const gltf = await new Promise((resolve, reject) => {
-      gltfLoader.load(modelUrl, resolve, undefined, reject);
-    });
-
-    const obj = gltf.scene;
+    // 使用全局模型缓存管理器
+    const modelInstance = await modelCache.loadModel(modelUrl, true);
+    console.log(`[StartGame] 从缓存加载铜偶模型: ${copper.name}`);
 
     // 计算包围盒
-    const box = new THREE.Box3().setFromObject(obj);
+    const box = new THREE.Box3().setFromObject(modelInstance);
     const size = box.getSize(new THREE.Vector3());
 
     // 创建容器组
     const group = new THREE.Group();
-    group.add(obj);
+    group.add(modelInstance);
 
     // 设置位置（3个铜偶并排显示）
     const spacing = 2.5;

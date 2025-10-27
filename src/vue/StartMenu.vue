@@ -8,6 +8,7 @@ import {
   precacheAllResources,
   getCacheStatus,
 } from "../utils/resourceLoader.js";
+import modelPreloadManager from "../utils/modelPreloadManager.js";
 
 const props = defineProps({
   visible: {
@@ -25,7 +26,6 @@ let animationId = null;
 let logoObject = null;
 let baseScale = 1.2;
 const isReady = ref(false);
-const showLoading = ref(true);
 const showButtons = ref(false);
 const showSettings = ref(false);
 
@@ -185,12 +185,27 @@ async function initScene(onProgress = null) {
     } catch (_) {}
     logoObject = gltf.scene;
 
-    // 步骤8：完成
+    // 步骤8：预加载游戏模型
+    if (onProgress) onProgress(0, 100, 80);
+    console.log("[StartMenu] Logo 加载完成，开始预加载游戏模型...");
+    
+    try {
+      await modelPreloadManager.startPreload(['high', 'medium', 'low'], (loaded, total, percentage) => {
+        // 将模型预加载进度映射到80-95%的进度条范围
+        const mappedProgress = 80 + (percentage * 0.15);
+        if (onProgress) onProgress(0, 100, Math.round(mappedProgress));
+        console.log(`[StartMenu] 模型预加载进度: ${loaded}/${total} (${percentage}%)`);
+      });
+      console.log("[StartMenu] 所有游戏模型预加载完成");
+    } catch (err) {
+      console.warn("[StartMenu] 游戏模型预加载失败:", err);
+    }
+
+    // 步骤9：完成
     if (onProgress) onProgress(0, 100, 100);
     isReady.value = true;
-    console.log("[StartMenu] Logo 加载完成");
+    console.log("[StartMenu] 所有资源加载完成");
 
-    showLoading.value = false;
     showButtons.value = true;
   } catch (e) {
     console.warn("[StartMenu] 3D模型加载失败，使用占位符", e);
@@ -201,10 +216,25 @@ async function initScene(onProgress = null) {
     scene.add(placeholder);
     logoObject = placeholder;
 
+    // 即使使用占位符也要预加载游戏模型
+    console.log("[StartMenu] 使用占位符，开始预加载游戏模型...");
+    
+    try {
+      await modelPreloadManager.startPreload(['high', 'medium', 'low'], (loaded, total, percentage) => {
+        // 将模型预加载进度映射到80-95%的进度条范围
+        const mappedProgress = 80 + (percentage * 0.15);
+        if (onProgress) onProgress(0, 100, Math.round(mappedProgress));
+        console.log(`[StartMenu] 模型预加载进度: ${loaded}/${total} (${percentage}%)`);
+      });
+      console.log("[StartMenu] 所有游戏模型预加载完成");
+    } catch (err) {
+      console.warn("[StartMenu] 游戏模型预加载失败:", err);
+    }
+
     if (onProgress) onProgress(0, 100, 100);
     isReady.value = true;
+    console.log("[StartMenu] 所有资源加载完成（使用占位符）");
 
-    showLoading.value = false;
     showButtons.value = true;
   }
 
@@ -227,7 +257,6 @@ function onCloseSettings() {
 }
 
 onMounted(() => {
-  showLoading.value = true;
   showButtons.value = false;
   isReady.value = false;
 
@@ -251,33 +280,26 @@ onMounted(() => {
     window.addEventListener("resize", handleResize);
     renderLoop();
 
-    initScene().catch((err) => {
-      console.warn("[StartMenu] 场景初始化失败", err);
-      showLoading.value = false;
-      showButtons.value = true;
-    });
+    // 不在这里调用initScene，等待__INIT_THREE_SCENE__调用
+    console.log("[StartMenu] 场景已初始化，等待进度条调用");
   } else if (scene && !logoObject) {
-    console.log("[StartMenu] 场景已存在，重新加载logo...");
-    initScene().catch((err) => {
-      console.warn("[StartMenu] Logo重新加载失败", err);
-      showLoading.value = false;
-      showButtons.value = true;
-    });
+    console.log("[StartMenu] 场景已存在，等待进度条调用");
   } else if (logoObject) {
     console.log("[StartMenu] Logo已存在，直接显示");
-    showLoading.value = false;
     showButtons.value = true;
     isReady.value = true;
   }
 
   window.__INIT_THREE_SCENE__ = async (onProgress) => {
     if (scene && logoObject) {
-      console.log("[StartMenu] 场景已初始化，跳过重复加载");
+      console.log("[StartMenu] 场景和Logo已存在，直接显示按钮");
+      showButtons.value = true;
+      isReady.value = true;
       return;
     }
-    if (!scene) {
-      await initScene(onProgress);
-    }
+    
+    console.log("[StartMenu] 开始初始化3D场景...");
+    await initScene(onProgress);
   };
 });
 
@@ -289,15 +311,6 @@ onBeforeUnmount(() => {
 <template>
   <div class="startmenu">
     <canvas ref="canvasRef" class="startmenu__canvas" />
-
-    <transition name="fade">
-      <div v-if="showLoading" class="loading-overlay">
-        <div class="loading-spinner">
-          <div class="spinner"></div>
-          <div class="loading-text">加载中...</div>
-        </div>
-      </div>
-    </transition>
 
     <div
       ref="uiRootRef"
@@ -356,46 +369,6 @@ onBeforeUnmount(() => {
   height: 100%;
   display: block;
   background: #a0a0a0;
-}
-
-.loading-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(42, 26, 15, 0.95);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 10003;
-  backdrop-filter: blur(8px);
-}
-
-.loading-spinner {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 24px;
-}
-
-.spinner {
-  width: 64px;
-  height: 64px;
-  border: 4px solid rgba(255, 255, 255, 0.1);
-  border-top-color: #f59e0b;
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-}
-
-.loading-text {
-  color: #fff;
-  font-size: 20px;
-  font-weight: 600;
-  letter-spacing: 2px;
-}
-
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
 }
 
 .fade-enter-active,
