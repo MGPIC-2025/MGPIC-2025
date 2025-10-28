@@ -892,6 +892,77 @@ function setupMessageQueue() {
         `[TestScene] 敌人创建成功: ${enemy.enemy_info?.enemy_type || enemy.id}`
       );
     },
+    onSetMaterial: async (id, position, material) => {
+      console.log(`[TestScene] 创建矿物: id=${id}, pos=${position}, name=${material.material_base?.name}`);
+
+      // 检查是否已存在
+      const existing = models.find((m) => m.id === id);
+      if (existing) {
+        console.log(`[TestScene] 矿物ID=${id}已存在，跳过`);
+        return;
+      }
+
+      // 创建矿物立方体（金黄色，表示可收集资源）
+      const geometry = new THREE.BoxGeometry(0.5, 0.5, 0.5);
+      const material_mesh = new THREE.MeshStandardMaterial({ 
+        color: 0xffd700, // 金色
+        emissive: 0xffaa00,
+        emissiveIntensity: 0.2,
+        metalness: 0.6,
+        roughness: 0.4
+      });
+      const obj = new THREE.Mesh(geometry, material_mesh);
+      obj.position.set((position[0] - 7) * 1.0, 0.25, (position[1] - 7) * 1.0);
+      
+      // 添加发光效果
+      const pointLight = new THREE.PointLight(0xffaa00, 1.5, 3);
+      pointLight.position.set(0, 0.5, 0);
+      obj.add(pointLight);
+
+      obj.userData.modelId = id;
+      scene.add(obj);
+
+      models.push({
+        id: id,
+        object: obj,
+        name: material.material_base?.name || `Material_${id}`,
+        type: "material",
+      });
+
+      console.log(`[TestScene] 矿物创建成功: ${material.material_base?.name}`);
+    },
+    onSetStructure: async (id, position, structure) => {
+      console.log(`[TestScene] 创建建筑: id=${id}, pos=${position}`);
+
+      // 检查是否已存在
+      const existing = models.find((m) => m.id === id);
+      if (existing) {
+        console.log(`[TestScene] 建筑ID=${id}已存在，跳过`);
+        return;
+      }
+
+      // 创建建筑立方体（灰色，较大）
+      const geometry = new THREE.BoxGeometry(0.9, 1.2, 0.9);
+      const material = new THREE.MeshStandardMaterial({ 
+        color: 0x666666,
+        metalness: 0.5,
+        roughness: 0.6
+      });
+      const obj = new THREE.Mesh(geometry, material);
+      obj.position.set((position[0] - 7) * 1.0, 0.6, (position[1] - 7) * 1.0);
+
+      obj.userData.modelId = id;
+      scene.add(obj);
+
+      models.push({
+        id: id,
+        object: obj,
+        name: `Structure_${id}`,
+        type: "structure",
+      });
+
+      console.log(`[TestScene] 建筑创建成功: Structure_${id}`);
+    },
     onDisplayCanMove: (unitId, canMove) => {
       console.log(`[TestScene] 显示可移动状态: id=${unitId}, show=${canMove}`);
       createIndicator(unitId, "move", canMove);

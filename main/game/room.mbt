@@ -75,6 +75,29 @@ pub fn Room::new(
       Material::new(resonant_star_crystal),
     )
   }
+  
+  // 生成建筑（Structure）- 随机生成，概率50%
+  if @rand.check_probability(0.5) {
+    let position = sumoon_postion(escape_set)
+    escape_set.add(position)
+    // 根据房间等级选择建筑
+    let structure_names = if level <= 3 {
+      ["铆接壁垒", "齿轮箭塔", "维修工坊"]
+    } else if level <= 6 {
+      ["充能线圈", "共鸣警钟", "风暴铁砧"]
+    } else {
+      ["镜光折射塔", "心源矿钻", "充能线圈"]
+    }
+    let structure_name = structure_names[@rand.summon_random_number(
+        0,
+        structure_names.length() - 1,
+      )]
+    let structure_base = @structure.structure_map[structure_name]
+    blocks[position.0][position.1].occupant = Occupant::Structure(
+      @structure.Structure::new(structure_base),
+    )
+  }
+  
   { index_position, blocks }
 }
 

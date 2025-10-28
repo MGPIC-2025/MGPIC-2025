@@ -153,10 +153,27 @@ export function registerAllHandlers() {
   // set_enemy: 在指定地点放置敌人
   messageQueue.registerHandler("set_enemy", async (data, context) => {
     const { id, position, enemy } = data;
-    console.log(`[Handler] set_enemy at ${position}, id=${id}`);
 
     if (context.onSetEnemy) {
       context.onSetEnemy(id, position, enemy);
+    }
+  });
+
+  // set_material: 在指定地点放置矿物
+  messageQueue.registerHandler("set_material", async (data, context) => {
+    const { id, position, material } = data;
+
+    if (context.onSetMaterial) {
+      await context.onSetMaterial(id, position, material);
+    }
+  });
+
+  // set_structure: 在指定地点放置建筑
+  messageQueue.registerHandler("set_structure", async (data, context) => {
+    const { id, position, structure } = data;
+
+    if (context.onSetStructure) {
+      await context.onSetStructure(id, position, structure);
     }
   });
 

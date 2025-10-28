@@ -4,6 +4,7 @@ enum Occupant {
   Enemy(Enemy)
   Copper(BattleCopper)
   Material(Material)
+  Structure(@structure.Structure)
   ChargingCoil
   Empty
 }
@@ -98,7 +99,7 @@ pub fn broadcast_room_content(room : Room) -> Unit {
   // 优化：批量发送地图块，避免256条单独消息造成卡顿
   put_room_blocks(room.index_position, 16)
   
-  // 只发送有内容的格子（敌人、铜偶等）
+  // 只发送有内容的格子（敌人、铜偶、矿物、建筑等）
   for x in 0..<16 {
     for y in 0..<16 {
       let global_pos = (room_x + x, room_y + y)
@@ -107,10 +108,14 @@ pub fn broadcast_room_content(room : Room) -> Unit {
         set_enemy(enemy, enemy.id, global_pos)
       } else if occupant is Copper(copper) {
         set_copper(copper, copper.id, global_pos)
-      } else if occupant is Material(_) {
-        // set_material(material, material.id, global_pos)
+      } else if occupant is Material(material) {
+        set_material(material, material.id, global_pos)
+      } else if occupant is Structure(structure) {
+        set_structure(structure, structure.id(), global_pos)
       } else if occupant is ChargingCoil {
-        // set_charging_coil(global_pos)
+        // ChargingCoil 是充能线圈，作为特殊标记（中心点的怪物生成器）
+        // 暂时不渲染，或者可以渲染一个特殊的建筑模型
+        // TODO: 可以添加 set_charging_coil(global_pos) 如果需要渲染
       }
     }
   }
