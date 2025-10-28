@@ -196,33 +196,21 @@ async function loadPuppetModel(puppet) {
   // 使用全局模型缓存管理器
   console.log("[PuppetModelView] 使用全局模型缓存管理器");
 
+  // 直接使用传入的 modelUrl（已被处理为完整URL）
   let modelUrl = puppet.modelUrl || "";
   console.log("[PuppetModelView] Original modelUrl:", modelUrl);
   console.log("[PuppetModelView] Puppet image:", puppet.image);
+  console.log("[PuppetModelView] Puppet name:", puppet.name);
+  console.log("[PuppetModelView] Puppet data:", puppet);
 
-  if (!modelUrl && puppet.image && /.webp($|\?)/i.test(puppet.image)) {
-    modelUrl = puppet.image.replace(/\.webp(\?.*)?$/i, ".glb");
-    console.log("[PuppetModelView] Generated modelUrl from image:", modelUrl);
-  }
-  if (
-    modelUrl &&
-    !/^https?:\/\//i.test(modelUrl) &&
-    !modelUrl.startsWith("/assets/")
-  ) {
-    const originalUrl = modelUrl;
-    modelUrl = getAssetUrl(modelUrl);
-    console.log(
-      "[PuppetModelView] Converted URL:",
-      originalUrl,
-      "->",
-      modelUrl
-    );
-  }
-  console.log("[PuppetModelView] Model URL:", modelUrl);
-  if (!modelUrl) {
+  // 如果 modelUrl 为空，且没有从 webp 推导的逻辑
+  // （StartGame 和 Warehouse 都确保 modelUrl 被正确设置）
+  if (!modelUrl || modelUrl.trim() === "") {
     console.log("[PuppetModelView] No model URL found");
     return;
   }
+  
+  console.log("[PuppetModelView] Final Model URL:", modelUrl);
 
   try {
     console.log("[PuppetModelView] Starting to load:", modelUrl);

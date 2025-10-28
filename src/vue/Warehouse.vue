@@ -92,13 +92,18 @@ function mapPuppets(arr) {
       Number(equipAttr1.dodge || 0) + Number(equipAttr2.dodge || 0);
     const typeName = copper?.copper_type;
     const levelNum = copper?.level ?? 1;
+    
+    const modelUrlRaw = info?.model_url || "";
+    const modelUrl = modelUrlRaw ? getAssetUrl(modelUrlRaw) : "";
+    console.log(`[Warehouse] Copper ${info?.name || idx + 1}: model_url=${modelUrlRaw}, processed=${modelUrl}`);
+    
     return {
       id: Number(copper?.id ?? idx + 1),
       name: info?.name ?? "未知铜偶",
       level: levelNum,
       suffix: copper?.suffix ?? 0,
       image: getAssetUrl(info?.icon_url || ""),
-      modelUrl: getAssetUrl(info?.model_url || ""),
+      modelUrl: modelUrl,
       quantity: 1,
       description: info?.description || "",
       stats: {

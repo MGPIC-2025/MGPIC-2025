@@ -142,21 +142,8 @@ function toggleSelect(id) {
 
 async function loadCopperModel(copper, index) {
   if (!scene || !gltfLoader) return;
-
-  const copperType = copper.copperType || "Arcanist";
-  const copperChineseName = copper.name;
-
-  // 将中文名转换为英文文件夹名
-  const copperEnglishName = getCopperEnglishName(copperChineseName);
-
-  // 将类型名转换为文件夹名
-  const typeFolder = getCopperTypeFolder(copperType);
-
-  const modelUrl = getCopperModelUrl(typeFolder, copperEnglishName);
-
-  console.log(
-    `[StartGame] 加载铜偶模型: ${copperChineseName} -> ${copperEnglishName} (${copperType}), URL: ${modelUrl}`
-  );
+  let modelUrl = copper.modelUrl;
+    console.log(`[StartGame] 使用后端model_url加载: ${copper.name}, URL: ${modelUrl}`);
 
   try {
     // 使用全局模型缓存管理器
@@ -243,14 +230,19 @@ async function loadCoppers() {
   try {
     const plain = await get_copper_list();
     const arr = Array.isArray(plain?.coppers) ? plain.coppers : [];
-    copperList.value = (arr || []).map((c, i) => ({
-      id: Number(c?.id ?? i + 1),
-      name: c?.copper_info?.name || `铜偶#${i + 1}`,
-      icon: getAssetUrl(c?.copper_info?.icon_url || ""),
-      level: Number(c?.level ?? 1),
-      copperType: c?.copper_type || "Arcanist",
-      modelName: c?.copper_info?.name?.toLowerCase() || "",
-    }));
+    copperList.value = (arr || []).map((c, i) => {
+      const modelUrl = c?.copper_info?.model_url;
+      console.log(`[StartGame] Copper ${c?.copper_info?.name || i + 1}: model_url=${modelUrl}`);
+      return {
+        id: Number(c?.id ?? i + 1),
+        name: c?.copper_info?.name || `铜偶#${i + 1}`,
+        icon: getAssetUrl(c?.copper_info?.icon_url || ""),
+        level: Number(c?.level ?? 1),
+        copperType: c?.copper_type || "Arcanist",
+        modelName: c?.copper_info?.name?.toLowerCase() || "",
+        modelUrl: modelUrl ? getAssetUrl(modelUrl) : "",
+      };
+    });
   } catch (e) {
     console.warn("[StartGame] 获取铜偶列表失败", e);
     error.value = "加载失败，请重试";
