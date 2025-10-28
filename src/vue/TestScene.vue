@@ -401,8 +401,14 @@ function setupMessageQueue() {
       });
       const ring = new THREE.Mesh(geometry, material);
       ring.rotation.x = -Math.PI / 2; // 平放在地面
-      ring.position.copy(model.object.position);
-      ring.position.y = 0.01; // 稍微抬高避免z-fighting
+      
+      // 使用模型的X和Z坐标，但Y坐标抬高避免被地图块遮蔽
+      ring.position.set(
+        model.object.position.x,
+        0.1, // 抬高10cm，避免被地图块遮蔽
+        model.object.position.z
+      );
+      
       scene.add(ring);
       indicators[type] = ring;
     }
