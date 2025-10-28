@@ -61,14 +61,28 @@ function init3DScene() {
   controls.dampingFactor = 0.05;
   controls.target.set(0, 1, 0);
 
-  // 添加环境光
-  const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+  // 添加环境光（提供基础照明）
+  const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
   scene.add(ambientLight);
 
-  // 添加定向光
-  const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
-  directionalLight.position.set(5, 10, 5);
-  scene.add(directionalLight);
+  // 主光源（从前上方照射，照亮铜偶正面）
+  const mainLight = new THREE.DirectionalLight(0xffffff, 1.0);
+  mainLight.position.set(0, 5, 10); // 从相机方向照射
+  scene.add(mainLight);
+
+  // 补光（从侧面照射，增加立体感）
+  const sideLight1 = new THREE.DirectionalLight(0xaaccff, 0.4);
+  sideLight1.position.set(-5, 3, 5);
+  scene.add(sideLight1);
+
+  const sideLight2 = new THREE.DirectionalLight(0xffccaa, 0.4);
+  sideLight2.position.set(5, 3, 5);
+  scene.add(sideLight2);
+
+  // 背光（从后上方照射，勾勒轮廓）
+  const backLight = new THREE.DirectionalLight(0xffffff, 0.3);
+  backLight.position.set(0, 5, -5);
+  scene.add(backLight);
 
   // 添加地板
   const floorGeometry = new THREE.PlaneGeometry(20, 20);
@@ -157,11 +171,15 @@ async function loadCopperModel(copper, index) {
     const group = new THREE.Group();
     group.add(modelInstance);
 
-    // 设置位置（3个铜偶并排显示）
+    // 设置位置（3个铜偶并排显示，沿X轴左右排列）
     const spacing = 2.5;
     const startX = (-(selectedCoppers.value.length - 1) * spacing) / 2;
     group.position.set(startX + index * spacing, 0, 0);
     group.scale.set(1.0, 1.0, 1.0);
+    
+    // 旋转模型，使其正面朝向相机（+Z方向）
+    // 游戏内模型默认朝向侧面，需要旋转90度让正面朝向相机
+    group.rotation.y = -Math.PI / 2; // 旋转-90度（逆时针）
 
     // 计算缩放后的包围盒，使模型底部对齐地面
     const scaledBox = new THREE.Box3().setFromObject(group);
@@ -188,6 +206,9 @@ function createPlaceholderCube(copper, index) {
   const spacing = 2.5;
   const startX = (-(selectedCoppers.value.length - 1) * spacing) / 2;
   cube.position.set(startX + index * spacing, 0.8, 0);
+  
+  // 旋转占位立方体，保持一致性
+  cube.rotation.y = -Math.PI / 2;
 
   scene.add(cube);
   loadedModels.set(copper.id, cube);
