@@ -146,6 +146,15 @@ pub fn put_map_block(position : (Int, Int)) -> Unit {
 }
 
 ///|
+/// 批量放置地图块（优化性能，一次性创建整个房间的地板）
+pub fn put_room_blocks(room_position : (Int, Int), size : Int) -> Unit {
+  @global_msg.msg_info.broadcast({
+    type_msg: "put_room_blocks",
+    content: ({ "room_position": room_position, "size": size } : Json).stringify(),
+  })
+}
+
+///|
 /// 设置一个地图块为可移动状态，就是把它直接渲染为绿色就可以了
 pub fn set_move_block(position : (Int, Int)) -> Unit {
   @global_msg.msg_info.broadcast({

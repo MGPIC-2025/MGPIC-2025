@@ -94,10 +94,14 @@ fn Map_::global_position_to_room_position(
 ///|
 pub fn broadcast_room_content(room : Room) -> Unit {
   let (room_x, room_y) = room.index_position
+  
+  // 优化：批量发送地图块，避免256条单独消息造成卡顿
+  put_room_blocks(room.index_position, 16)
+  
+  // 只发送有内容的格子（敌人、铜偶等）
   for x in 0..<16 {
     for y in 0..<16 {
       let global_pos = (room_x + x, room_y + y)
-      put_map_block(global_pos)
       let occupant = room.blocks[x][y].occupant
       if occupant is Enemy(enemy) {
         set_enemy(enemy, enemy.id, global_pos)
