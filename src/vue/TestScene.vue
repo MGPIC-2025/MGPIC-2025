@@ -306,6 +306,11 @@ async function loadGLTFModel(copperType, copperName, position, scale = 1.0) {
     // 设置容器位置和缩放
     group.position.set((position[0] - 7) * 1.0, 0, (position[1] - 7) * 1.0);
     group.scale.set(scale, scale, scale);
+    
+    // 设置初始朝向为侧面（朝向+X，地图右边）
+    // 模型在GLB中的默认朝向就是侧面，保持不变即可
+    // 后端会通过 change_direction 设置正确的朝向
+    group.rotation.y = 0; // 0度，保持模型原始朝向（侧面朝向+X）
 
     // 计算缩放后的包围盒来正确定位模型
     const scaledBox = new THREE.Box3().setFromObject(group);
@@ -343,6 +348,9 @@ async function loadEnemyModel(enemyName, position, scale = 1.0) {
     // 设置容器位置和缩放
     group.position.set((position[0] - 7) * 1.0, 0, (position[1] - 7) * 1.0);
     group.scale.set(scale, scale, scale);
+    
+    // 设置初始朝向为侧面（与铜偶统一）
+    group.rotation.y = 0; // 0度，保持模型原始朝向（侧面）
 
     // 计算缩放后的包围盒来正确定位模型
     const scaledBox = new THREE.Box3().setFromObject(group);

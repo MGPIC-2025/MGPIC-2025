@@ -137,17 +137,10 @@ export function registerAllHandlers() {
   // set_copper: 在指定地点放置铜偶
   messageQueue.registerHandler("set_copper", async (data, context) => {
     const { id, position, copper } = data;
-    console.log(`[Handler] set_copper at ${position}, id=${id}`);
-    console.log(`[Handler] 实际铜偶ID: copper.id=${copper.id}`);
 
     // 通知外部记录实际的铜偶ID
     if (window.__ACTUAL_COPPER_IDS__) {
       window.__ACTUAL_COPPER_IDS__.push(copper.id);
-      console.log(
-        `[Handler] 已添加铜偶ID到数组，当前数量: ${window.__ACTUAL_COPPER_IDS__.length}`
-      );
-    } else {
-      console.error("[Handler] window.__ACTUAL_COPPER_IDS__ 未初始化！");
     }
 
     // TODO: 根据copper数据加载3D模型
@@ -170,7 +163,6 @@ export function registerAllHandlers() {
   // remove_unit: 删除单位（带消失动画）
   messageQueue.registerHandler("remove_unit", async (data, context) => {
     const { id } = data;
-    console.log(`[Handler] remove_unit id=${id}`);
 
     const model = findModelById(context.models || [], id);
     if (model && model.object) {
@@ -219,29 +211,41 @@ export function registerAllHandlers() {
   // change_direction: 改变单位朝向
   messageQueue.registerHandler("change_direction", async (data, context) => {
     const { id, direction } = data;
-    console.log(`[Handler] change_direction id=${id}, direction=${direction}`);
 
     const model = findModelById(context.models || [], id);
     if (model && model.object) {
+      // 模型默认朝向是侧面（+X方向），rotation.y = 0
+      // 根据后端的方向指令旋转到对应角度
       let targetRotation = 0;
       switch (direction) {
-        case "PositiveX":
-          targetRotation = Math.PI / 2;
+        case "PositiveX": // 地图向右 = +X方向（侧面，基准朝向）
+          targetRotation = 0; // 0度
           break;
-        case "NegativeX":
-          targetRotation = -Math.PI / 2;
+        case "PositiveY": // 地图向上 = +Z方向
+          targetRotation = -Math.PI / 2; // -90度（逆时针）
           break;
-        case "PositiveY":
-          targetRotation = 0;
+        case "NegativeX": // 地图向左 = -X方向
+          targetRotation = Math.PI; // 180度
           break;
-        case "NegativeY":
-          targetRotation = Math.PI;
+        case "NegativeY": // 地图向下 = -Z方向
+          targetRotation = Math.PI / 2; // 90度（顺时针）
           break;
+      }
+
+      // 规范化角度到 [-π, π] 范围
+      let startRotation = model.object.rotation.y;
+      startRotation = Math.atan2(Math.sin(startRotation), Math.cos(startRotation));
+      
+      // 计算最短旋转路径
+      let rotationDiff = targetRotation - startRotation;
+      if (rotationDiff > Math.PI) {
+        rotationDiff -= 2 * Math.PI;
+      } else if (rotationDiff < -Math.PI) {
+        rotationDiff += 2 * Math.PI;
       }
 
       // 平滑旋转动画
       const duration = 300;
-      const startRotation = model.object.rotation.y;
       const startTime = performance.now();
 
       await new Promise((resolve) => {
@@ -251,13 +255,16 @@ export function registerAllHandlers() {
           const easeProgress = 1 - Math.pow(1 - progress, 2);
 
           if (model.object) {
-            model.object.rotation.y =
-              startRotation + (targetRotation - startRotation) * easeProgress;
+            model.object.rotation.y = startRotation + rotationDiff * easeProgress;
           }
 
           if (progress < 1) {
             requestAnimationFrame(animate);
           } else {
+            // 确保最终角度准确
+            if (model.object) {
+              model.object.rotation.y = targetRotation;
+            }
             resolve();
           }
         }
@@ -269,7 +276,6 @@ export function registerAllHandlers() {
   // move_to: 移动单位到指定位置
   messageQueue.registerHandler("move_to", async (data, context) => {
     const { id, to } = data;
-    console.log(`[Handler] move_to id=${id}, to=${to}`);
 
     const model = findModelById(context.models || [], id);
     if (model && model.object && context.gridCellSize) {
@@ -279,6 +285,9 @@ export function registerAllHandlers() {
       const targetX = (gridX - 7) * cellSize;
       const targetZ = (gridZ - 7) * cellSize;
       const targetY = model.object.position.y;
+
+      // 注意：朝向由后端的 change_direction 消息控制
+      // move_to 之前后端会先发送 change_direction，所以这里不需要自动旋转
 
       // 使用model.js的animateModelMove
       if (context.animateModelMove) {
@@ -335,7 +344,6 @@ export function registerAllHandlers() {
   // animate_move: 视角移动到单位
   messageQueue.registerHandler("animate_move", async (data, context) => {
     const { id } = data;
-    console.log(`[Handler] animate_move id=${id}`);
 
     const model = findModelById(context.models || [], id);
     if (model && context.camera && context.controls && context.focusOnModel) {
@@ -385,6 +393,38 @@ export function registerAllHandlers() {
       context.onPutMapBlock(position);
     }
     // 不返回Promise，同步处理
+  });
+
+  // put_room_blocks: 批量放置房间地图块（分帧创建，避免卡顿）
+  messageQueue.registerHandler("put_room_blocks", async (data, context) => {
+    const { room_position, size } = data;
+    const [roomX, roomY] = room_position;
+    
+    console.log(`[Handler] 📦 批量创建房间地图块: 位置[${roomX}, ${roomY}], 大小${size}x${size}`);
+    
+    if (!context.onPutMapBlock) {
+      return;
+    }
+
+    // 分帧创建地图块，每帧创建一部分，避免一次性创建256个造成卡顿
+    const blocksPerFrame = 32; // 每帧创建32个块（256/32 = 8帧）
+    const totalBlocks = size * size;
+    let createdBlocks = 0;
+
+    for (let x = 0; x < size; x++) {
+      for (let y = 0; y < size; y++) {
+        const globalPos = [roomX + x, roomY + y];
+        context.onPutMapBlock(globalPos);
+        createdBlocks++;
+
+        // 每创建 blocksPerFrame 个块后，让出控制权到下一帧
+        if (createdBlocks % blocksPerFrame === 0) {
+          await new Promise(resolve => requestAnimationFrame(resolve));
+        }
+      }
+    }
+
+    console.log(`[Handler] ✅ 房间地图块创建完成: ${totalBlocks}个块`);
   });
 
   // 计数器：跟踪范围块数量
@@ -457,7 +497,6 @@ export function registerAllHandlers() {
   // attack_complete: 攻击完成
   messageQueue.registerHandler("attack_complete", (data, context) => {
     const { id } = data;
-    console.log(`[Handler] attack_complete id=${id}`);
     
     // 攻击完成后调用回调
     if (context.onAttackComplete) {
@@ -467,24 +506,13 @@ export function registerAllHandlers() {
 
   // on_game_round_pass: 回合结束（清除所有状态并恢复）（同步处理）
   messageQueue.registerHandler("on_game_round_pass", (data, context) => {
-    console.log("[Handler] 回合结束 - 恢复所有铜偶状态");
-    
     // 该处理器主要由后端处理，前端只需要确认消息接收
     // 后端会自动：
     // 1. 清除所有移动/攻击/传输地块
     // 2. 恢复所有铜偶的可移动和可攻击状态
     // 3. 重新显示状态指示器（绿圈/红圈）
-    
-    console.log("[Handler] 回合结束处理完成");
   });
 
-  console.log(
-    "[MessageQueue] 已注册所有消息处理器，共",
-    messageQueue.handlers.size,
-    "个"
-  );
-  console.log(
-    "[MessageQueue] 已注册的处理器列表:",
-    Array.from(messageQueue.handlers.keys())
-  );
+  // Message handlers registered
 }
+
