@@ -444,6 +444,24 @@ export function registerAllHandlers() {
     console.log(`[Handler] ✅ 房间地图块创建完成: ${totalBlocks}个块`);
   });
 
+  // put_resource_marker: 在地图块上显示资源标记
+  messageQueue.registerHandler("put_resource_marker", (data, context) => {
+    const { position } = data;
+    
+    if (context.onPutResourceMarker) {
+      context.onPutResourceMarker(position);
+    }
+  });
+
+  // clear_resource_marker: 清除资源标记
+  messageQueue.registerHandler("clear_resource_marker", (data, context) => {
+    const { position } = data;
+    
+    if (context.onClearResourceMarker) {
+      context.onClearResourceMarker(position);
+    }
+  });
+
   // 计数器：跟踪范围块数量
   let moveBlockCount = 0;
   let attackBlockCount = 0;
@@ -528,6 +546,35 @@ export function registerAllHandlers() {
     // 1. 清除所有移动/攻击/传输地块
     // 2. 恢复所有铜偶的可移动和可攻击状态
     // 3. 重新显示状态指示器（绿圈/红圈）
+  });
+
+  // craft_success: 合成成功
+  messageQueue.registerHandler("craft_success", (data, context) => {
+    if (context.onCraftResult) {
+      context.onCraftResult(true, data.message || '合成成功');
+    }
+  });
+
+  // craft_failed: 合成失败
+  messageQueue.registerHandler("craft_failed", (data, context) => {
+    if (context.onCraftResult) {
+      context.onCraftResult(false, data.message || '合成失败');
+    }
+  });
+
+  // cannot_pick_up_item: 无法拾取物品
+  messageQueue.registerHandler("cannot_pick_up_item", (data, context) => {
+    console.warn('[Handler] 无法拾取物品:', data.message || data);
+  });
+
+  // equipment_slot_full: 装备槽已满
+  messageQueue.registerHandler("equipment_slot_full", (data, context) => {
+    console.warn('[Handler] 装备槽已满:', data.message || data);
+  });
+
+  // inventory_full: 背包已满
+  messageQueue.registerHandler("inventory_full", (data, context) => {
+    console.warn('[Handler] 背包已满:', data.message || data);
   });
 
   // Message handlers registered

@@ -60,6 +60,8 @@ pub fn eventloop(msg : String) -> Unit {
       "content": { "id": id, "index": index, .. },
       ..
     } => handle_on_copper_drop_item(string_to_int(id), string_to_int(index))
+    { "type": "on_copper_craft", "content": { "id": id, .. }, .. } =>
+      handle_on_copper_craft(string_to_int(id))
     {
       "type": "on_copper_equip_item",
       "content": { "id": id, "index": index, .. },
