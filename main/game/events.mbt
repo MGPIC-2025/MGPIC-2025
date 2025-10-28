@@ -126,7 +126,7 @@ pub fn handle_on_attack_apply(
     _ => abort("Target is not enemy or copper")
   }
   battle_copper.can_attack = false
-  battle_copper.update_move_and_attack_status_by_position()
+  battle_copper.update_move_and_attack_status()
   for position in setted_attack_blocks {
     clear_block(position)
     check_and_reset_block(position, Attack)
@@ -240,7 +240,7 @@ pub fn handle_on_move_apply(
     move_to(id, position)
   }
   battle_copper.can_move = false
-  battle_copper.update_move_and_attack_status_by_position()
+  battle_copper.update_move_and_attack_status()
   for position in setted_move_blocks {
     clear_block(position)
     check_and_reset_block(position, Move)
@@ -268,9 +268,9 @@ pub fn handle_on_game_start(ids : Array[Int]) -> Unit {
   change_direction(ids[2], PositiveY)
   
   // 显示铜偶的初始状态圈（绿圈和红圈）
-  copper_1.update_move_and_attack_status_by_position()
-  copper_2.update_move_and_attack_status_by_position()
-  copper_3.update_move_and_attack_status_by_position()
+  copper_1.update_move_and_attack_status()
+  copper_2.update_move_and_attack_status()
+  copper_3.update_move_and_attack_status()
 }
 
 ///|
@@ -464,6 +464,6 @@ fn handle_game_round_pass() -> Unit {
       CraftsMan | Resonator => false
       _ => true
     }
-    battle_copper.update_move_and_attack_status_by_position()
+    battle_copper.update_move_and_attack_status()
   }
 }

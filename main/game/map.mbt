@@ -94,7 +94,7 @@ fn Map_::global_position_to_room_position(
 ///|
 pub fn broadcast_room_content(room : Room) -> Unit {
   let (room_x, room_y) = room.index_position
-  
+
   // 优化：批量发送地图块，避免256条单独消息造成卡顿
   put_room_blocks(room.index_position, 16)
   
@@ -146,4 +146,19 @@ fn Map_::add_resource(
     }
     room.blocks[position.0][position.1].resources.push(resource)
   }
+}
+
+///|
+fn Map_::get_global_map(map : Map_) -> Map[(Int, Int), MapBlock] {
+  let result = {}
+  for room in map.rooms {
+    let (room_x, room_y) = room.index_position
+    for x in 1..=15 {
+      for y in 1..=15 {
+        let global_pos = (room_x + x, room_y + y)
+        result[global_pos] = room.blocks[x][y]
+      }
+    }
+  }
+  result
 }
