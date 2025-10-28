@@ -375,6 +375,7 @@ function setupMessageQueue() {
   // 状态指示器存储
   const stateIndicators = new Map(); // { unitId: { canMove: Mesh, canAttack: Mesh } }
   const mapBlocks = new Map(); // { 'x,y': Mesh } 地图块存储
+  const resourceMarkers = new Map(); // { 'x,y': Mesh } 资源标记存储
 
   // 创建状态指示器
   function createIndicator(unitId, type, show) {
@@ -678,6 +679,12 @@ function setupMessageQueue() {
         }, 100);
       }, 300);
     },
+    // 合成结果回调
+    onCraftResult: (success, message) => {
+      console.log(`[TestScene] 合成结果: ${success ? '成功' : '失败'} - ${message}`);
+      // TODO: 可以添加UI提示
+      alert(message);
+    },
     // 攻击完成后的回调
     onAttackComplete: (id) => {
       if (!props.isGameMode) return;
@@ -891,6 +898,122 @@ function setupMessageQueue() {
       console.log(
         `[TestScene] 敌人创建成功: ${enemy.enemy_info?.enemy_type || enemy.id}`
       );
+    },
+    onSetMaterial: async (id, position, material) => {
+      console.log(`[TestScene] 创建矿物: id=${id}, pos=${position}, name=${material.material_base?.name}`);
+
+      // 检查是否已存在
+      const existing = models.find((m) => m.id === id);
+      if (existing) {
+        console.log(`[TestScene] 矿物ID=${id}已存在，跳过`);
+        return;
+      }
+
+      // 创建矿物立方体（金黄色，表示可收集资源）
+      const geometry = new THREE.BoxGeometry(0.5, 0.5, 0.5);
+      const material_mesh = new THREE.MeshStandardMaterial({ 
+        color: 0xffd700, // 金色
+        emissive: 0xffaa00,
+        emissiveIntensity: 0.2,
+        metalness: 0.6,
+        roughness: 0.4
+      });
+      const obj = new THREE.Mesh(geometry, material_mesh);
+      obj.position.set((position[0] - 7) * 1.0, 0.25, (position[1] - 7) * 1.0);
+      
+      // 添加发光效果
+      const pointLight = new THREE.PointLight(0xffaa00, 1.5, 3);
+      pointLight.position.set(0, 0.5, 0);
+      obj.add(pointLight);
+
+      obj.userData.modelId = id;
+      scene.add(obj);
+
+      models.push({
+        id: id,
+        object: obj,
+        name: material.material_base?.name || `Material_${id}`,
+        type: "material",
+      });
+
+      console.log(`[TestScene] 矿物创建成功: ${material.material_base?.name}`);
+    },
+    onSetStructure: async (id, position, structure) => {
+      console.log(`[TestScene] 创建建筑: id=${id}, pos=${position}`);
+
+      // 检查是否已存在
+      const existing = models.find((m) => m.id === id);
+      if (existing) {
+        console.log(`[TestScene] 建筑ID=${id}已存在，跳过`);
+        return;
+      }
+
+      // 创建建筑立方体（灰色，较大）
+      const geometry = new THREE.BoxGeometry(0.9, 1.2, 0.9);
+      const material = new THREE.MeshStandardMaterial({ 
+        color: 0x666666,
+        metalness: 0.5,
+        roughness: 0.6
+      });
+      const obj = new THREE.Mesh(geometry, material);
+      obj.position.set((position[0] - 7) * 1.0, 0.6, (position[1] - 7) * 1.0);
+
+      obj.userData.modelId = id;
+      scene.add(obj);
+
+      models.push({
+        id: id,
+        object: obj,
+        name: `Structure_${id}`,
+        type: "structure",
+      });
+
+      console.log(`[TestScene] 建筑创建成功: Structure_${id}`);
+    },
+    onPutResourceMarker: (position) => {
+      const key = `${position[0]},${position[1]}`;
+      
+      // 如果已存在，先移除
+      if (resourceMarkers.has(key)) {
+        const oldMarker = resourceMarkers.get(key);
+        scene.remove(oldMarker);
+        oldMarker.geometry.dispose();
+        oldMarker.material.dispose();
+      }
+      
+      // 创建资源标记（小的发光球体）
+      const geometry = new THREE.SphereGeometry(0.15, 16, 16);
+      const material = new THREE.MeshStandardMaterial({
+        color: 0xffd700,
+        emissive: 0xffaa00,
+        emissiveIntensity: 0.8,
+        metalness: 0.7,
+        roughness: 0.3
+      });
+      const marker = new THREE.Mesh(geometry, material);
+      
+      const worldX = (position[0] - 7) * 1.0;
+      const worldZ = (position[1] - 7) * 1.0;
+      marker.position.set(worldX, 0.3, worldZ); // 悬浮在地面上方
+      
+      // 添加发光点光源
+      const pointLight = new THREE.PointLight(0xffd700, 1.0, 2);
+      pointLight.position.set(0, 0, 0);
+      marker.add(pointLight);
+      
+      scene.add(marker);
+      resourceMarkers.set(key, marker);
+    },
+    onClearResourceMarker: (position) => {
+      const key = `${position[0]},${position[1]}`;
+      
+      if (resourceMarkers.has(key)) {
+        const marker = resourceMarkers.get(key);
+        scene.remove(marker);
+        marker.geometry.dispose();
+        marker.material.dispose();
+        resourceMarkers.delete(key);
+      }
     },
     onDisplayCanMove: (unitId, canMove) => {
       console.log(`[TestScene] 显示可移动状态: id=${unitId}, show=${canMove}`);

@@ -23,6 +23,15 @@ const emit = defineEmits(['close', 'action']);
 const panelMode = ref('full');
 const actionMode = ref(null); // 'moving' = 等待选择移动位置, 'attacking' = 等待选择攻击目标
 
+// 背包弹窗状态
+const showInventory = ref(false);
+
+// 铜偶背包物品
+const inventoryItems = computed(() => {
+  if (!props.copper || !props.copper.inventory) return [];
+  return props.copper.inventory.items || [];
+});
+
 const copperInfo = computed(() => {
   if (!props.copper) return null;
   return {
@@ -88,7 +97,52 @@ async function handleAttack() {
 
 function handleInventory() {
   console.log('[CopperActionPanel] 打开背包');
-  emit('action', { type: 'inventory', copperId: copperInfo.value.id });
+  showInventory.value = true;
+}
+
+async function handlePickup(index) {
+  console.log(`[CopperActionPanel] 拾取物品: index=${index}`);
+  const message = JSON.stringify({
+    type: 'on_copper_pick_up',
+    content: { id: String(copperInfo.value.id), index: String(index) }
+  });
+  await eventloop(message);
+  
+  // 重新点击铜偶以刷新状态
+  await refreshCopperState();
+}
+
+async function handleDrop(index) {
+  console.log(`[CopperActionPanel] 丢弃物品: index=${index}`);
+  const message = JSON.stringify({
+    type: 'on_copper_drop_item',
+    content: { id: String(copperInfo.value.id), index: String(index) }
+  });
+  await eventloop(message);
+  
+  // 重新点击铜偶以刷新状态
+  await refreshCopperState();
+}
+
+async function handleCraft() {
+  console.log('[CopperActionPanel] 合成物品');
+  const message = JSON.stringify({
+    type: 'on_copper_craft',
+    content: { id: String(copperInfo.value.id) }
+  });
+  await eventloop(message);
+  
+  // 重新点击铜偶以刷新状态
+  await refreshCopperState();
+}
+
+async function refreshCopperState() {
+  // 重新点击当前铜偶以刷新状态
+  const message = JSON.stringify({
+    type: 'on_click_copper',
+    content: { id: String(copperInfo.value.id) }
+  });
+  await eventloop(message);
 }
 
 function handleWait() {
@@ -99,6 +153,7 @@ function handleWait() {
 function close() {
   panelMode.value = 'full';
   actionMode.value = null;
+  showInventory.value = false;
   emit('close');
 }
 
@@ -106,6 +161,44 @@ function close() {
 function restore() {
   panelMode.value = 'full';
   actionMode.value = null;
+}
+
+// 获取资源名称
+function getResourceName(resource) {
+  // MoonBit 枚举序列化为数组: ["Resource", "RefinedCopper"]
+  if (Array.isArray(resource.item_type) && resource.item_type[0] === 'Resource') {
+    const resourceType = resource.item_type[1];
+    const nameMap = {
+      'HeartCrystalDust': '💎 心源水晶尘',
+      'RecallGear': '⚙️ 回忆齿轮',
+      'ResonantCrystal': '🔮 共鸣水晶',
+      'RefinedCopper': '🔶 精炼铜锭',
+      'SpiritalSpark': '✨ 灵光火花'
+    };
+    return nameMap[resourceType] || resourceType;
+  } else if (Array.isArray(resource.item_type) && resource.item_type[0] === 'Equipment') {
+    return '🗡️ 装备';
+  }
+  return '未知物品';
+}
+
+// 获取物品名称
+function getItemName(item) {
+  // MoonBit 枚举序列化为数组: ["Resource", "RefinedCopper"]
+  if (Array.isArray(item.item_type) && item.item_type[0] === 'Resource') {
+    const resourceType = item.item_type[1];
+    const nameMap = {
+      'HeartCrystalDust': '💎 心源水晶尘',
+      'RecallGear': '⚙️ 回忆齿轮',
+      'ResonantCrystal': '🔮 共鸣水晶',
+      'RefinedCopper': '🔶 精炼铜锭',
+      'SpiritalSpark': '✨ 灵光火花'
+    };
+    return nameMap[resourceType] || resourceType;
+  } else if (Array.isArray(item.item_type) && item.item_type[0] === 'Equipment') {
+    return '🗡️ 装备';
+  }
+  return '未知物品';
 }
 
 // 取消当前操作
@@ -224,12 +317,77 @@ defineExpose({
     <div v-if="resources && resources.length > 0" class="resources">
       <div class="resources-header">📦 地面物品</div>
       <div class="resources-list">
-        <div v-for="(resource, index) in resources" :key="index" class="resource-item">
-          {{ resource.name || '物品' }} x{{ resource.count || 1 }}
+        <div 
+          v-for="(resource, index) in resources" 
+          :key="index" 
+          class="resource-item"
+          @click="handlePickup(index)"
+          title="点击拾取"
+        >
+          <span class="resource-name">{{ getResourceName(resource) }}</span>
+          <span class="resource-count">x{{ resource.count || 1 }}</span>
+          <span class="resource-pickup">⬆️</span>
         </div>
       </div>
     </div>
     </template>
+  </div>
+
+  <!-- 背包弹窗 -->
+  <div v-if="showInventory" class="inventory-modal" @click.self="showInventory = false">
+    <div class="inventory-panel">
+      <div class="inventory-header">
+        <h3>🎒 {{ copperInfo?.name }} 的背包</h3>
+        <button class="close-btn" @click="showInventory = false">✕</button>
+      </div>
+
+      <div class="inventory-content">
+        <!-- 背包物品列表 -->
+        <div class="inventory-items">
+          <div class="items-header">背包物品 ({{ inventoryItems.length }}/5)</div>
+          <div v-if="inventoryItems.length === 0" class="empty-state">
+            背包是空的
+          </div>
+          <div v-else class="items-list">
+            <div 
+              v-for="(item, index) in inventoryItems" 
+              :key="index" 
+              class="inv-item"
+            >
+              <div class="inv-item-info">
+                <span class="inv-item-name">{{ getItemName(item) }}</span>
+                <span class="inv-item-count">x{{ item.count || 1 }}</span>
+              </div>
+              <button 
+                class="inv-item-drop" 
+                @click="handleDrop(index)"
+                title="丢弃物品"
+              >
+                🗑️ 丢弃
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 合成面板 -->
+        <div class="craft-panel">
+          <div class="craft-header">⚗️ 合成</div>
+          <div class="craft-recipe">
+            <div class="recipe-title">灵光火花配方：</div>
+            <div class="recipe-items">
+              <div class="recipe-item">💎 心源水晶尘 x1</div>
+              <div class="recipe-item">⚙️ 回忆齿轮 x1</div>
+              <div class="recipe-item">🔮 共鸣水晶 x1</div>
+              <div class="recipe-item">🔶 精炼铜锭 x1</div>
+            </div>
+            <div class="recipe-result">→ ✨ 灵光火花 x1</div>
+            <button class="craft-btn" @click="handleCraft">
+              🔨 合成
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -503,9 +661,35 @@ defineExpose({
 
 .resource-item {
   padding: 8px 12px;
-  background: rgba(255, 255, 255, 0.05);
+  background: rgba(255, 200, 100, 0.15);
+  border: 1px solid rgba(255, 200, 100, 0.3);
   border-radius: 8px;
   font-size: 13px;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: all 0.2s ease;
+}
+
+.resource-item:hover {
+  background: rgba(255, 200, 100, 0.25);
+  border-color: rgba(255, 200, 100, 0.5);
+  transform: translateY(-1px);
+}
+
+.resource-name {
+  flex: 1;
+}
+
+.resource-count {
+  margin: 0 8px;
+  color: rgba(255, 200, 100, 0.9);
+}
+
+.resource-pickup {
+  font-size: 14px;
+  opacity: 0.7;
 }
 
 /* 最小化状态样式 */
@@ -581,6 +765,221 @@ defineExpose({
 
 .mini-btn--cancel:hover {
   background: rgba(239, 68, 68, 0.5);
+}
+
+/* 背包弹窗样式 */
+.inventory-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  z-index: 6000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: fadeIn 0.2s ease;
+}
+
+.inventory-panel {
+  background: rgba(43, 26, 17, 0.98);
+  border-radius: 16px;
+  padding: 24px;
+  max-width: 600px;
+  width: 90%;
+  max-height: 80vh;
+  overflow-y: auto;
+  border: 2px solid rgba(255, 200, 100, 0.4);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
+}
+
+.inventory-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding-bottom: 12px;
+  border-bottom: 2px solid rgba(255, 200, 100, 0.3);
+}
+
+.inventory-header h3 {
+  margin: 0;
+  font-size: 20px;
+  color: #ffd700;
+}
+
+.close-btn {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #fff;
+  border-radius: 8px;
+  width: 32px;
+  height: 32px;
+  cursor: pointer;
+  font-size: 18px;
+  transition: all 0.2s;
+}
+
+.close-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.inventory-content {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.inventory-items {
+  background: rgba(0, 0, 0, 0.3);
+  padding: 16px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 200, 100, 0.2);
+}
+
+.items-header {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 12px;
+  color: rgba(255, 200, 100, 0.9);
+}
+
+.empty-state {
+  padding: 20px;
+  text-align: center;
+  color: rgba(255, 255, 255, 0.5);
+  font-style: italic;
+}
+
+.items-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.inv-item {
+  background: rgba(255, 255, 255, 0.05);
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: all 0.2s;
+}
+
+.inv-item:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 200, 100, 0.3);
+}
+
+.inv-item-info {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex: 1;
+}
+
+.inv-item-name {
+  font-size: 14px;
+  color: #fff;
+}
+
+.inv-item-count {
+  font-size: 13px;
+  color: rgba(255, 200, 100, 0.8);
+}
+
+.inv-item-drop {
+  background: rgba(239, 68, 68, 0.2);
+  border: 1px solid rgba(239, 68, 68, 0.4);
+  color: #fff;
+  padding: 6px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 12px;
+  transition: all 0.2s;
+}
+
+.inv-item-drop:hover {
+  background: rgba(239, 68, 68, 0.3);
+  border-color: rgba(239, 68, 68, 0.6);
+}
+
+/* 合成面板 */
+.craft-panel {
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.1), rgba(99, 102, 241, 0.1));
+  padding: 16px;
+  border-radius: 12px;
+  border: 1px solid rgba(139, 92, 246, 0.3);
+}
+
+.craft-header {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 12px;
+  color: #c4b5fd;
+}
+
+.craft-recipe {
+  background: rgba(0, 0, 0, 0.3);
+  padding: 12px;
+  border-radius: 8px;
+}
+
+.recipe-title {
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: rgba(255, 200, 100, 0.9);
+}
+
+.recipe-items {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+.recipe-item {
+  font-size: 12px;
+  padding: 6px 8px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 4px;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.recipe-result {
+  font-size: 14px;
+  font-weight: 600;
+  margin: 12px 0;
+  text-align: center;
+  color: #ffd700;
+}
+
+.craft-btn {
+  width: 100%;
+  padding: 10px;
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.3), rgba(99, 102, 241, 0.3));
+  border: 2px solid rgba(139, 92, 246, 0.5);
+  border-radius: 8px;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.craft-btn:hover {
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.4), rgba(99, 102, 241, 0.4));
+  border-color: rgba(139, 92, 246, 0.7);
+  transform: translateY(-1px);
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 </style>
 

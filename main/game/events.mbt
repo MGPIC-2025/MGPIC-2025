@@ -339,10 +339,15 @@ pub fn handle_on_copper_pick_up(id : Int, index : Int) -> Unit {
   if battle_copper.inventory.check_can_add_item(item.item_type) {
     battle_copper.inventory.add_item(item)
     room.blocks[position.0][position.1].resources.remove(index) |> ignore
+    
+    // 如果该格子没有资源了，清除资源标记
+    if room.blocks[position.0][position.1].resources.length() == 0 {
+      clear_resource_marker(battle_copper.position)
+    }
   } else {
     @global_msg.msg_info.broadcast({
       type_msg: "cannot_pick_up_item",
-      content: "无法拾取该物品",
+      content: ({ "message": "无法拾取该物品" } : Json).stringify(),
     })
   }
 }
@@ -356,6 +361,28 @@ pub fn handle_on_copper_drop_item(id : Int, index : Int) -> Unit {
   battle_copper.inventory.remove_item(index) |> ignore
   let map = force_get_current_map()
   map.add_resource(battle_copper.position, item)
+  
+  // 在该位置放置资源标记
+  put_resource_marker(battle_copper.position)
+}
+
+///|
+/// 前端：当玩家合成物品
+/// 后端：尝试合成灵光火花
+pub fn handle_on_copper_craft(id : Int) -> Unit {
+  let battle_copper = get_battle_copper_by_id(id)
+  let success = battle_copper.inventory.craft()
+  if success {
+    @global_msg.msg_info.broadcast({
+      type_msg: "craft_success",
+      content: ({ "message": "合成成功：获得灵光火花" } : Json).stringify(),
+    })
+  } else {
+    @global_msg.msg_info.broadcast({
+      type_msg: "craft_failed",
+      content: ({ "message": "合成失败：材料不足" } : Json).stringify(),
+    })
+  }
 }
 
 ///|
@@ -377,7 +404,7 @@ pub fn handle_on_copper_equip_item(id : Int, index : Int) -> Unit {
   } else {
     @global_msg.msg_info.broadcast({
       type_msg: "equipment_slot_full",
-      content: "装备槽已满",
+      content: ({ "message": "装备槽已满" } : Json).stringify(),
     })
   }
 }
@@ -409,7 +436,7 @@ pub fn handle_on_copper_unequip_item(id : Int, index : Int) -> Unit {
   } else {
     @global_msg.msg_info.broadcast({
       type_msg: "inventory_full",
-      content: "背包已满",
+      content: ({ "message": "背包已满" } : Json).stringify(),
     })
   }
 }
