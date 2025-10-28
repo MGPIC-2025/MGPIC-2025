@@ -25,12 +25,18 @@ fn BattleCopper::new(
   original_id : Int,
   position : (Int, Int),
 ) -> BattleCopper {
+  // 根据铜偶类型设置攻击能力：工匠和共鸣者不能攻击
+  let can_attack = match copper.copper_type {
+    CraftsMan | Resonator => false
+    _ => true
+  }
+  
   let battle_copper = BattleCopper::{
     id: @id.id_pool.get_id(),
     copper,
     original_id,
     can_move: true,
-    can_attack: true,
+    can_attack,
     position,
     now_health: copper.attribute.health,
     attribute: copper.attribute,

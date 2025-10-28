@@ -266,6 +266,11 @@ pub fn handle_on_game_start(ids : Array[Int]) -> Unit {
   change_direction(ids[0], PositiveY)
   change_direction(ids[1], PositiveY)
   change_direction(ids[2], PositiveY)
+  
+  // 显示铜偶的初始状态圈（绿圈和红圈）
+  copper_1.update_move_and_attack_status_by_position()
+  copper_2.update_move_and_attack_status_by_position()
+  copper_3.update_move_and_attack_status_by_position()
 }
 
 ///|
