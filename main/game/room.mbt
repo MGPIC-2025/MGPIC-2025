@@ -24,11 +24,11 @@ fn summon_enemy(level : Int) -> EnemyBase {
 
 ///|
 fn sumoon_postion(escape_set : Set[(Int, Int)]) -> (Int, Int) {
-  let mut random_position_x = @rand.summon_random_number(0, 14)
-  let mut random_position_y = @rand.summon_random_number(0, 14)
+  let mut random_position_x = @rand.summon_random_number(1, 15)
+  let mut random_position_y = @rand.summon_random_number(1, 15)
   while escape_set.contains((random_position_x, random_position_y)) {
-    random_position_x = @rand.summon_random_number(0, 14)
-    random_position_y = @rand.summon_random_number(0, 14)
+    random_position_x = @rand.summon_random_number(1, 15)
+    random_position_y = @rand.summon_random_number(1, 15)
   }
   (random_position_x, random_position_y)
 }

@@ -30,7 +30,6 @@ fn BattleCopper::new(
     CraftsMan | Resonator => false
     _ => true
   }
-  
   let battle_copper = BattleCopper::{
     id: @id.id_pool.get_id(),
     copper,
@@ -82,35 +81,6 @@ fn BattleCopper::get_attack_range(battle_copper : BattleCopper) -> Int {
     Arcanist => 3
     Mechanic => 1
     Resonator | CraftsMan => 0 //  无攻击能力的单位返回0（会生成空攻击范围）
-  }
-}
-
-///|
-fn generate_offset(attack_range : Int) -> Array[(Int, Int)] {
-  let offset = []
-  for i in -attack_range..=attack_range {
-    for j in -attack_range..=attack_range {
-      if i != 0 || j != 0 {
-        offset.push((i, j))
-      }
-    }
-  }
-  offset
-}
-
-///|
-enum CanAttackTarget {
-  Enemy(Enemy)
-  Copper(BattleCopper)
-} derive(ToJson)
-
-///|
-fn CanAttackTarget::get_position_from_can_attack_target(
-  can_attack_target : CanAttackTarget,
-) -> (Int, Int) {
-  match can_attack_target {
-    Enemy(enemy) => enemy.position
-    Copper(copper) => copper.position
   }
 }
 
@@ -212,9 +182,7 @@ fn BattleCopper::transfer(
 }
 
 ///|
-fn BattleCopper::update_move_and_attack_status_by_position(
-  copper : BattleCopper,
-) -> Unit {
+fn BattleCopper::update_move_and_attack_status(copper : BattleCopper) -> Unit {
   clear_state(copper.id)
   if copper.can_move {
     display_can_move(copper.id, true)
@@ -222,4 +190,9 @@ fn BattleCopper::update_move_and_attack_status_by_position(
   if copper.can_attack {
     display_can_attack(copper.id, true)
   }
+}
+
+///|
+fn get_battle_copper_list() -> Array[BattleCopper] {
+  battle_copper_map.values().to_array()
 }
