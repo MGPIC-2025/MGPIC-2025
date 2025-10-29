@@ -339,53 +339,54 @@ defineExpose({
 }
 
 /* 底部左侧屏幕 HP 条样式 */
-.screen-hp{ position:absolute; left:20px; bottom:20px; width:min(540px, 60vw); z-index: 6000; }
+.screen-hp{ position:absolute; left:20px; bottom:20px; width:min(540px, 60vw); z-index: 6000; font-family: "Press Start 2P", "Courier New", monospace; image-rendering: pixelated; }
 
 .screen-hp__track{
   position: relative;
   height: 18px;
-  background: #0f0f10; /* 深色底 */
-  border: 2px solid #2a2a2c; /* 深灰描边 */
-  border-radius: 8px 18px 8px 8px; /* 右端更圆润 */
+  background: #1b1b1b;
+  border: 3px solid #2a2a2c;
+  border-radius: 0;
   overflow: hidden;
-  box-shadow:
-    0 1px 0 rgba(255,255,255,.05) inset,
-    0 -1px 0 rgba(0,0,0,.6) inset,
-    0 6px 16px rgba(0,0,0,.35);
+  box-shadow: 0 3px 0 #0e0e0e;
 }
 
 .screen-hp__track::after{
-  /* 右侧斜切尖角 */
   content: "";
   position: absolute;
-  right: -16px;
-  top: 0; bottom: 0;
-  width: 32px;
-  background: linear-gradient(90deg, rgba(255, 120, 130, 0.6), rgba(255, 120, 130, 0.15));
-  transform: skewX(-25deg);
-  border-top-right-radius: 10px;
-  border-bottom-right-radius: 10px;
+  inset: 0;
+  background:
+    repeating-linear-gradient(
+      0deg,
+      rgba(255,255,255,0.04) 0px,
+      rgba(255,255,255,0.04) 2px,
+      transparent 2px,
+      transparent 4px
+    );
   pointer-events: none;
 }
 
 .screen-hp__fill{
   position: absolute;
   left: 0; top: 0; bottom: 0;
-  background: linear-gradient(180deg, #d35a4d 0%, #c45145 45%, #b4453a 100%);
-  box-shadow:
-    inset 0 -2px 0 rgba(0,0,0,.25),
-    inset 0 0 0 1px rgba(0,0,0,.15);
-  transition: width .25s ease;
+  background: #c13d3d;
+  border-right: 3px solid #7a2626;
+  box-shadow: inset 0 -2px 0 rgba(0,0,0,.25);
+  transition: width .2s steps(4, end);
 }
 
 .screen-hp__fill::before{
-  /* 顶部高光条，增强质感 */
   content: "";
   position: absolute;
-  left: 8px; right: 12px;
-  top: 2px; height: 6px;
-  background: linear-gradient(to bottom, rgba(255,170,170,.65), rgba(255,170,170,0));
-  border-radius: 4px;
+  inset: 0;
+  background:
+    repeating-linear-gradient(
+      90deg,
+      rgba(0,0,0,0.06) 0px,
+      rgba(0,0,0,0.06) 2px,
+      transparent 2px,
+      transparent 4px
+    );
   pointer-events: none;
 }
 
@@ -397,17 +398,16 @@ defineExpose({
   justify-content: center;
   color: #fff;
   font-weight: 800;
-  font-size: 12px;
-  text-shadow: 0 1px 2px rgba(0,0,0,.6);
+  font-size: 10px;
+  text-shadow: none;
   pointer-events: none;
 }
 
-/* 主内容无需为右侧 HP 让位 */
 .panel-content{ padding-right:0; }
 
 .copper-panel--minimized {
-  bottom: 20px;
-  width: min(500px, 90vw);
+  bottom: 48px;
+  width: min(300px, 75vw);
   padding: 12px 16px;
   border-radius: 12px;
 }
@@ -542,26 +542,33 @@ defineExpose({
 .minimized-info {
   display: flex;
   flex-direction: column;
-  gap: 4px;
-  flex: 1;
+  gap: 6px;
+  flex: 0 1 65%;
+  max-width: 65%;
+  padding: 8px 12px;
+  background: #D4A574;
+  border: 2px solid #8B6914;
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.2), inset 0 -1px 1px rgba(255,255,255,0.2);
+  font-family: "Press Start 2P", "Courier New", monospace;
 }
 
 .minimized-name {
-  font-size: 16px;
-  font-weight: 700;
-  color: #ffd700;
+  font-size: 10px;
+  font-weight: bold;
+  color: #6B4423;
+  line-height: 1.4;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .minimized-action {
-  font-size: 14px;
-  color: #fff;
-  opacity: 0.9;
-  animation: pulse 2s ease-in-out infinite;
-}
-
-@keyframes pulse {
-  0%, 100% { opacity: 0.7; }
-  50% { opacity: 1; }
+  font-size: 8px;
+  color: #1a0f00;
+  line-height: 1.4;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .minimized-actions {
@@ -570,40 +577,65 @@ defineExpose({
 }
 
 .mini-btn {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  border: 2px solid rgba(255, 255, 255, 0.3);
-  background: rgba(255, 255, 255, 0.1);
-  color: #fff;
-  font-size: 18px;
+  width: 36px;
+  height: 36px;
+  border: 3px solid;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.15s;
   display: flex;
   align-items: center;
   justify-content: center;
+  font-family: "Press Start 2P", monospace;
+  font-size: 14px;
+  color: #fff;
+  position: relative;
+  box-shadow: 
+    0 4px 0,
+    inset 0 1px 0 rgba(255,255,255,0.2);
 }
 
 .mini-btn:hover {
-  transform: scale(1.1);
+  transform: translateY(1px);
+  box-shadow: 
+    0 3px 0,
+    inset 0 1px 0 rgba(255,255,255,0.2);
+}
+
+.mini-btn:active {
+  transform: translateY(3px);
+  box-shadow: 
+    0 1px 0,
+    inset 0 1px 0 rgba(255,255,255,0.2);
 }
 
 .mini-btn--restore {
-  background: rgba(34, 197, 94, 0.3);
-  border-color: rgba(34, 197, 94, 0.5);
+  background: #5a9a4a;
+  border-color: #3a6a2a;
+  box-shadow: 
+    0 4px 0 #3a6a2a,
+    inset 0 1px 0 rgba(255,255,255,0.2);
 }
 
 .mini-btn--restore:hover {
-  background: rgba(34, 197, 94, 0.5);
+  background: #6aaa5a;
+  box-shadow: 
+    0 3px 0 #3a6a2a,
+    inset 0 1px 0 rgba(255,255,255,0.2);
 }
 
 .mini-btn--cancel {
-  background: rgba(239, 68, 68, 0.3);
-  border-color: rgba(239, 68, 68, 0.5);
+  background: #aa4a4a;
+  border-color: #6a2a2a;
+  box-shadow: 
+    0 4px 0 #6a2a2a,
+    inset 0 1px 0 rgba(255,255,255,0.2);
 }
 
 .mini-btn--cancel:hover {
-  background: rgba(239, 68, 68, 0.5);
+  background: #ba5a5a;
+  box-shadow: 
+    0 3px 0 #6a2a2a,
+    inset 0 1px 0 rgba(255,255,255,0.2);
 }
 </style>
 

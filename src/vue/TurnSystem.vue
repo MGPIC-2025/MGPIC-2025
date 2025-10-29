@@ -94,15 +94,38 @@ async function handleEndRound() {
   position: fixed;
   top: 20px;
   right: 20px;
-  background: rgba(43, 26, 17, 0.95);
-  backdrop-filter: blur(10px);
-  border-radius: 16px;
+  background: #B87333;
+  border: 4px solid #8B6914;
   padding: 16px 20px;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
-  border: 2px solid rgba(255, 200, 100, 0.3);
+  box-shadow: 
+    5px 0 15px rgba(0,0,0,0.5),
+    inset -2px 0 5px rgba(255,255,255,0.1),
+    inset 0 -2px 5px rgba(0,0,0,0.2);
   z-index: 4000;
-  color: #fff;
+  color: #1a0f00;
   min-width: 280px;
+  font-family: "Press Start 2P", "Courier New", monospace;
+  
+  /* 像素化效果 */
+  image-rendering: pixelated;
+  image-rendering: -moz-crisp-edges;
+  image-rendering: crisp-edges;
+  
+  /* 古铜色金属纹理 */
+  background-image: 
+    repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(255,255,255,0.05) 2px,
+      rgba(255,255,255,0.05) 4px
+    ),
+    linear-gradient(
+      135deg,
+      rgba(184, 115, 51, 1) 0%,
+      rgba(205, 127, 50, 1) 50%,
+      rgba(184, 115, 51, 1) 100%
+    );
 }
 
 .turn-info {
@@ -117,20 +140,20 @@ async function handleEndRound() {
   align-items: center;
   gap: 8px;
   padding: 8px 16px;
-  background: linear-gradient(135deg, rgba(255, 215, 0, 0.2) 0%, rgba(255, 165, 0, 0.2) 100%);
-  border-radius: 12px;
-  border: 1px solid rgba(255, 215, 0, 0.3);
+  background: #D4A574;
+  border: 2px solid #8B6914;
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.2), inset 0 -1px 1px rgba(255,255,255,0.2);
 }
 
 .round-label {
-  font-size: 14px;
-  opacity: 0.9;
+  font-size: 11px;
+  color: #6B4423;
+  font-weight: bold;
 }
 
 .round-number {
-  font-size: 24px;
-  font-weight: 800;
-  color: #ffd700;
+  font-size: 14px;
+  color: #1a0f00;
 }
 
 .current-copper {
@@ -138,19 +161,20 @@ async function handleEndRound() {
   align-items: center;
   gap: 8px;
   padding: 8px 12px;
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: 8px;
+  background: #D4A574;
+  border: 2px solid #8B6914;
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.2), inset 0 -1px 1px rgba(255,255,255,0.2);
 }
 
 .current-label {
-  font-size: 13px;
-  opacity: 0.7;
+  font-size: 10px;
+  color: #6B4423;
+  font-weight: bold;
 }
 
 .current-name {
-  font-size: 14px;
-  font-weight: 700;
-  color: #ffd700;
+  font-size: 9px;
+  color: #1a0f00;
   flex: 1;
   white-space: nowrap;
   overflow: hidden;
@@ -161,68 +185,55 @@ async function handleEndRound() {
   display: flex;
   gap: 8px;
   padding: 8px;
-  background: rgba(0, 0, 0, 0.2);
-  border-radius: 8px;
+  background: #C9A961;
+  border: 2px solid #8B6914;
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.2), inset 0 -1px 1px rgba(255,255,255,0.2);
   justify-content: center;
 }
 
 .queue-item {
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.1);
-  border: 2px solid rgba(255, 255, 255, 0.2);
+  width: 20px;
+  height: 20px;
+  background: #fff;
+  border: 2px solid #8b6f47;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.3s;
+  transition: all 0.15s;
   position: relative;
+  box-shadow: inset 0 1px 2px rgba(0,0,0,0.1);
 }
 
 .queue-item--active {
-  background: rgba(255, 215, 0, 0.3);
-  border-color: #ffd700;
-  transform: scale(1.2);
+  background: #e8d4a3;
+  border-color: #6a5a3a;
+  transform: scale(1.1);
 }
 
 .queue-item--active::after {
   content: '';
   position: absolute;
-  inset: -4px;
-  border-radius: 50%;
-  border: 2px solid #ffd700;
-  animation: pulse-ring 2s ease-in-out infinite;
-}
-
-@keyframes pulse-ring {
-  0%, 100% { opacity: 1; transform: scale(1); }
-  50% { opacity: 0.5; transform: scale(1.2); }
+  inset: -2px;
+  border: 2px solid #2d1b0e;
 }
 
 .queue-item--done {
-  background: rgba(34, 197, 94, 0.3);
-  border-color: rgba(34, 197, 94, 0.5);
+  background: #c8e6c9;
+  border-color: #5a7a3a;
 }
 
 .queue-item--done .queue-dot {
-  background: #22c55e;
+  background: #2d1b0e;
 }
 
 .queue-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.5);
+  width: 6px;
+  height: 6px;
+  background: #2d1b0e;
 }
 
 .queue-item--active .queue-dot {
-  background: #ffd700;
-  animation: blink 1s ease-in-out infinite;
-}
-
-@keyframes blink {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.3; }
+  background: #2d1b0e;
 }
 
 .turn-actions {
@@ -232,57 +243,84 @@ async function handleEndRound() {
 
 .turn-btn {
   flex: 1;
+  font-family: "Press Start 2P", monospace;
+  font-size: 8px;
+  padding: 10px 8px;
+  background: #5a9a4a;
+  color: #fff;
+  border: 3px solid #3a6a2a;
+  cursor: pointer;
+  transition: all 0.15s;
+  text-align: center;
+  position: relative;
+  box-shadow: 
+    0 4px 0 #3a6a2a,
+    inset 0 1px 0 rgba(255,255,255,0.2);
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 4px;
-  padding: 12px 10px;
-  border: 2px solid rgba(255, 255, 255, 0.2);
-  border-radius: 12px;
-  background: rgba(58, 37, 25, 0.8);
-  color: #fff;
-  font-size: 14px;
-  font-weight: 700;
-  cursor: pointer;
-  transition: all 0.2s;
 }
 
 .turn-btn:hover:not(:disabled) {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
+  background: #6aaa5a;
+  transform: translateY(1px);
+  box-shadow: 
+    0 3px 0 #3a6a2a,
+    inset 0 1px 0 rgba(255,255,255,0.2);
+}
+
+.turn-btn:active:not(:disabled) {
+  transform: translateY(3px);
+  box-shadow: 
+    0 1px 0 #3a6a2a,
+    inset 0 1px 0 rgba(255,255,255,0.2);
 }
 
 .turn-btn:disabled {
-  opacity: 0.4;
+  opacity: 0.5;
   cursor: not-allowed;
+  transform: none;
 }
 
 .turn-btn--next {
-  background: rgba(59, 130, 246, 0.2);
-  border-color: rgba(59, 130, 246, 0.5);
+  background: #5a9a4a;
+  border-color: #3a6a2a;
+  box-shadow: 
+    0 4px 0 #3a6a2a,
+    inset 0 1px 0 rgba(255,255,255,0.2);
 }
 
 .turn-btn--next:hover:not(:disabled) {
-  background: rgba(59, 130, 246, 0.3);
-  border-color: rgba(59, 130, 246, 0.7);
+  background: #6aaa5a;
+  box-shadow: 
+    0 3px 0 #3a6a2a,
+    inset 0 1px 0 rgba(255,255,255,0.2);
 }
 
 .turn-btn--end {
-  background: rgba(239, 68, 68, 0.2);
-  border-color: rgba(239, 68, 68, 0.5);
+  background: #aa4a4a;
+  border-color: #6a2a2a;
+  box-shadow: 
+    0 4px 0 #6a2a2a,
+    inset 0 1px 0 rgba(255,255,255,0.2);
 }
 
 .turn-btn--end:hover:not(:disabled) {
-  background: rgba(239, 68, 68, 0.3);
-  border-color: rgba(239, 68, 68, 0.7);
+  background: #ba5a5a;
+  box-shadow: 
+    0 3px 0 #6a2a2a,
+    inset 0 1px 0 rgba(255,255,255,0.2);
 }
 
 .btn-icon {
-  font-size: 20px;
+  font-size: 12px;
+  line-height: 1;
 }
 
 .btn-label {
-  font-size: 11px;
+  font-size: 7px;
+  line-height: 1;
 }
 </style>
 

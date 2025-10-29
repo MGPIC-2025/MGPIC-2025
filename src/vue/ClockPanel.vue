@@ -192,6 +192,8 @@ function handleWait() {
   z-index: 6000;
   width: 220px;
   height: 260px;
+  font-family: "Press Start 2P", "Courier New", monospace;
+  image-rendering: pixelated;
 }
 
 .pocket-watch {
@@ -215,15 +217,10 @@ function handleWait() {
   position: absolute;
   width: 12px;
   height: 8px;
-  background: linear-gradient(135deg,
-    #8b6914 0%,
-    #b89568 50%,
-    #8b6914 100%);
-  border: 1px solid #6b4e08;
-  border-radius: 2px;
-  box-shadow: 
-    inset 0 1px 2px rgba(255, 255, 255, 0.2),
-    0 1px 3px rgba(0, 0, 0, 0.6);
+  background: #8b6914;
+  border: 2px solid #5a4310;
+  border-radius: 0;
+  box-shadow: 0 2px 0 #3a2a15;
 }
 
 .chain-link:nth-child(1) { top: 0; left: -4px; }
@@ -244,27 +241,17 @@ function handleWait() {
   position: absolute;
   width: 220px;
   height: 220px;
-  border-radius: 50%;
-  background: 
-    linear-gradient(135deg,
-      #d4a574 0%,
-      #b89568 25%,
-      #a08758 50%,
-      #8b6914 75%,
-      #6b4e08 100%),
+  border-radius: 0;
+  background:
     repeating-linear-gradient(
-      45deg,
-      transparent 0px,
-      transparent 10px,
-      rgba(139, 105, 20, 0.1) 10px,
-      rgba(139, 105, 20, 0.1) 11px);
-  border: 3px solid #5a4310;
-  box-shadow:
-    0 0 0 2px rgba(0,0,0,0.3),
-    0 0 0 5px rgba(154, 144, 80, 0.4),
-    0 4px 20px rgba(0,0,0,0.6),
-    inset 0 0 30px rgba(0,0,0,0.3),
-    inset 0 4px 10px rgba(255, 255, 255, 0.1);
+      0deg,
+      #b87333 0px,
+      #b87333 4px,
+      #a7652a 4px,
+      #a7652a 8px
+    );
+  border: 4px solid #5a4310;
+  box-shadow: 0 4px 0 #3a2a15, inset 0 2px 0 rgba(255,255,255,0.15);
 }
 
 .watch-ring::before {
@@ -393,40 +380,33 @@ function handleWait() {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  width: 200px;
-  height: 200px;
-  border-radius: 50%;
-  background: 
-    radial-gradient(circle at 50% 50%, 
-      #f5f4f0 0%, 
-      #e8e6e0 30%,
-      #ddd8d0 60%,
-      #cac4b8 100%);
-  border: 8px solid #7d6b55;
-  box-shadow:
-    0 0 0 3px rgba(0,0,0,0.3) inset,
-    0 0 0 1px rgba(139, 125, 100, 0.5),
-    0 0 30px rgba(0,0,0,0.4) inset,
-    0 15px 50px rgba(0,0,0,0.7),
-    0 0 20px rgba(125, 107, 85, 0.3);
-  filter: drop-shadow(0 0 10px rgba(125, 107, 85, 0.4));
-  overflow: visible;
+  width: 192px;
+  height: 192px;
+  border-radius: 0;
+  background: #efe7d3;
+  border: 4px solid #7d6b55;
+  box-shadow: 0 4px 0 #3a2a15, inset 0 2px 0 rgba(255,255,255,0.12);
+  image-rendering: pixelated;
+  overflow: hidden;
   z-index: 1;
 }
 
 .clock-face::before {
   content: '';
   position: absolute;
-  top: 5px;
-  left: 5px;
-  right: 5px;
-  bottom: 5px;
-  border-radius: 50%;
-  background: 
-    radial-gradient(circle at 50% 50%,
-      transparent 30%,
-      rgba(139, 125, 110, 0.08) 50%,
-      transparent 70%);
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border-radius: 0;
+  background:
+    repeating-linear-gradient(
+      90deg,
+      rgba(0,0,0,0.03) 0,
+      rgba(0,0,0,0.03) 2px,
+      transparent 2px,
+      transparent 4px
+    );
   pointer-events: none;
 }
 
@@ -668,23 +648,13 @@ function handleWait() {
   position: absolute;
   top: 50%;
   left: 50%;
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  background: 
-    radial-gradient(circle at 30% 30%,
-    #d4a574 0%,
-      #b89568 30%,
-      #a08758 60%,
-      #8b6914 90%,
-      #6b4e08 100%);
+  width: 32px;
+  height: 32px;
+  border-radius: 0;
+  background: #c9a961;
   border: 3px solid #5a4310;
-  box-shadow:
-    0 0 0 2px rgba(0,0,0,0.3) inset,
-    0 0 12px rgba(212, 175, 84, 0.6),
-    0 3px 10px rgba(0,0,0,0.7),
-    inset 0 2px 5px rgba(255, 255, 255, 0.2);
-  transition: all 0.3s ease;
+  box-shadow: 0 3px 0 #3a2a15;
+  transition: transform 0.15s ease;
   cursor: pointer;
   z-index: 15;
   pointer-events: auto;
@@ -699,10 +669,10 @@ function handleWait() {
   position: absolute;
   top: 50%;
   left: 50%;
-  width: 46px;
-  height: 46px;
-  border-radius: 50%;
-  border: 1px solid rgba(212, 175, 84, 0.4);
+  width: 36px;
+  height: 36px;
+  border-radius: 0;
+  border: 2px solid #9a7d5a;
   transform: translate(-50%, -50%);
   pointer-events: none;
 }
@@ -736,30 +706,22 @@ function handleWait() {
 
 /* 鼠标悬浮时单个圆圈变大 */
 .decoration:hover:not(.is-locked) {
-  width: 46px;
-  height: 46px;
   border-color: #9a7d5a;
-  box-shadow:
-    0 0 20px rgba(212, 175, 84, 1),
-    0 5px 15px rgba(0,0,0,0.8),
-    inset 0 0 20px rgba(212, 175, 84, 0.3);
 }
 
 .decoration:hover:not(.is-locked) .decoration-ring {
-  width: 52px;
-  height: 52px;
-  border-color: rgba(212, 175, 84, 0.6);
+  width: 40px;
+  height: 40px;
+  border-color: #b89b78;
 }
 
 /* 操作图标 */
 .action-icon {
-  font-size: 18px;
+  font-family: "Press Start 2P", monospace;
+  font-size: 10px;
   font-weight: 900;
   color: #2a1f08;
-  text-shadow: 
-    0 1px 2px rgba(255, 255, 255, 0.6),
-    0 -1px 2px rgba(0, 0, 0, 0.3);
-  letter-spacing: -1px;
+  letter-spacing: 0;
 }
 
 .decoration.is-locked .action-icon {
@@ -774,8 +736,8 @@ function handleWait() {
   top: 50%;
   left: 50%;
   transform-origin: center bottom;
-  border-radius: 2px;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.6);
+  border-radius: 0;
+  box-shadow: none;
   z-index: 10;
 }
 
@@ -785,17 +747,8 @@ function handleWait() {
   height: 50px;
   margin-left: -3px;
   margin-top: -50px;
-  background: 
-    linear-gradient(180deg,
-      #4a3d2e 0%,
-      #3a3026 30%,
-      #2a1f14 60%,
-      #1a1610 100%);
-  border: 0.5px solid rgba(255, 255, 255, 0.1);
-  box-shadow: 
-    0 0 0 0.5px rgba(0, 0, 0, 0.2) inset,
-    0 3px 10px rgba(0, 0, 0, 0.5),
-    0 1px 3px rgba(0, 0, 0, 0.3);
+  background: #3a3026;
+  border: 2px solid #2a1f14;
   animation: random-hour 5s ease-in-out infinite;
 }
 
@@ -805,17 +758,8 @@ function handleWait() {
   height: 65px;
   margin-left: -2px;
   margin-top: -65px;
-  background: 
-    linear-gradient(180deg,
-      #4a3d2e 0%,
-      #3a3026 35%,
-      #2a1f14 70%,
-      #1a1610 100%);
-  border: 0.5px solid rgba(255, 255, 255, 0.1);
-  box-shadow: 
-    0 0 0 0.5px rgba(0, 0, 0, 0.2) inset,
-    0 3px 10px rgba(0, 0, 0, 0.5),
-    0 1px 3px rgba(0, 0, 0, 0.3);
+  background: #3a3026;
+  border: 2px solid #2a1f14;
   z-index: 11;
   animation: random-minute 7s ease-in-out infinite;
 }
@@ -826,14 +770,8 @@ function handleWait() {
   height: 80px;
   margin-left: -1px;
   margin-top: -80px;
-  background: 
-    linear-gradient(180deg,
-      #6b5a48 0%,
-      #5a4a38 40%,
-      #3a2a18 100%);
-  border: 0.5px solid rgba(255, 255, 255, 0.2);
-  box-shadow: 
-    0 2px 6px rgba(0, 0, 0, 0.6);
+  background: #5a4a38;
+  border: 2px solid #3a2a18;
   z-index: 12;
   animation: random-second 11s ease-in-out infinite;
 }
@@ -866,18 +804,12 @@ function handleWait() {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  width: 16px;
-  height: 16px;
-  border-radius: 50%;
-  background: radial-gradient(circle at 30% 30%,
-    #7d6b55 0%,
-    #5a4a38 50%,
-    #4a3d2e 100%);
-  border: 3px solid #2a1f08;
-  box-shadow:
-    0 0 0 1px rgba(125, 107, 85, 0.4) inset,
-    0 0 8px rgba(0,0,0,0.6) inset,
-    0 2px 10px rgba(0,0,0,0.7);
+  width: 12px;
+  height: 12px;
+  border-radius: 0;
+  background: #7d6b55;
+  border: 2px solid #2a1f08;
+  box-shadow: 0 2px 0 #3a2a15;
   z-index: 20;
 }
 

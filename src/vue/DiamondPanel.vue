@@ -23,9 +23,13 @@ function handleInventoryClick() {
       <div class="diamond tone-green" @click="handleInventoryClick">
         <div class="diamond-content">
           <div class="diamond-icon">
-            <svg viewBox="0 0 64 64" aria-hidden="true">
-              <path d="M12 20l20-12 20 12v24L32 56 12 44V20z" fill="currentColor"/>
-              <path d="M24 24l8-4 8 4v16l-8 4-8-4V24z" fill="#0a0a0a" fill-opacity=".25"/>
+            <svg viewBox="0 0 64 64" aria-hidden="true" shape-rendering="crispEdges">
+              <!-- 像素背包 -->
+              <rect x="14" y="20" width="36" height="26" fill="currentColor" stroke="#0a0a0a" stroke-width="2"/>
+              <rect x="18" y="16" width="28" height="8" fill="currentColor" stroke="#0a0a0a" stroke-width="2"/>
+              <rect x="20" y="28" width="10" height="12" fill="#0a0a0a" opacity=".2"/>
+              <rect x="34" y="28" width="10" height="12" fill="#0a0a0a" opacity=".2"/>
+              <rect x="14" y="24" width="36" height="2" fill="#0a0a0a"/>
             </svg>
           </div>
           <div class="diamond-text">
@@ -37,9 +41,11 @@ function handleInventoryClick() {
       <div class="diamond tone-purple">
         <div class="diamond-content">
           <div class="diamond-icon">
-            <svg viewBox="0 0 64 64" aria-hidden="true">
-              <path d="M32 4L58 32 32 60 6 32 32 4z" fill="currentColor"/>
-              <circle cx="32" cy="32" r="9" fill="#0a0a0a" fill-opacity=".25"/>
+            <svg viewBox="0 0 64 64" aria-hidden="true" shape-rendering="crispEdges">
+              <!-- 像素定位菱形 + 十字中心 -->
+              <polygon points="32,6 58,32 32,58 6,32" fill="currentColor" stroke="#0a0a0a" stroke-width="2"/>
+              <rect x="28" y="28" width="8" height="2" fill="#0a0a0a"/>
+              <rect x="31" y="25" width="2" height="8" fill="#0a0a0a"/>
             </svg>
           </div>
           <div class="diamond-text">
@@ -53,9 +59,12 @@ function handleInventoryClick() {
       <div class="diamond tone-orange-red">
         <div class="diamond-content">
           <div class="diamond-icon">
-            <svg viewBox="0 0 64 64" aria-hidden="true">
-              <path d="M6 50l8 8 18-18 16-26-6-6-26 16L6 50z" fill="currentColor"/>
-              <path d="M25 31l8 8" stroke="#0a0a0a" stroke-opacity=".35" stroke-width="3"/>
+            <svg viewBox="0 0 64 64" aria-hidden="true" shape-rendering="crispEdges">
+              <!-- 像素短剑 -->
+              <rect x="36" y="10" width="8" height="22" fill="currentColor" stroke="#0a0a0a" stroke-width="2"/>
+              <rect x="30" y="28" width="20" height="6" fill="currentColor" stroke="#0a0a0a" stroke-width="2"/>
+              <rect x="38" y="34" width="4" height="12" fill="#0a0a0a" opacity=".25"/>
+              <rect x="34" y="46" width="12" height="6" fill="currentColor" stroke="#0a0a0a" stroke-width="2"/>
             </svg>
           </div>
           <div class="diamond-text">
@@ -67,10 +76,12 @@ function handleInventoryClick() {
       <div class="diamond tone-golden-yellow">
         <div class="diamond-content">
           <div class="diamond-icon">
-            <svg viewBox="0 0 64 64" aria-hidden="true">
-              <path d="M32 6c8 0 18 10 18 20 0 10-6 12-18 26C20 38 14 36 14 26S24 6 32 6z" fill="currentColor"/>
-              <circle cx="26" cy="28" r="4" fill="#0a0a0a"/>
-              <circle cx="38" cy="28" r="4" fill="#0a0a0a"/>
+            <svg viewBox="0 0 64 64" aria-hidden="true" shape-rendering="crispEdges">
+              <!-- 像素盾牌 -->
+              <rect x="16" y="10" width="32" height="36" fill="currentColor" stroke="#0a0a0a" stroke-width="2"/>
+              <rect x="20" y="14" width="24" height="10" fill="#0a0a0a" opacity=".15"/>
+              <rect x="26" y="28" width="12" height="12" fill="#0a0a0a" opacity=".2"/>
+              <rect x="16" y="40" width="32" height="6" fill="#0a0a0a" opacity=".15"/>
             </svg>
           </div>
           <div class="diamond-text">
@@ -82,8 +93,11 @@ function handleInventoryClick() {
       <div class="diamond tone-cyan">
         <div class="diamond-content">
           <div class="diamond-icon">
-            <svg viewBox="0 0 64 64" aria-hidden="true">
-              <path d="M36 6L22 30h10l-4 28 18-32H36z" fill="currentColor"/>
+            <svg viewBox="0 0 64 64" aria-hidden="true" shape-rendering="crispEdges">
+              <!-- 像素速度箭头 -->
+              <rect x="10" y="30" width="28" height="6" fill="currentColor" stroke="#0a0a0a" stroke-width="2"/>
+              <polygon points="38,24 56,33 38,42" fill="currentColor" stroke="#0a0a0a" stroke-width="2"/>
+              <rect x="14" y="24" width="12" height="4" fill="#0a0a0a" opacity=".15"/>
             </svg>
           </div>
           <div class="diamond-text">
