@@ -116,6 +116,7 @@ pub fn handle_on_attack_apply(
         for drop_item in drop_items {
           map.add_resource(enemy.position, drop_item)
         }
+        enemy_map.remove(enemy.id)
         remove_unit(enemy.id)
         map.remove_occupant(position)
       }
@@ -470,6 +471,48 @@ fn handle_game_round_pass() -> Unit {
     }
     battle_copper.update_move_and_attack_status()
   }
-  // 敌人开始行动
-
+  // 敌人开始寻找攻击目标
+  let map = force_get_current_map()
+  let enemys = enemy_map.values()
+  for enemy in enemys {
+    let attack_targets = enemy.get_attack_targets(map)
+    // 如果攻击范围内有可以攻击的目标，则直接开始攻击
+    if attack_targets.length() > 0 {
+      let attack_target = attack_targets[0]
+      animate_move(enemy.id)
+      match attack_target {
+        Enemy(_) => () // TODO：敌人攻击己方召唤的敌人
+        Copper(copper) => {
+          let result = copper.apply_attack(enemy.enemy_base.attack)
+          if result {
+            battle_copper_map.remove(copper.id)
+            remove_unit(copper.id)
+            map.remove_occupant(copper.position)
+          }
+        }
+      }
+    } else {
+      let target = enemy.find_nearest_attack_target(map)
+      println("target: " + target.to_json().stringify())
+      if target is Some(target) {
+        let target_position = target.get_position_from_can_attack_target()
+        let path_finder_map = PathFinderMap::new(map)
+        let next_position = PathFinderMap::get_next_step(
+          path_finder_map,
+          enemy.position,
+          target_position,
+          enemy.enemy_base.move_range,
+        )
+        if next_position is Some(next_position) {
+          println("next_position: " + next_position.to_json().stringify())
+          animate_move(enemy.id)
+          move_to(enemy.id, next_position)
+          enemy.position = next_position
+          map.remove_occupant(enemy.position)
+          map.add_occupant(enemy.position, Occupant::Enemy(enemy))
+        }
+      }
+    }
+  }
+  animate_reset()
 }

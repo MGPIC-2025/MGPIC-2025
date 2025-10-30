@@ -1,7 +1,10 @@
 ///|
+let enemy_map : Map[Int, Enemy] = {}
+
+///|
 pub struct Enemy {
   id : Int
-  position : (Int, Int)
+  mut position : (Int, Int)
   mut now_health : Float
   enemy_base : EnemyBase
 } derive(ToJson)
@@ -25,12 +28,14 @@ struct EnemyBase {
 
 ///|
 fn Enemy::new(enemy_base : EnemyBase, position : (Int, Int)) -> Enemy {
-  {
+  let enemy = {
     id: @id.id_pool.get_id(),
     position,
     now_health: enemy_base.health,
     enemy_base,
   }
+  enemy_map.set(enemy.id, enemy)
+  enemy
 }
 
 ///|
@@ -61,7 +66,7 @@ fn Enemy::apply_attack(enemy : Enemy, attack : Float) -> Bool {
 }
 
 ///|
-fn Enemy::get_attack_target(
+fn Enemy::get_attack_targets(
   enemy : Enemy,
   map : Map_,
 ) -> Array[CanAttackTarget] {

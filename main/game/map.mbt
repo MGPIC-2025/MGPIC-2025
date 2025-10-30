@@ -66,6 +66,16 @@ fn Map_::remove_occupant(map : Map_, position : (Int, Int)) -> Unit {
 }
 
 ///|
+fn Map_::add_occupant(
+  map : Map_,
+  position : (Int, Int),
+  occupant : Occupant,
+) -> Unit {
+  let (room, position) = Map_::force_get_room_position(map, position)
+  room.blocks[position.0][position.1].occupant = occupant
+}
+
+///|
 fn Map_::find_position_in_map(map : Map_, position : (Int, Int)) -> Room? {
   for room in map.rooms {
     if Room::is_coord_in_room(room, position) {

@@ -721,7 +721,7 @@ function setupMessageQueue() {
       clearFloorBlock(position);
     },
     // 从后端消息创建铜偶模型
-    onSetCopper: async (id, position, copper) => {
+    onSetCopper: async (_id, position, copper) => {
       console.log(`[TestScene] 创建铜偶模型: id=${copper.id}, pos=${position}`);
 
       // 检查是否已存在

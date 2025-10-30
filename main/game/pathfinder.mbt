@@ -83,10 +83,6 @@ fn PathFinderMap::get_next_step(
   end : (Int, Int),
   range : Int,
 ) -> (Int, Int)? {
-  if !path_finder_map.is_block_walkable(start) ||
-    !path_finder_map.is_block_walkable(end) {
-    return None
-  }
   if start == end {
     return Some(start)
   }
@@ -112,9 +108,11 @@ fn PathFinderMap::get_next_step(
     }
     open_list.remove(current_index) |> ignore
     closed_list.set(current.position, true)
-    if current.position == end {
-      let mut current_pos = end
-      let mut next_step = end
+    // 如果到达终点，或者当前位置在end的range范围内（足够接近目标）
+    let distance_to_end = manhattan_distance(current.position, end)
+    if current.position == end || distance_to_end <= range {
+      let mut current_pos = current.position
+      let mut next_step = current.position
       while came_from.get(current_pos) is Some(parent_pos) {
         next_step = current_pos
         current_pos = parent_pos

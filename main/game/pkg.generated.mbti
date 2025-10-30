@@ -119,7 +119,7 @@ type Direction
 
 pub struct Enemy {
   id : Int
-  position : (Int, Int)
+  mut position : (Int, Int)
   mut now_health : Float
   enemy_base : EnemyBase
 }
