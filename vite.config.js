@@ -43,7 +43,7 @@ export default defineConfig(({ mode }) => ({
             console.log("开始构建 MoonBit 代码...");
             execSync("moon build --target js", {
               cwd: resolve(__dirname, "main"),
-              stdio: "inherit",
+              stdio: "ignore",
             });
             execSync(
               "cp main/target/js/release/build/main/main.js src/main.js",
@@ -60,38 +60,24 @@ export default defineConfig(({ mode }) => ({
 
         buildMoon();
 
-        // 只在开发模式下启用文件监听
-        if (process.env.NODE_ENV !== "production") {
-          this.watcher = watch("main/main/**/*", {
-            ignored: /node_modules/,
-            persistent: true,
-          });
+        this.watcher = watch("main/**/*", {
+          persistent: true,
+          ignoreInitial: true,
+        });
 
-          this.watcher.on("change", (path) => {
+        this.watcher.on("change", (path) => {
+          if (!path.includes("target")) {
             console.log(`MoonBit 文件变化: ${path}`);
             buildMoon();
-          });
+          }
+        });
 
-          this.watcher.on("add", (path) => {
+        this.watcher.on("add", (path) => {
+          if (!path.includes("target")) {
             console.log(`新增 MoonBit 文件: ${path}`);
             buildMoon();
-          });
-        }
-      },
-      buildEnd() {
-        // 构建完成后清理文件监听器
-        if (this.watcher) {
-          this.watcher.close();
-          this.watcher = null;
-          console.log("MoonBit 文件监听器已关闭");
-        }
-      },
-      closeBundle() {
-        // 确保在插件关闭时清理资源
-        if (this.watcher) {
-          this.watcher.close();
-          this.watcher = null;
-        }
+          }
+        });
       },
     },
   ],

@@ -104,17 +104,17 @@ pub fn test_game_round_pass() -> Unit {
   set_move_block((2, 3))
   set_attack_block((4, 4))
   set_attack_block((4, 5))
-  
+
   // 2. 设置铜偶状态为不可用
   display_can_move(1, false)
   display_can_attack(1, false)
-  
+
   // 3. 发送回合结束消息（模拟前端发送）
   @global_msg.msg_info.broadcast({
     type_msg: "on_game_round_pass",
     content: "{}",
   })
-  
+
   // 预期结果：
   // - 所有移动块和攻击块被清除
   // - 所有铜偶的状态恢复为可移动和可攻击

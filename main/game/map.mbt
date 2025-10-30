@@ -97,7 +97,7 @@ pub fn broadcast_room_content(room : Room) -> Unit {
 
   // 优化：批量发送地图块，避免256条单独消息造成卡顿
   put_room_blocks(room.index_position, 16)
-  
+
   // 只发送有内容的格子（敌人、铜偶、矿物、建筑等）
   for x in 0..<16 {
     for y in 0..<16 {
@@ -114,7 +114,7 @@ pub fn broadcast_room_content(room : Room) -> Unit {
         // 暂时不渲染，或者可以渲染一个特殊的建筑模型
         // TODO: 可以添加 set_charging_coil(global_pos) 如果需要渲染
       }
-      
+
       // 如果该格子有地面资源，发送资源标记
       if room.blocks[x][y].resources.length() > 0 {
         put_resource_marker(global_pos)

@@ -53,11 +53,10 @@ pub fn handle_on_click_copper(id : Int) -> Unit {
   let map_block = map.global_position_to_room_position(position)
   guard map_block is Some((room, position))
   let resource = room.blocks[position.0][position.1].resources
-  
+
   // 检查是否有攻击目标
   let attack_targets = battle_copper.get_can_attack(map)
   let has_attack_targets = attack_targets.length() > 0
-  
   @global_msg.msg_info.broadcast({
     type_msg: "handle_on_click_copper",
     content: (
@@ -106,7 +105,6 @@ pub fn handle_on_attack_apply(
     // 位置无效，保持范围显示，等待玩家重新选择
     return
   }
-  
   let battle_copper = get_battle_copper_by_id(id)
   let target = map.get_occupant(position)
   match target {
@@ -172,17 +170,19 @@ pub fn handle_on_move_apply(
     // 位置无效，保持范围显示，等待玩家重新选择
     return
   }
-  
   let battle_copper = get_battle_copper_by_id(id)
   if map.find_position_in_map(position) is Some(_) {
     // 如果仍在当前已有的房间内  
     // 移除旧位置的铜偶，并将其放到新位置
     let now_position = battle_copper.position
-    
+
     // 将全局坐标转换为房间本地坐标
-    let (now_room, now_local_pos) = map.global_position_to_room_position(now_position).unwrap()
-    let (target_room, target_local_pos) = map.global_position_to_room_position(position).unwrap()
-    
+    let (now_room, now_local_pos) = map
+      .global_position_to_room_position(now_position)
+      .unwrap()
+    let (target_room, target_local_pos) = map
+      .global_position_to_room_position(position)
+      .unwrap()
     now_room.blocks[now_local_pos.0][now_local_pos.1].occupant = Empty
     target_room.blocks[target_local_pos.0][target_local_pos.1].occupant = Occupant::Copper(
       battle_copper,
@@ -202,8 +202,10 @@ pub fn handle_on_move_apply(
     // 如果不在当前已有的房间内，则需要生成新的房间
     // 获取当前位置和当前房间
     let now_position = battle_copper.position
-    let (now_room, now_local_pos) = map.global_position_to_room_position(now_position).unwrap()
-    
+    let (now_room, now_local_pos) = map
+      .global_position_to_room_position(now_position)
+      .unwrap()
+
     // 获取新的房间索引位置和方向
     let (direction, new_room_index) = Room::get_room_direction_and_new_position(
       now_room, position,
@@ -215,23 +217,23 @@ pub fn handle_on_move_apply(
       Set::from_array([new_room_index]),
     )
     Map_::add_room(map, new_room)
-    
+
     // 移除旧房间的铜偶
     now_room.blocks[now_local_pos.0][now_local_pos.1].occupant = Empty
-    
+
     // 计算铜偶在新房间内的本地位置
     // 玩家点击的position是全局坐标，需要转换为新房间的本地坐标
     let new_local_x = position.0 - new_room_index.0
     let new_local_y = position.1 - new_room_index.1
-    
+
     // 将铜偶放入新房间
     new_room.blocks[new_local_x][new_local_y].occupant = Occupant::Copper(
       battle_copper,
     )
-    
+
     // 广播新房间的内容到前端
     broadcast_room_content(new_room)
-    
+
     // 根据位置改变铜偶的朝向
     change_direction(id, convert_direction_to_unit_direction(direction))
     // 更新铜偶的位置（全局坐标）
@@ -266,7 +268,7 @@ pub fn handle_on_game_start(ids : Array[Int]) -> Unit {
   change_direction(ids[0], PositiveY)
   change_direction(ids[1], PositiveY)
   change_direction(ids[2], PositiveY)
-  
+
   // 显示铜偶的初始状态圈（绿圈和红圈）
   copper_1.update_move_and_attack_status()
   copper_2.update_move_and_attack_status()
@@ -339,7 +341,7 @@ pub fn handle_on_copper_pick_up(id : Int, index : Int) -> Unit {
   if battle_copper.inventory.check_can_add_item(item.item_type) {
     battle_copper.inventory.add_item(item)
     room.blocks[position.0][position.1].resources.remove(index) |> ignore
-    
+
     // 如果该格子没有资源了，清除资源标记
     if room.blocks[position.0][position.1].resources.length() == 0 {
       clear_resource_marker(battle_copper.position)
@@ -361,7 +363,7 @@ pub fn handle_on_copper_drop_item(id : Int, index : Int) -> Unit {
   battle_copper.inventory.remove_item(index) |> ignore
   let map = force_get_current_map()
   map.add_resource(battle_copper.position, item)
-  
+
   // 在该位置放置资源标记
   put_resource_marker(battle_copper.position)
 }
@@ -445,6 +447,7 @@ pub fn handle_on_copper_unequip_item(id : Int, index : Int) -> Unit {
 /// 前端：当游戏回合结束
 /// 后端：清除可攻击和可移动的地块，并恢复铜偶的可移动和可攻击状态
 fn handle_game_round_pass() -> Unit {
+  // 重新设置地砖状态
   for attack_block in setted_attack_blocks {
     clear_block(attack_block)
   }
@@ -457,6 +460,7 @@ fn handle_game_round_pass() -> Unit {
     clear_block(transfer_block)
   }
   setted_transfer_blocks.clear()
+  // 恢复铜偶状态
   for battle_copper in battle_copper_map.values() {
     battle_copper.can_move = true
     // 根据铜偶类型设置攻击能力：工匠和共鸣者不能攻击
@@ -466,4 +470,6 @@ fn handle_game_round_pass() -> Unit {
     }
     battle_copper.update_move_and_attack_status()
   }
+  // 敌人开始行动
+
 }

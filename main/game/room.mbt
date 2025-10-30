@@ -75,7 +75,7 @@ pub fn Room::new(
       Item::new(Resource(@resource.ResonantCrystal), count=1),
     )
   }
-  
+
   // 生成建筑（Structure）- 随机生成，概率50%
   if @rand.check_probability(0.5) {
     let position = sumoon_postion(escape_set)
@@ -97,7 +97,6 @@ pub fn Room::new(
       @structure.Structure::new(structure_base),
     )
   }
-  
   { index_position, blocks }
 }
 

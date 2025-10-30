@@ -12,11 +12,15 @@ fn animate_move(Int) -> Unit
 
 fn animate_reset() -> Unit
 
+fn attack_complete(Int) -> Unit
+
 fn broadcast_room_content(Room) -> Unit
 
 fn change_direction(Int, UnitDirection) -> Unit
 
 fn clear_block((Int, Int)) -> Unit
+
+fn clear_resource_marker((Int, Int)) -> Unit
 
 fn clear_state(Int) -> Unit
 
@@ -35,6 +39,8 @@ fn handle_on_attack_end() -> Unit
 fn handle_on_attack_start(Map_, Int) -> Unit
 
 fn handle_on_click_copper(Int) -> Unit
+
+fn handle_on_copper_craft(Int) -> Unit
 
 fn handle_on_copper_drop_item(Int, Int) -> Unit
 
@@ -62,6 +68,10 @@ fn move_to(Int, (Int, Int)) -> Unit
 
 fn put_map_block((Int, Int)) -> Unit
 
+fn put_resource_marker((Int, Int)) -> Unit
+
+fn put_room_blocks((Int, Int), Int) -> Unit
+
 fn remove_unit(Int) -> Unit
 
 fn set_attack_block((Int, Int)) -> Unit
@@ -85,6 +95,8 @@ fn test_camera_reset() -> Unit
 fn test_clear_states() -> Unit
 
 fn test_display_states() -> Unit
+
+fn test_game_round_pass() -> Unit
 
 fn test_remove() -> Unit
 
@@ -157,6 +169,10 @@ fn Material::to_json(Self) -> Json // from trait `ToJson`
 impl ToJson for Material
 
 type Occupant
+
+type PathFinderMap
+
+type PathNode
 
 type Room
 fn Room::get_room_direction_and_new_position(Self, (Int, Int)) -> (Direction, (Int, Int))

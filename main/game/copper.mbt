@@ -80,7 +80,7 @@ fn BattleCopper::get_attack_range(battle_copper : BattleCopper) -> Int {
     IronWall => 1
     Arcanist => 3
     Mechanic => 1
-    Resonator | CraftsMan => 0 //  无攻击能力的单位返回0（会生成空攻击范围）
+    Resonator | CraftsMan => 0 // 无攻击能力的单位返回0（会生成空攻击范围）
   }
 }
 

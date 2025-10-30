@@ -854,7 +854,7 @@ function setupMessageQueue() {
       }
 
       // 获取敌人类型名称
-      const enemyType = enemy.enemy_info?.enemy_type || "";
+      const enemyType = enemy.enemy_base?.enemy_type || "";
       const enemyName = enemyType.toLowerCase() || "goblin";
 
       // 根据敌人类型调整缩放
@@ -891,12 +891,12 @@ function setupMessageQueue() {
       models.push({
         id: enemy.id,
         object: obj,
-        name: enemy.enemy_info?.enemy_type || `Enemy_${enemy.id}`,
+        name: enemy.enemy_base?.enemy_type || `Enemy_${enemy.id}`,
         type: "enemy",
       });
 
       console.log(
-        `[TestScene] 敌人创建成功: ${enemy.enemy_info?.enemy_type || enemy.id}`
+        `[TestScene] 敌人创建成功: ${enemy.enemy_base?.enemy_type || enemy.id}`
       );
     },
     onSetMaterial: async (id, position, material) => {
