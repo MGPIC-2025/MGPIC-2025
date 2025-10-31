@@ -105,6 +105,10 @@ pub fn handle_on_attack_apply(
     // 位置无效，保持范围显示，等待玩家重新选择
     return
   }
+  
+  // 攻击前将视角聚焦到铜偶
+  animate_move(id)
+  
   let battle_copper = get_battle_copper_by_id(id)
   let target = map.get_occupant(position)
   match target {
@@ -182,6 +186,10 @@ pub fn handle_on_move_apply(
     // 位置无效，保持范围显示，等待玩家重新选择
     return
   }
+  
+  // 移动前将视角聚焦到铜偶
+  animate_move(id)
+  
   let battle_copper = get_battle_copper_by_id(id)
   if map.find_position_in_map(position) is Some(_) {
     // 如果仍在当前已有的房间内  

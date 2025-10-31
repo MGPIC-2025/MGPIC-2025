@@ -44,7 +44,7 @@ const keys = {
   s: false,
   d: false,
   shift: false,
-  space: false
+  space: false,
 };
 const moveSpeed = 0.2;
 const rotationSpeed = 0.003;
@@ -53,11 +53,11 @@ const mouseSensitivity = 0.002;
 // 键盘事件处理
 function handleKeyDown(event) {
   const key = event.key.toLowerCase();
-  if (key === 'w' || key === 'a' || key === 's' || key === 'd') {
+  if (key === "w" || key === "a" || key === "s" || key === "d") {
     keys[key] = true;
-  } else if (key === 'shift') {
+  } else if (key === "shift") {
     keys.shift = true;
-  } else if (key === ' ') {
+  } else if (key === " ") {
     keys.space = true;
     event.preventDefault(); // 防止页面滚动
   }
@@ -65,11 +65,11 @@ function handleKeyDown(event) {
 
 function handleKeyUp(event) {
   const key = event.key.toLowerCase();
-  if (key === 'w' || key === 'a' || key === 's' || key === 'd') {
+  if (key === "w" || key === "a" || key === "s" || key === "d") {
     keys[key] = false;
-  } else if (key === 'shift') {
+  } else if (key === "shift") {
     keys.shift = false;
-  } else if (key === ' ') {
+  } else if (key === " ") {
     keys.space = false;
   }
 }
@@ -79,7 +79,7 @@ let isMouseDown = false;
 let lastMouseX = 0;
 let lastMouseY = 0;
 let pitch = 0; // 上下旋转
-let yaw = 0;   // 左右旋转
+let yaw = 0; // 左右旋转
 
 function handleMouseDown(event) {
   isMouseDown = true;
@@ -93,22 +93,22 @@ function handleMouseUp() {
 
 function handleMouseMove(event) {
   if (!isMouseDown) return;
-  
+
   const deltaX = event.clientX - lastMouseX;
   const deltaY = event.clientY - lastMouseY;
-  
+
   // 更新旋转角度
   yaw -= deltaX * mouseSensitivity;
   pitch -= deltaY * mouseSensitivity;
-  
+
   // 限制上下旋转角度
   pitch = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, pitch));
 
   // 应用旋转到相机
-  camera.rotation.order = 'YXZ';
+  camera.rotation.order = "YXZ";
   camera.rotation.y = yaw;
   camera.rotation.x = pitch;
-  
+
   lastMouseX = event.clientX;
   lastMouseY = event.clientY;
 }
@@ -149,18 +149,49 @@ onMounted(async () => {
   window.addEventListener("mousemove", handleMouseMove);
 
   animate();
+
+  // 开发模式下暴露相机控制工具
+  if (import.meta.env.DEV) {
+    window.setCameraFocus = (distance = 8, height = 6) => {
+      window.cameraFocusDistance = distance;
+      window.cameraFocusHeight = height;
+      console.log(
+        `[TestScene] 相机聚焦参数已更新: 距离=${distance}, 高度=${height}`
+      );
+    };
+    window.resetCamera = () => {
+      camera.position.set(0, 10, 15);
+      camera.lookAt(0, 0, 0);
+      yaw = camera.rotation.y;
+      pitch = camera.rotation.x;
+      focusState.focusPosition = null;
+      focusState.focusTarget = null;
+      console.log("[TestScene] 相机已重置");
+    };
+    window.toggleAutoFocus = () => {
+      window.disableAutoFocus = !window.disableAutoFocus;
+      console.log(
+        `[TestScene] 自动聚焦已${window.disableAutoFocus ? "禁用" : "启用"}`
+      );
+      if (window.disableAutoFocus) {
+        focusState.focusPosition = null;
+        focusState.focusTarget = null;
+      }
+    };
+  }
 });
 
 onBeforeUnmount(() => {
   window.removeEventListener("resize", onWindowResize);
   window.removeEventListener("click", onSceneClick);
-  
+
   // 移除键盘和鼠标事件监听
   window.removeEventListener("keydown", handleKeyDown);
   window.removeEventListener("keyup", handleKeyUp);
   window.removeEventListener("mousedown", handleMouseDown);
   window.removeEventListener("mouseup", handleMouseUp);
   window.removeEventListener("mousemove", handleMouseMove);
+
   if (renderer) {
     renderer.dispose();
   }
@@ -320,7 +351,7 @@ async function loadGLTFModel(copperType, copperName, position, scale = 1.0) {
     // 设置容器位置和缩放
     group.position.set((position[0] - 7) * 1.0, 0, (position[1] - 7) * 1.0);
     group.scale.set(scale, scale, scale);
-    
+
     // 设置初始朝向为侧面（朝向+X，地图右边）
     // 模型在GLB中的默认朝向就是侧面，保持不变即可
     // 后端会通过 change_direction 设置正确的朝向
@@ -376,7 +407,7 @@ async function loadEnemyModel(enemyName, position, scale = 1.0) {
     // 设置容器位置和缩放
     group.position.set((position[0] - 7) * 1.0, 0, (position[1] - 7) * 1.0);
     group.scale.set(scale, scale, scale);
-    
+
     // 设置初始朝向为侧面（与铜偶统一）
     group.rotation.y = 0; // 0度，保持模型原始朝向（侧面）
 
@@ -438,14 +469,14 @@ function setupMessageQueue() {
       });
       const ring = new THREE.Mesh(geometry, material);
       ring.rotation.x = -Math.PI / 2; // 平放在地面
-      
+
       // 使用模型的X和Z坐标，但Y坐标抬高避免被地图块遮蔽
       ring.position.set(
         model.object.position.x,
         0.1, // 抬高10cm，避免被地图块遮蔽
         model.object.position.z
       );
-      
+
       scene.add(ring);
       indicators[type] = ring;
     }
@@ -718,7 +749,9 @@ function setupMessageQueue() {
     },
     // 合成结果回调
     onCraftResult: (success, message) => {
-      console.log(`[TestScene] 合成结果: ${success ? '成功' : '失败'} - ${message}`);
+      console.log(
+        `[TestScene] 合成结果: ${success ? "成功" : "失败"} - ${message}`
+      );
       // TODO: 可以添加UI提示
       alert(message);
     },
@@ -946,7 +979,9 @@ function setupMessageQueue() {
       );
     },
     onSetMaterial: async (id, position, material) => {
-      console.log(`[TestScene] 创建矿物: id=${id}, pos=${position}, name=${material.material_base?.name}`);
+      console.log(
+        `[TestScene] 创建矿物: id=${id}, pos=${position}, name=${material.material_base?.name}`
+      );
 
       // 检查是否已存在
       const existing = models.find((m) => m.id === id);
@@ -957,16 +992,16 @@ function setupMessageQueue() {
 
       // 创建矿物立方体（金黄色，表示可收集资源）
       const geometry = new THREE.BoxGeometry(0.5, 0.5, 0.5);
-      const material_mesh = new THREE.MeshStandardMaterial({ 
+      const material_mesh = new THREE.MeshStandardMaterial({
         color: 0xffd700, // 金色
         emissive: 0xffaa00,
         emissiveIntensity: 0.2,
         metalness: 0.6,
-        roughness: 0.4
+        roughness: 0.4,
       });
       const obj = new THREE.Mesh(geometry, material_mesh);
       obj.position.set((position[0] - 7) * 1.0, 0.25, (position[1] - 7) * 1.0);
-      
+
       // 添加发光效果
       const pointLight = new THREE.PointLight(0xffaa00, 1.5, 3);
       pointLight.position.set(0, 0.5, 0);
@@ -996,10 +1031,10 @@ function setupMessageQueue() {
 
       // 创建建筑立方体（灰色，较大）
       const geometry = new THREE.BoxGeometry(0.9, 1.2, 0.9);
-      const material = new THREE.MeshStandardMaterial({ 
+      const material = new THREE.MeshStandardMaterial({
         color: 0x666666,
         metalness: 0.5,
-        roughness: 0.6
+        roughness: 0.6,
       });
       const obj = new THREE.Mesh(geometry, material);
       obj.position.set((position[0] - 7) * 1.0, 0.6, (position[1] - 7) * 1.0);
@@ -1018,7 +1053,7 @@ function setupMessageQueue() {
     },
     onPutResourceMarker: (position) => {
       const key = `${position[0]},${position[1]}`;
-      
+
       // 如果已存在，先移除
       if (resourceMarkers.has(key)) {
         const oldMarker = resourceMarkers.get(key);
@@ -1026,7 +1061,7 @@ function setupMessageQueue() {
         oldMarker.geometry.dispose();
         oldMarker.material.dispose();
       }
-      
+
       // 创建资源标记（小的发光球体）
       const geometry = new THREE.SphereGeometry(0.15, 16, 16);
       const material = new THREE.MeshStandardMaterial({
@@ -1034,25 +1069,25 @@ function setupMessageQueue() {
         emissive: 0xffaa00,
         emissiveIntensity: 0.8,
         metalness: 0.7,
-        roughness: 0.3
+        roughness: 0.3,
       });
       const marker = new THREE.Mesh(geometry, material);
-      
+
       const worldX = (position[0] - 7) * 1.0;
       const worldZ = (position[1] - 7) * 1.0;
       marker.position.set(worldX, 0.3, worldZ); // 悬浮在地面上方
-      
+
       // 添加发光点光源
       const pointLight = new THREE.PointLight(0xffd700, 1.0, 2);
       pointLight.position.set(0, 0, 0);
       marker.add(pointLight);
-      
+
       scene.add(marker);
       resourceMarkers.set(key, marker);
     },
     onClearResourceMarker: (position) => {
       const key = `${position[0]},${position[1]}`;
-      
+
       if (resourceMarkers.has(key)) {
         const marker = resourceMarkers.get(key);
         scene.remove(marker);
@@ -1206,31 +1241,30 @@ function setupMessageQueue() {
 }
 
 function focusOnModelFunc(modelObject, camera, controls) {
-  // 计算聚焦参数
-  const worldOrigin = new THREE.Vector3(0, 0, 0);
-  modelObject.localToWorld(worldOrigin);
+  // 获取模型的世界坐标
+  const worldOrigin = new THREE.Vector3();
+  modelObject.getWorldPosition(worldOrigin);
 
-  const box = new THREE.Box3().setFromObject(modelObject);
-  const size = box.getSize(new THREE.Vector3());
-  const maxDim = Math.max(size.x, size.y, size.z);
+  // 使用固定的观察角度（斜上方，从后方观看）
+  // 可以通过 window.setCameraFocus(距离, 高度) 调整
+  const distance = window.cameraFocusDistance || 8; // 相机距离单位的水平距离
+  const height = window.cameraFocusHeight || 6; // 相机高度（斜上方视角）
 
-  const fov = camera.fov * (Math.PI / 180);
-  let distance = maxDim / (2 * Math.tan(fov / 2));
-  distance = Math.max(distance * 1.5, 2);
+  // 从单位后上方观看（朝向地图中心方向）
+  // 相机在单位的 +Z 方向（后方），这样可以看到单位向前移动
+  const offsetX = 0;
+  const offsetZ = distance;
 
-  const dir = new THREE.Vector3();
-  camera.getWorldDirection(dir);
-  dir.y = 0;
-  dir.normalize();
-
-  const targetPosition = new THREE.Vector3()
-    .copy(worldOrigin)
-    .sub(dir.clone().multiplyScalar(distance));
+  const targetPosition = new THREE.Vector3(
+    worldOrigin.x + offsetX,
+    worldOrigin.y + height,
+    worldOrigin.z + offsetZ
+  );
 
   return {
     focusPosition: targetPosition.clone(),
     focusTarget: worldOrigin.clone(),
-    lerpFactor: 0.08,
+    lerpFactor: 0.1, // 平滑插值系数
   };
 }
 
@@ -1246,32 +1280,43 @@ function animate() {
   // 第一人称移动控制
   if (keys.w || keys.a || keys.s || keys.d || keys.shift || keys.space) {
     const velocity = new THREE.Vector3();
-    
+
     // 根据相机朝向计算移动方向
     if (keys.w) velocity.z -= 1; // 向前
     if (keys.s) velocity.z += 1; // 向后
     if (keys.a) velocity.x -= 1; // 向左
     if (keys.d) velocity.x += 1; // 向右
-    
+
     // 垂直移动
     if (keys.shift) velocity.y -= 1; // 向下
     if (keys.space) velocity.y += 1; // 向上
-    
+
     // 应用相机旋转到水平移动
     velocity.applyQuaternion(camera.quaternion);
-    
+
     // 重置Y轴，只保留水平移动
     velocity.y = keys.shift ? -1 : keys.space ? 1 : 0;
-    
+
     // 移动相机位置
     camera.position.add(velocity.multiplyScalar(moveSpeed));
   }
 
   // 处理聚焦（简化版，不使用controls）
   if (focusState.focusPosition && focusState.focusTarget) {
+    // 平滑移动相机位置
     camera.position.lerp(focusState.focusPosition, focusState.lerpFactor);
 
-    if (camera.position.distanceTo(focusState.focusPosition) < 0.01) {
+    // 直接使用 lookAt 让相机朝向目标（更简单可靠）
+    camera.lookAt(focusState.focusTarget);
+
+    // 同步更新 yaw 和 pitch，以便第一人称控制继续工作
+    yaw = camera.rotation.y;
+    pitch = camera.rotation.x;
+
+    // 当接近目标位置时，清除聚焦状态
+    const distance = camera.position.distanceTo(focusState.focusPosition);
+    if (distance < 0.5) {
+      console.log("[TestScene] 相机聚焦完成");
       focusState.focusPosition = null;
       focusState.focusTarget = null;
     }

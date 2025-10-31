@@ -188,14 +188,19 @@ async function initScene(onProgress = null) {
     // 步骤8：预加载游戏模型
     if (onProgress) onProgress(0, 100, 80);
     console.log("[StartMenu] Logo 加载完成，开始预加载游戏模型...");
-    
+
     try {
-      await modelPreloadManager.startPreload(['high', 'medium', 'low'], (loaded, total, percentage) => {
-        // 将模型预加载进度映射到80-95%的进度条范围
-        const mappedProgress = 80 + (percentage * 0.15);
-        if (onProgress) onProgress(0, 100, Math.round(mappedProgress));
-        console.log(`[StartMenu] 模型预加载进度: ${loaded}/${total} (${percentage}%)`);
-      });
+      await modelPreloadManager.startPreload(
+        ["high", "medium"],
+        (loaded, total, percentage) => {
+          // 将模型预加载进度映射到80-95%的进度条范围
+          const mappedProgress = 80 + percentage * 0.15;
+          if (onProgress) onProgress(0, 100, Math.round(mappedProgress));
+          console.log(
+            `[StartMenu] 模型预加载进度: ${loaded}/${total} (${percentage}%)`
+          );
+        }
+      );
       console.log("[StartMenu] 所有游戏模型预加载完成");
     } catch (err) {
       console.warn("[StartMenu] 游戏模型预加载失败:", err);
@@ -218,14 +223,19 @@ async function initScene(onProgress = null) {
 
     // 即使使用占位符也要预加载游戏模型
     console.log("[StartMenu] 使用占位符，开始预加载游戏模型...");
-    
+
     try {
-      await modelPreloadManager.startPreload(['high', 'medium', 'low'], (loaded, total, percentage) => {
-        // 将模型预加载进度映射到80-95%的进度条范围
-        const mappedProgress = 80 + (percentage * 0.15);
-        if (onProgress) onProgress(0, 100, Math.round(mappedProgress));
-        console.log(`[StartMenu] 模型预加载进度: ${loaded}/${total} (${percentage}%)`);
-      });
+      await modelPreloadManager.startPreload(
+        ["high", "medium"],
+        (loaded, total, percentage) => {
+          // 将模型预加载进度映射到80-95%的进度条范围
+          const mappedProgress = 80 + percentage * 0.15;
+          if (onProgress) onProgress(0, 100, Math.round(mappedProgress));
+          console.log(
+            `[StartMenu] 模型预加载进度: ${loaded}/${total} (${percentage}%)`
+          );
+        }
+      );
       console.log("[StartMenu] 所有游戏模型预加载完成");
     } catch (err) {
       console.warn("[StartMenu] 游戏模型预加载失败:", err);
@@ -297,7 +307,7 @@ onMounted(() => {
       isReady.value = true;
       return;
     }
-    
+
     console.log("[StartMenu] 开始初始化3D场景...");
     await initScene(onProgress);
   };

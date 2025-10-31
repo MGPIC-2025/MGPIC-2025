@@ -23,7 +23,7 @@ class MessageQueue {
   enqueue(message) {
     // 性能优化：关闭大部分日志输出，避免控制台输出阻塞主线程
     // 只记录关键消息类型
-    const criticalTypes = ['handle_on_click_copper', 'on_game_start'];
+    const criticalTypes = ["handle_on_click_copper", "on_game_start"];
     if (criticalTypes.includes(message.type_msg)) {
       console.log("[MessageQueue] 收到消息:", message.type_msg);
     }
@@ -59,12 +59,12 @@ class MessageQueue {
           // 如需调试，可临时启用
           // console.log("[MessageQueue] 处理消息:", type_msg);
           const data = JSON.parse(content);
-          
+
           // 对于简单的消息类型（如put_map_block），同步处理，不使用await
           // 避免大量Promise创建导致性能问题
           const result = handler(data, this.sceneContext || {});
           // 只有当handler返回Promise时才await（保持兼容性）
-          if (result && typeof result.then === 'function') {
+          if (result && typeof result.then === "function") {
             await result;
           }
         } else {
@@ -234,6 +234,56 @@ export function registerAllHandlers() {
         context.scene.remove(model.object);
       }
 
+      // 释放所有资源，防止内存泄漏
+      model.object.traverse((child) => {
+        // 释放几何体
+        if (child.geometry) {
+          child.geometry.dispose();
+        }
+
+        // 释放材质
+        if (child.material) {
+          if (Array.isArray(child.material)) {
+            child.material.forEach((mat) => {
+              // 释放材质的纹理
+              if (mat.map) mat.map.dispose();
+              if (mat.lightMap) mat.lightMap.dispose();
+              if (mat.bumpMap) mat.bumpMap.dispose();
+              if (mat.normalMap) mat.normalMap.dispose();
+              if (mat.specularMap) mat.specularMap.dispose();
+              if (mat.envMap) mat.envMap.dispose();
+              if (mat.alphaMap) mat.alphaMap.dispose();
+              if (mat.aoMap) mat.aoMap.dispose();
+              if (mat.displacementMap) mat.displacementMap.dispose();
+              if (mat.emissiveMap) mat.emissiveMap.dispose();
+              if (mat.metalnessMap) mat.metalnessMap.dispose();
+              if (mat.roughnessMap) mat.roughnessMap.dispose();
+              mat.dispose();
+            });
+          } else {
+            // 释放材质的纹理
+            if (child.material.map) child.material.map.dispose();
+            if (child.material.lightMap) child.material.lightMap.dispose();
+            if (child.material.bumpMap) child.material.bumpMap.dispose();
+            if (child.material.normalMap) child.material.normalMap.dispose();
+            if (child.material.specularMap)
+              child.material.specularMap.dispose();
+            if (child.material.envMap) child.material.envMap.dispose();
+            if (child.material.alphaMap) child.material.alphaMap.dispose();
+            if (child.material.aoMap) child.material.aoMap.dispose();
+            if (child.material.displacementMap)
+              child.material.displacementMap.dispose();
+            if (child.material.emissiveMap)
+              child.material.emissiveMap.dispose();
+            if (child.material.metalnessMap)
+              child.material.metalnessMap.dispose();
+            if (child.material.roughnessMap)
+              child.material.roughnessMap.dispose();
+            child.material.dispose();
+          }
+        }
+      });
+
       // 从models数组移除
       if (context.models) {
         const index = context.models.indexOf(model);
@@ -270,8 +320,11 @@ export function registerAllHandlers() {
 
       // 规范化角度到 [-π, π] 范围
       let startRotation = model.object.rotation.y;
-      startRotation = Math.atan2(Math.sin(startRotation), Math.cos(startRotation));
-      
+      startRotation = Math.atan2(
+        Math.sin(startRotation),
+        Math.cos(startRotation)
+      );
+
       // 计算最短旋转路径
       let rotationDiff = targetRotation - startRotation;
       if (rotationDiff > Math.PI) {
@@ -291,7 +344,8 @@ export function registerAllHandlers() {
           const easeProgress = 1 - Math.pow(1 - progress, 2);
 
           if (model.object) {
-            model.object.rotation.y = startRotation + rotationDiff * easeProgress;
+            model.object.rotation.y =
+              startRotation + rotationDiff * easeProgress;
           }
 
           if (progress < 1) {
@@ -335,7 +389,7 @@ export function registerAllHandlers() {
           );
         });
       }
-      
+
       // 移动完成后调用回调
       if (context.onMoveComplete) {
         context.onMoveComplete(id);
@@ -382,7 +436,30 @@ export function registerAllHandlers() {
     const { id } = data;
 
     const model = findModelById(context.models || [], id);
-    if (model && context.camera && context.controls && context.focusOnModel) {
+
+    if (!model) {
+      console.warn(`[Handler] animate_move: 找不到模型 ID=${id}`);
+      return;
+    }
+
+    // 检查是否禁用了自动聚焦
+    if (window.disableAutoFocus) {
+      console.log(`[Handler] animate_move: 自动聚焦已禁用，跳过 ID=${id}`);
+      return;
+    }
+
+    // 检查是否需要跟随敌人视角（可以在 context 中设置）
+    // 默认情况下，敌人移动时不跟随视角，避免频繁跳转
+    const followEnemies =
+      context.followEnemies !== undefined ? context.followEnemies : false;
+    if (model.type === "enemy" && !followEnemies) {
+      console.log(
+        `[Handler] animate_move: 跳过敌人 ID=${id} 的视角跟随（可通过 context.followEnemies = true 启用）`
+      );
+      return;
+    }
+
+    if (context.camera && context.focusOnModel) {
       const focusData = context.focusOnModel(
         model.object,
         context.camera,
@@ -394,6 +471,9 @@ export function registerAllHandlers() {
         context.focusState.focusPosition = focusData.focusPosition;
         context.focusState.focusTarget = focusData.focusTarget;
         context.focusState.lerpFactor = focusData.lerpFactor;
+        console.log(
+          `[Handler] animate_move: 聚焦到单位 ID=${id} (${model.name})`
+        );
       }
 
       // 等待聚焦完成
@@ -435,9 +515,11 @@ export function registerAllHandlers() {
   messageQueue.registerHandler("put_room_blocks", async (data, context) => {
     const { room_position, size } = data;
     const [roomX, roomY] = room_position;
-    
-    console.log(`[Handler] 📦 批量创建房间地图块: 位置[${roomX}, ${roomY}], 大小${size}x${size}`);
-    
+
+    console.log(
+      `[Handler] 📦 批量创建房间地图块: 位置[${roomX}, ${roomY}], 大小${size}x${size}`
+    );
+
     if (!context.onPutMapBlock) {
       return;
     }
@@ -466,7 +548,7 @@ export function registerAllHandlers() {
   // put_resource_marker: 在地图块上显示资源标记
   messageQueue.registerHandler("put_resource_marker", (data, context) => {
     const { position } = data;
-    
+
     if (context.onPutResourceMarker) {
       context.onPutResourceMarker(position);
     }
@@ -475,7 +557,7 @@ export function registerAllHandlers() {
   // clear_resource_marker: 清除资源标记
   messageQueue.registerHandler("clear_resource_marker", (data, context) => {
     const { position } = data;
-    
+
     if (context.onClearResourceMarker) {
       context.onClearResourceMarker(position);
     }
@@ -551,7 +633,7 @@ export function registerAllHandlers() {
   // attack_complete: 攻击完成
   messageQueue.registerHandler("attack_complete", (data, context) => {
     const { id } = data;
-    
+
     // 攻击完成后调用回调
     if (context.onAttackComplete) {
       context.onAttackComplete(id);
@@ -570,30 +652,30 @@ export function registerAllHandlers() {
   // craft_success: 合成成功
   messageQueue.registerHandler("craft_success", (data, context) => {
     if (context.onCraftResult) {
-      context.onCraftResult(true, data.message || '合成成功');
+      context.onCraftResult(true, data.message || "合成成功");
     }
   });
 
   // craft_failed: 合成失败
   messageQueue.registerHandler("craft_failed", (data, context) => {
     if (context.onCraftResult) {
-      context.onCraftResult(false, data.message || '合成失败');
+      context.onCraftResult(false, data.message || "合成失败");
     }
   });
 
   // cannot_pick_up_item: 无法拾取物品
   messageQueue.registerHandler("cannot_pick_up_item", (data, context) => {
-    console.warn('[Handler] 无法拾取物品:', data.message || data);
+    console.warn("[Handler] 无法拾取物品:", data.message || data);
   });
 
   // equipment_slot_full: 装备槽已满
   messageQueue.registerHandler("equipment_slot_full", (data, context) => {
-    console.warn('[Handler] 装备槽已满:', data.message || data);
+    console.warn("[Handler] 装备槽已满:", data.message || data);
   });
 
   // inventory_full: 背包已满
   messageQueue.registerHandler("inventory_full", (data, context) => {
-    console.warn('[Handler] 背包已满:', data.message || data);
+    console.warn("[Handler] 背包已满:", data.message || data);
   });
 
   // Message handlers registered
