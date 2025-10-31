@@ -120,19 +120,30 @@ pub fn handle_on_attack_apply(
         remove_unit(enemy.id)
         map.remove_occupant(position)
       }
+      battle_copper.can_attack = false
+      battle_copper.update_move_and_attack_status()
     }
-    Copper(copper) => copper.apply_mechanic_heal(battle_copper.attribute.attack)
+    Copper(copper) => {
+      copper.apply_mechanic_heal(battle_copper.attribute.attack)
+      battle_copper.can_attack = false
+      battle_copper.update_move_and_attack_status()
+    }
+    Empty => {
+      // 目标已经死亡或不存在，清除攻击范围但不消耗攻击机会
+      ()
+    }
     _ => abort("Target is not enemy or copper")
   }
-  battle_copper.can_attack = false
-  battle_copper.update_move_and_attack_status()
+  // 无论如何都要清除攻击范围
   for position in setted_attack_blocks {
     clear_block(position)
     check_and_reset_block(position, Attack)
   }
   setted_attack_blocks.clear()
-  // 发送攻击完成消息
-  attack_complete(id)
+  // 只有成功攻击才发送完成消息
+  if not(target is Empty) {
+    attack_complete(id)
+  }
 }
 
 ///|

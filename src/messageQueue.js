@@ -183,6 +183,18 @@ export function registerAllHandlers() {
 
     const model = findModelById(context.models || [], id);
     if (model && model.object) {
+      // 先克隆所有材质，确保不影响其他使用相同材质的模型
+      model.object.traverse((child) => {
+        if (child.material) {
+          // 如果是材质数组
+          if (Array.isArray(child.material)) {
+            child.material = child.material.map((mat) => mat.clone());
+          } else {
+            child.material = child.material.clone();
+          }
+        }
+      });
+
       // 淡出动画
       const duration = 500;
       const startTime = performance.now();
@@ -195,8 +207,15 @@ export function registerAllHandlers() {
           if (model.object) {
             model.object.traverse((child) => {
               if (child.material) {
-                child.material.transparent = true;
-                child.material.opacity = 1 - progress;
+                if (Array.isArray(child.material)) {
+                  child.material.forEach((mat) => {
+                    mat.transparent = true;
+                    mat.opacity = 1 - progress;
+                  });
+                } else {
+                  child.material.transparent = true;
+                  child.material.opacity = 1 - progress;
+                }
               }
             });
           }
@@ -436,7 +455,7 @@ export function registerAllHandlers() {
 
         // 每创建 blocksPerFrame 个块后，让出控制权到下一帧
         if (createdBlocks % blocksPerFrame === 0) {
-          await new Promise(resolve => requestAnimationFrame(resolve));
+          await new Promise((resolve) => requestAnimationFrame(resolve));
         }
       }
     }
@@ -579,4 +598,3 @@ export function registerAllHandlers() {
 
   // Message handlers registered
 }
-

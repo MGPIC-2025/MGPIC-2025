@@ -102,8 +102,8 @@ function handleMouseMove(event) {
   pitch -= deltaY * mouseSensitivity;
   
   // 限制上下旋转角度
-  pitch = Math.max(-Math.PI/2, Math.min(Math.PI/2, pitch));
-  
+  pitch = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, pitch));
+
   // 应用旋转到相机
   camera.rotation.order = 'YXZ';
   camera.rotation.y = yaw;
@@ -292,8 +292,22 @@ async function loadGLTFModel(copperType, copperName, position, scale = 1.0) {
 
   try {
     // 使用全局模型缓存管理器
-    const modelInstance = await modelCache.loadModel(modelUrl, true);
+    const cachedModel = await modelCache.loadModel(modelUrl, true);
     console.log(`[TestScene] 从缓存加载铜偶模型: ${copperName}`);
+
+    // 深度克隆模型实例，避免多个单位共享同一个模型对象和材质
+    const modelInstance = cachedModel.clone(true);
+
+    // 确保所有材质都是独立的副本
+    modelInstance.traverse((child) => {
+      if (child.material) {
+        if (Array.isArray(child.material)) {
+          child.material = child.material.map((mat) => mat.clone());
+        } else {
+          child.material = child.material.clone();
+        }
+      }
+    });
 
     // 计算包围盒
     const box = new THREE.Box3().setFromObject(modelInstance);
@@ -334,8 +348,22 @@ async function loadEnemyModel(enemyName, position, scale = 1.0) {
 
   try {
     // 使用全局模型缓存管理器
-    const modelInstance = await modelCache.loadModel(modelUrl, true);
+    const cachedModel = await modelCache.loadModel(modelUrl, true);
     console.log(`[TestScene] 从缓存加载敌人模型: ${enemyName}`);
+
+    // 深度克隆模型实例，避免多个单位共享同一个模型对象和材质
+    const modelInstance = cachedModel.clone(true);
+
+    // 确保所有材质都是独立的副本
+    modelInstance.traverse((child) => {
+      if (child.material) {
+        if (Array.isArray(child.material)) {
+          child.material = child.material.map((mat) => mat.clone());
+        } else {
+          child.material = child.material.clone();
+        }
+      }
+    });
 
     // 计算包围盒
     const box = new THREE.Box3().setFromObject(modelInstance);
@@ -661,6 +689,15 @@ function setupMessageQueue() {
     onMoveComplete: (id) => {
       if (!props.isGameMode) return;
 
+      // 检查移动的是否是玩家的铜偶（而不是敌人）
+      const isPlayerCopper = playerCoppers.value.some(
+        (copper) => copper.id === id
+      );
+      if (!isPlayerCopper) {
+        console.log("[TestScene] 敌人移动完成，不做处理");
+        return;
+      }
+
       console.log("[TestScene] 移动完成，准备切换铜偶");
       // 重置状态
       currentActionMode.value = null;
@@ -688,6 +725,15 @@ function setupMessageQueue() {
     // 攻击完成后的回调
     onAttackComplete: (id) => {
       if (!props.isGameMode) return;
+
+      // 检查攻击的是否是玩家的铜偶（而不是敌人）
+      const isPlayerCopper = playerCoppers.value.some(
+        (copper) => copper.id === id
+      );
+      if (!isPlayerCopper) {
+        console.log("[TestScene] 敌人攻击完成，不做处理");
+        return;
+      }
 
       console.log("[TestScene] 攻击完成，准备切换铜偶");
       // 重置状态
