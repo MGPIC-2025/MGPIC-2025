@@ -12,25 +12,25 @@ class ModelCacheManager {
   constructor() {
     // GLTF模型缓存 (URL -> GLTF对象)
     this.gltfCache = new Map();
-    
+
     // 模型实例池 (URL -> 原始模型实例)
     this.modelPool = new Map();
-    
+
     // 实例化网格缓存 (URL -> InstancedMesh)
     this.instancedMeshes = new Map();
-    
+
     // 全局GLTF加载器（复用）
     this.gltfLoader = null;
     this.dracoLoader = null;
-    
+
     // 缓存配置
     this.maxCacheSize = 50; // 最大缓存50个模型
     this.maxInstancesPerModel = 1000; // 每个模型最大实例数
-    
+
     // 预加载状态
     this.preloadStatus = new Map(); // URL -> 加载状态
     this.preloadQueue = []; // 预加载队列
-    
+
     // 初始化加载器
     this.initLoaders();
   }
@@ -42,13 +42,13 @@ class ModelCacheManager {
     if (!this.gltfLoader) {
       this.gltfLoader = new GLTFLoader();
       this.gltfLoader.setCrossOrigin("anonymous");
-      
+
       this.dracoLoader = new DRACOLoader();
       this.dracoLoader.setDecoderPath(
         "https://www.gstatic.com/draco/versioned/decoders/1.5.6/"
       );
       this.dracoLoader.setCrossOrigin("anonymous");
-      
+
       this.gltfLoader.setDRACOLoader(this.dracoLoader);
       console.log("[ModelCache] GLTF和Draco加载器已初始化");
     }
@@ -78,7 +78,7 @@ class ModelCacheManager {
       console.log(`[ModelCache] 从网络加载: ${url}`);
       try {
         gltf = await this.gltfLoader.loadAsync(url);
-        
+
         // 缓存GLTF对象
         this.cacheGLTF(url, gltf);
       } catch (error) {
@@ -89,12 +89,12 @@ class ModelCacheManager {
 
     // 创建模型实例
     const instance = gltf.scene.clone(true);
-    
+
     // 添加到模型池
     if (useInstancePool) {
       this.addToModelPool(url, instance);
     }
-    
+
     return instance;
   }
 
@@ -113,7 +113,7 @@ class ModelCacheManager {
 
     // 加载模型
     const model = await this.loadModel(url, true);
-    
+
     // 提取所有网格
     const meshes = [];
     model.traverse((child) => {
@@ -144,7 +144,9 @@ class ModelCacheManager {
 
     // 缓存实例化网格
     this.instancedMeshes.set(url, instancedMesh);
-    console.log(`[ModelCache] 创建实例化网格: ${url}, 最大实例数: ${maxInstances}`);
+    console.log(
+      `[ModelCache] 创建实例化网格: ${url}, 最大实例数: ${maxInstances}`
+    );
 
     return instancedMesh;
   }
@@ -165,12 +167,18 @@ class ModelCacheManager {
     }
 
     if (instanceIndex >= instancedMesh.count) {
-      console.warn(`[ModelCache] 实例索引超出范围: ${instanceIndex}/${instancedMesh.count}`);
+      console.warn(
+        `[ModelCache] 实例索引超出范围: ${instanceIndex}/${instancedMesh.count}`
+      );
       return;
     }
 
     const matrix = new THREE.Matrix4();
-    matrix.compose(position, new THREE.Quaternion().setFromEuler(rotation), scale);
+    matrix.compose(
+      position,
+      new THREE.Quaternion().setFromEuler(rotation),
+      scale
+    );
     instancedMesh.setMatrixAt(instanceIndex, matrix);
     instancedMesh.instanceMatrix.needsUpdate = true;
   }
@@ -203,7 +211,7 @@ class ModelCacheManager {
       this.gltfCache.delete(firstKey);
       console.log(`[ModelCache] 删除旧GLTF缓存: ${firstKey}`);
     }
-    
+
     this.gltfCache.set(url, gltf);
     console.log(`[ModelCache] GLTF已缓存: ${url}`);
   }
@@ -223,7 +231,7 @@ class ModelCacheManager {
       this.modelPool.delete(firstKey);
       console.log(`[ModelCache] 删除旧模型池项: ${firstKey}`);
     }
-    
+
     this.modelPool.set(url, instance);
     console.log(`[ModelCache] 模型已添加到池: ${url}`);
   }
@@ -236,54 +244,54 @@ class ModelCacheManager {
    */
   async preloadModels(urls, onProgress = null) {
     console.log(`[ModelCache] 开始预加载 ${urls.length} 个模型`);
-    
+
     const total = urls.length;
     let loaded = 0;
-    
+
     // 过滤已加载的模型
-    const urlsToLoad = urls.filter(url => {
+    const urlsToLoad = urls.filter((url) => {
       const status = this.preloadStatus.get(url);
-      return !status || status === 'failed';
+      return !status || status === "failed";
     });
-    
+
     console.log(`[ModelCache] 需要加载 ${urlsToLoad.length} 个新模型`);
-    
+
     // 批量加载
     const batchSize = 3; // 每批3个
     for (let i = 0; i < urlsToLoad.length; i += batchSize) {
       const batch = urlsToLoad.slice(i, i + batchSize);
-      
+
       const promises = batch.map(async (url) => {
         try {
-          this.preloadStatus.set(url, 'loading');
+          this.preloadStatus.set(url, "loading");
           await this.loadModel(url, true);
-          this.preloadStatus.set(url, 'loaded');
+          this.preloadStatus.set(url, "loaded");
           loaded++;
-          
+
           if (onProgress) {
             onProgress(loaded, total, Math.round((loaded / total) * 100));
           }
-          
+
           console.log(`[ModelCache] 预加载完成: ${url} (${loaded}/${total})`);
         } catch (error) {
           console.warn(`[ModelCache] 预加载失败: ${url}`, error);
-          this.preloadStatus.set(url, 'failed');
+          this.preloadStatus.set(url, "failed");
           loaded++;
-          
+
           if (onProgress) {
             onProgress(loaded, total, Math.round((loaded / total) * 100));
           }
         }
       });
-      
+
       await Promise.all(promises);
-      
+
       // 批次间延迟，避免阻塞
       if (i + batchSize < urlsToLoad.length) {
-        await new Promise(resolve => setTimeout(resolve, 100));
+        await new Promise((resolve) => setTimeout(resolve, 100));
       }
     }
-    
+
     console.log(`[ModelCache] 预加载完成: ${loaded}/${total} 个模型`);
   }
 
@@ -294,7 +302,7 @@ class ModelCacheManager {
    */
   isPreloaded(url) {
     const status = this.preloadStatus.get(url);
-    return status === 'loaded';
+    return status === "loaded";
   }
 
   /**
@@ -306,13 +314,13 @@ class ModelCacheManager {
       total: this.preloadStatus.size,
       loaded: 0,
       loading: 0,
-      failed: 0
+      failed: 0,
     };
-    
+
     for (const status of this.preloadStatus.values()) {
       stats[status]++;
     }
-    
+
     return stats;
   }
 
@@ -322,7 +330,7 @@ class ModelCacheManager {
    */
   disposeModel(model) {
     if (!model) return;
-    
+
     model.traverse((obj) => {
       if (obj.isMesh) {
         if (obj.geometry) {
@@ -348,25 +356,25 @@ class ModelCacheManager {
    */
   clearCache() {
     console.log("[ModelCache] 清理所有缓存...");
-    
+
     // 清理模型池
     this.modelPool.forEach((instance) => {
       this.disposeModel(instance);
     });
     this.modelPool.clear();
-    
+
     // 清理实例化网格
     this.instancedMeshes.forEach((mesh) => {
       this.disposeModel(mesh);
     });
     this.instancedMeshes.clear();
-    
+
     // 清理GLTF缓存
     this.gltfCache.clear();
-    
+
     // 清理预加载状态
     this.preloadStatus.clear();
-    
+
     console.log("[ModelCache] 缓存清理完成");
   }
 
@@ -383,7 +391,7 @@ class ModelCacheManager {
       maxCacheSize: this.maxCacheSize,
       maxInstancesPerModel: this.maxInstancesPerModel,
       gltfLoaderInitialized: !!this.gltfLoader,
-      dracoLoaderInitialized: !!this.dracoLoader
+      dracoLoaderInitialized: !!this.dracoLoader,
     };
   }
 
@@ -406,10 +414,7 @@ class ModelCacheManager {
 const modelCache = new ModelCacheManager();
 
 // 导出API
-export {
-  modelCache,
-  ModelCacheManager
-};
+export { modelCache, ModelCacheManager };
 
 // 默认导出
 export default modelCache;
