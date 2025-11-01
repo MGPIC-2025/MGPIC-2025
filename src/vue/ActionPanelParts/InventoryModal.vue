@@ -1,6 +1,6 @@
 <script setup>
 import { computed } from 'vue';
-import { getAssetUrl } from '../utils/resourceLoader.js';
+import { getAssetUrl } from '../../utils/resourceLoader.js';
 
 const props = defineProps({
   visible: {

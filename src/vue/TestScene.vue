@@ -17,8 +17,8 @@ import {
   getCopperTypeFolder,
 } from "../utils/copperMapping.js";
 import TestPanel from "./TestPanel.vue";
-import CopperActionPanel from "./CopperActionPanel.vue";
-import TurnSystem from "./TurnSystem.vue";
+import ActionPanel from "./ActionPanel.vue";
+import TurnSystem from "./ActionPanelParts/TurnSystem.vue";
 
 const props = defineProps({
   isGameMode: {
@@ -1346,6 +1346,12 @@ async function handleAttackApply(x, z) {
 
 // 处理点击铜偶
 async function handleClickCopper(copperId) {
+  // 更新当前铜偶索引，以便 TurnSystem 正确显示名称
+  const index = playerCoppers.value.findIndex(c => c.id === copperId);
+  if (index !== -1) {
+    currentCopperIndex.value = index;
+  }
+  
   const message = JSON.stringify({
     type: "on_click_copper",
     content: { id: String(copperId) },
@@ -1525,15 +1531,17 @@ function endRound() {
       :roundNumber="currentRound"
       @nextCopper="nextCopper"
       @endRound="endRound"
+      @selectCopper="handleClickCopper"
     />
 
     <!-- 铜偶操作面板（仅游戏模式显示） -->
-    <CopperActionPanel
+    <ActionPanel
       v-if="isGameMode && selectedCopper"
       ref="copperActionPanelRef"
       :copper="selectedCopper"
       :resources="selectedCopperResources"
       :hasAttackTargets="hasAttackTargets"
+      :onSelectCopper="handleClickCopper"
       @close="closeCopperPanel"
       @action="handleCopperAction"
     />

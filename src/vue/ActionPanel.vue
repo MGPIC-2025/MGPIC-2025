@@ -2,9 +2,9 @@
 import { ref, computed } from 'vue';
 import { eventloop } from '../glue.js';
 import { getAssetUrl } from '../utils/resourceLoader.js';
-import DiamondPanel from './DiamondPanel.vue';
-import ClockPanel from './ClockPanel.vue';
-import InventoryModal from './InventoryModal.vue';
+import DiamondPanel from './ActionPanelParts/DiamondPanel.vue';
+import InventoryModal from './ActionPanelParts/InventoryModal.vue';
+import HealthBar from './ActionPanelParts/HealthBar.vue';
 
 const props = defineProps({
   copper: {
@@ -18,10 +18,14 @@ const props = defineProps({
   hasAttackTargets: {
     type: Boolean,
     default: true // 默认假设有目标
+  },
+  onSelectCopper: {
+    type: Function,
+    default: null
   }
 });
 
-const emit = defineEmits(['close', 'action']);
+const emit = defineEmits(['close', 'action', 'selectCopper']);
 
 // 资源元信息映射
 const RESOURCE_META = {
@@ -46,6 +50,12 @@ const RESOURCE_META = {
     icon: getAssetUrl('resource/spiritual_spark.webp'),
   },
 };
+
+// 三角图标资源
+const hexSrc = new URL('../../assets/your-image.png', import.meta.url).href; // 六边形背景
+const moveIconSrc = new URL('../../assets/boot.png', import.meta.url).href; // 移动图标（靴子）
+const waitIconSrc = new URL('../../assets/mushroom.png', import.meta.url).href; // 等待图标（蘑菇）
+const attackIconSrc = new URL('../../assets/sword.png', import.meta.url).href; // 攻击图标（剑）
 
 // 面板状态：'full' = 完整显示, 'minimized' = 最小化到底部
 const panelMode = ref('full');
@@ -77,104 +87,80 @@ const copperInfo = computed(() => {
   };
 });
 
-const hpPercentage = computed(() => {
-  if (!copperInfo.value) return 0;
-  return (copperInfo.value.hp / copperInfo.value.maxHp) * 100;
-});
-
 async function handleMove() {
   if (!copperInfo.value.canMove) return;
-  
-  console.log('[CopperActionPanel] 请求移动范围');
+  console.log('[ActionPanel] 请求移动范围');
   const message = JSON.stringify({
     type: 'on_move_start',
     content: { id: String(copperInfo.value.id) }
   });
   await eventloop(message);
-  
-  // 最小化面板，等待用户点击移动位置
   panelMode.value = 'minimized';
   actionMode.value = 'moving';
   emit('action', { type: 'moveStart', copperId: copperInfo.value.id });
 }
 
 async function handleAttack() {
-  console.log('[CopperActionPanel] 攻击按钮点击', {
+  console.log('[ActionPanel] 攻击按钮点击', {
     canAttack: copperInfo.value.canAttack,
     copperId: copperInfo.value.id,
     name: copperInfo.value.name
   });
-  
   if (!copperInfo.value.canAttack) {
-    console.warn('[CopperActionPanel] 攻击被阻止: 本回合已攻击');
+    console.warn('[ActionPanel] 攻击被阻止: 本回合已攻击');
     return;
   }
-  
-  console.log('[CopperActionPanel] 请求攻击范围');
+  console.log('[ActionPanel] 请求攻击范围');
   const message = JSON.stringify({
     type: 'on_attack_start',
     content: { id: String(copperInfo.value.id) }
   });
   await eventloop(message);
-  
-  // 最小化面板，等待用户点击攻击位置
   panelMode.value = 'minimized';
   actionMode.value = 'attacking';
   emit('action', { type: 'attackStart', copperId: copperInfo.value.id });
 }
 
 function handleInventory() {
-  console.log('[CopperActionPanel] 打开背包');
+  console.log('[ActionPanel] 打开背包');
   showInventory.value = true;
 }
 
 async function handlePickup(index) {
-  console.log(`[CopperActionPanel] 拾取物品: index=${index}`);
+  console.log(`[ActionPanel] 拾取物品: index=${index}`);
   const message = JSON.stringify({
     type: 'on_copper_pick_up',
     content: { id: String(copperInfo.value.id), index: String(index) }
   });
   await eventloop(message);
-  
-  // 重新点击铜偶以刷新状态
   await refreshCopperState();
 }
 
 async function handleDrop(index) {
-  console.log(`[CopperActionPanel] 丢弃物品: index=${index}`);
+  console.log(`[ActionPanel] 丢弃物品: index=${index}`);
   const message = JSON.stringify({
     type: 'on_copper_drop_item',
     content: { id: String(copperInfo.value.id), index: String(index) }
   });
   await eventloop(message);
-  
-  // 重新点击铜偶以刷新状态
   await refreshCopperState();
 }
 
 async function handleCraft() {
-  console.log('[CopperActionPanel] 合成物品');
+  console.log('[ActionPanel] 合成物品');
   const message = JSON.stringify({
     type: 'on_copper_craft',
     content: { id: String(copperInfo.value.id) }
   });
   await eventloop(message);
-  
-  // 重新点击铜偶以刷新状态
   await refreshCopperState();
 }
 
 // 处理背包组件的事件
-async function handleInventoryCraft() {
-  await handleCraft();
-}
-
-async function handleInventoryDrop(index) {
-  await handleDrop(index);
-}
+async function handleInventoryCraft() { await handleCraft(); }
+async function handleInventoryDrop(index) { await handleDrop(index); }
 
 async function refreshCopperState() {
-  // 重新点击当前铜偶以刷新状态
   const message = JSON.stringify({
     type: 'on_click_copper',
     content: { id: String(copperInfo.value.id) }
@@ -183,7 +169,7 @@ async function refreshCopperState() {
 }
 
 function handleWait() {
-  console.log('[CopperActionPanel] 等待');
+  console.log('[ActionPanel] 等待');
   emit('action', { type: 'wait', copperId: copperInfo.value.id });
 }
 
@@ -202,7 +188,6 @@ function restore() {
 
 // 获取资源名称
 function getResourceName(resource) {
-  // MoonBit 枚举序列化为数组: ["Resource", "RefinedCopper"]
   if (Array.isArray(resource.item_type) && resource.item_type[0] === 'Resource') {
     const resourceType = resource.item_type[1];
     return RESOURCE_META[resourceType]?.name || resourceType;
@@ -219,11 +204,17 @@ function cancelAction() {
   emit('action', { type: 'cancel', copperId: copperInfo.value.id });
 }
 
+// 处理选择铜偶（如果提供了回调函数）
+async function handleSelectCopper(copperId) {
+  if (props.onSelectCopper) {
+    await props.onSelectCopper(copperId);
+  } else {
+    emit('selectCopper', copperId);
+  }
+}
+
 // 暴露方法给父组件
-defineExpose({
-  restore,
-  cancelAction
-});
+defineExpose({ restore, cancelAction, handleSelectCopper });
 </script>
 
 <template>
@@ -235,13 +226,11 @@ defineExpose({
       @inventory-click="handleInventory"
     />
 
-    <!-- 底部 HP 条 -->
-    <div class="screen-hp" aria-label="copper health">
-      <div class="screen-hp__track">
-        <div class="screen-hp__fill" :style="{ width: hpPercentage + '%' }"></div>
-        <div class="screen-hp__text">{{ Math.round(copperInfo.hp) }} / {{ copperInfo.maxHp }}</div>
-      </div>
-    </div>
+    <!-- 血条 -->
+    <HealthBar 
+      :hp="copperInfo?.hp || 0"
+      :max-hp="copperInfo?.maxHp || 100"
+    />
 
     <div class="copper-panel" :class="{ 'copper-panel--minimized': panelMode === 'minimized' }" @click.stop>
       <!-- 最小化状态 -->
@@ -263,47 +252,74 @@ defineExpose({
       <!-- 关闭按钮 -->
       <button class="close-btn" @click="close" title="关闭">✕</button>
 
-    
+      
 
-    <div class="panel-content">
-      <!-- 铜偶信息 -->
-      <div class="copper-info">
-        <div class="info-top">
-          <div class="copper-header">
-            <h3 class="copper-name">{{ copperInfo.name }}</h3>
-            <span class="copper-level">Lv.{{ copperInfo.level }}</span>
+      <div class="panel-content">
+        <!-- 铜偶信息 -->
+        <div class="copper-info">
+          <div class="info-top">
+            <div class="copper-header">
+              <h3 class="copper-name">{{ copperInfo.name }}</h3>
+              <span class="copper-level">Lv.{{ copperInfo.level }}</span>
+            </div>
+          </div>
+      </div>
+
+      <!-- 地面资源（如果有） -->
+      <div v-if="resources && resources.length > 0" class="resources">
+        <div class="resources-header">📦 地面物品</div>
+        <div class="resources-list">
+          <div 
+            v-for="(resource, index) in resources" 
+            :key="index" 
+            class="resource-item"
+            @click="handlePickup(index)"
+            title="点击拾取"
+          >
+            <span class="resource-name">{{ getResourceName(resource) }}</span>
+            <span class="resource-count">x{{ resource.count || 1 }}</span>
+            <span class="resource-pickup">⬆️</span>
           </div>
         </div>
+      </div>
+      </div>
+      </template>
     </div>
 
-    <!-- 地面资源（如果有） -->
-    <div v-if="resources && resources.length > 0" class="resources">
-      <div class="resources-header">📦 地面物品</div>
-      <div class="resources-list">
-        <div 
-          v-for="(resource, index) in resources" 
-          :key="index" 
-          class="resource-item"
-          @click="handlePickup(index)"
-          title="点击拾取"
+    <!-- 操作三角图标 ！-->
+    <div class="tri-panel">
+      <div class="tri" aria-label="三角排列图像">
+        <!-- 顶部：移动 -->
+        <div
+          class="hex top"
+          :title="copperInfo?.canMove ? '移动' : '本回合已移动'"
+          :class="{ 'is-locked': copperInfo && copperInfo.canMove === false }"
+          @click="handleMove"
         >
-          <span class="resource-name">{{ getResourceName(resource) }}</span>
-          <span class="resource-count">x{{ resource.count || 1 }}</span>
-          <span class="resource-pickup">⬆️</span>
+          <img class="hex-bg" :src="hexSrc" alt="六边形背景" />
+          <img class="hex-icon" :src="waitIconSrc" alt="移动图标（蘑菇）" />
+        </div>
+        <!-- 左下：等待 -->
+        <div
+          class="hex left"
+          title="等待"
+          @click="handleWait"
+        >
+          <img class="hex-bg" :src="hexSrc" alt="六边形背景" />
+          <img class="hex-icon" :src="moveIconSrc" alt="等待图标（靴子）" />
+        </div>
+        <!-- 右下：攻击 -->
+        <div
+          class="hex right"
+          :title="copperInfo?.canAttack ? '攻击' : '本回合已攻击'"
+          :class="{ 'is-locked': copperInfo && copperInfo.canAttack === false }"
+          @click="handleAttack"
+        >
+          <img class="hex-bg" :src="hexSrc" alt="六边形背景" />
+          <img class="hex-icon" :src="attackIconSrc" alt="攻击图标（剑）" />
         </div>
       </div>
     </div>
-    </div>
-    </template>
-    </div>
-
-    <!-- 钟表操作面板 -->
-    <ClockPanel 
-      :copper-info="copperInfo"
-      @move-click="handleMove"
-      @attack-click="handleAttack"
-      @wait-click="handleWait"
-    />
   </div>
 
   <!-- 背包弹窗 -->
@@ -338,70 +354,6 @@ defineExpose({
   transition: all 0.3s ease;
 }
 
-/* 底部左侧屏幕 HP 条样式 */
-.screen-hp{ position:absolute; left:20px; bottom:20px; width:min(540px, 60vw); z-index: 6000; font-family: "Press Start 2P", "Courier New", monospace; image-rendering: pixelated; }
-
-.screen-hp__track{
-  position: relative;
-  height: 18px;
-  background: #1b1b1b;
-  border: 3px solid #2a2a2c;
-  border-radius: 0;
-  overflow: hidden;
-  box-shadow: 0 3px 0 #0e0e0e;
-}
-
-.screen-hp__track::after{
-  content: "";
-  position: absolute;
-  inset: 0;
-  background:
-    repeating-linear-gradient(
-      0deg,
-      rgba(255,255,255,0.04) 0px,
-      rgba(255,255,255,0.04) 2px,
-      transparent 2px,
-      transparent 4px
-    );
-  pointer-events: none;
-}
-
-.screen-hp__fill{
-  position: absolute;
-  left: 0; top: 0; bottom: 0;
-  background: #c13d3d;
-  border-right: 3px solid #7a2626;
-  box-shadow: inset 0 -2px 0 rgba(0,0,0,.25);
-  transition: width .2s steps(4, end);
-}
-
-.screen-hp__fill::before{
-  content: "";
-  position: absolute;
-  inset: 0;
-  background:
-    repeating-linear-gradient(
-      90deg,
-      rgba(0,0,0,0.06) 0px,
-      rgba(0,0,0,0.06) 2px,
-      transparent 2px,
-      transparent 4px
-    );
-  pointer-events: none;
-}
-
-.screen-hp__text{
-  position: absolute;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #fff;
-  font-weight: 800;
-  font-size: 10px;
-  text-shadow: none;
-  pointer-events: none;
-}
 
 .panel-content{ padding-right:0; }
 
@@ -517,125 +469,61 @@ defineExpose({
   transform: translateY(-1px);
 }
 
-.resource-name {
-  flex: 1;
-}
+.resource-name { flex: 1; }
+.resource-count { margin: 0 8px; color: rgba(255, 200, 100, 0.9); }
+.resource-pickup { font-size: 14px; opacity: 0.7; }
 
-.resource-count {
-  margin: 0 8px;
-  color: rgba(255, 200, 100, 0.9);
-}
-
-.resource-pickup {
-  font-size: 14px;
-  opacity: 0.7;
-}
-
-/* 最小化状态样式 */
-.minimized-content {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-}
-
-.minimized-info {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  flex: 0 1 65%;
-  max-width: 65%;
-  padding: 8px 12px;
-  background: #D4A574;
-  border: 2px solid #8B6914;
-  box-shadow: inset 0 2px 4px rgba(0,0,0,0.2), inset 0 -1px 1px rgba(255,255,255,0.2);
-  font-family: "Press Start 2P", "Courier New", monospace;
-}
-
-.minimized-name {
-  font-size: 10px;
-  font-weight: bold;
-  color: #6B4423;
-  line-height: 1.4;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.minimized-action {
-  font-size: 8px;
-  color: #1a0f00;
-  line-height: 1.4;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.minimized-actions {
-  display: flex;
-  gap: 8px;
-}
-
-.mini-btn {
-  width: 36px;
-  height: 36px;
-  border: 3px solid;
-  cursor: pointer;
-  transition: all 0.15s;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-family: "Press Start 2P", monospace;
-  font-size: 14px;
-  color: #fff;
+/* ====== Tri icons (migrated from ClockPanel) ====== */
+.tri-panel { position: absolute; right: 29px; bottom: 10px; z-index: 6000; }
+.tri-panel { --gap: 0px; --size: 64px; --overlapY: 16px; --overlapX: 37px; --topDropY: -8px; }
+@media (min-width: 640px) { .tri-panel { --size: 80px; } }
+.tri { display: grid; grid-template-columns: repeat(3, max-content); grid-template-rows: repeat(2, max-content); gap: var(--gap); align-items: center; justify-items: center; }
+.hex { 
   position: relative;
-  box-shadow: 
-    0 4px 0,
-    inset 0 1px 0 rgba(255,255,255,0.2);
+  width: var(--size); 
+  height: var(--size); 
+  image-rendering: pixelated; 
+  image-rendering: crisp-edges; 
+  user-select: none; 
+  -webkit-user-drag: none; 
+  transition: transform 120ms ease, opacity 120ms ease, filter 120ms ease; 
+  cursor: pointer; 
 }
-
-.mini-btn:hover {
-  transform: translateY(1px);
-  box-shadow: 
-    0 3px 0,
-    inset 0 1px 0 rgba(255,255,255,0.2);
+.hex-bg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+  pointer-events: none;
 }
-
-.mini-btn:active {
-  transform: translateY(3px);
-  box-shadow: 
-    0 1px 0,
-    inset 0 1px 0 rgba(255,255,255,0.2);
+.hex-icon {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 47%;
+  height: 47%;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+  pointer-events: none;
 }
-
-.mini-btn--restore {
-  background: #5a9a4a;
-  border-color: #3a6a2a;
-  box-shadow: 
-    0 4px 0 #3a6a2a,
-    inset 0 1px 0 rgba(255,255,255,0.2);
-}
-
-.mini-btn--restore:hover {
-  background: #6aaa5a;
-  box-shadow: 
-    0 3px 0 #3a6a2a,
-    inset 0 1px 0 rgba(255,255,255,0.2);
-}
-
-.mini-btn--cancel {
-  background: #aa4a4a;
-  border-color: #6a2a2a;
-  box-shadow: 
-    0 4px 0 #6a2a2a,
-    inset 0 1px 0 rgba(255,255,255,0.2);
-}
-
-.mini-btn--cancel:hover {
-  background: #ba5a5a;
-  box-shadow: 
-    0 3px 0 #6a2a2a,
-    inset 0 1px 0 rgba(255,255,255,0.2);
-}
+.top { grid-column: 2; grid-row: 1; }
+.left { grid-column: 1; grid-row: 2; }
+.right { grid-column: 3; grid-row: 2; }
+.top { transform: translateY(var(--topDropY)); }
+.left { transform: translate(var(--overlapX), calc(-1 * var(--overlapY))); }
+.right { transform: translate(calc(-1 * var(--overlapX)), calc(-1 * var(--overlapY))); }
+.hex:is(.top, .left, .right):hover { filter: brightness(1.08); }
+.is-locked { opacity: 0.5; cursor: not-allowed; filter: grayscale(0.2); }
+.hex.top:hover:not(.is-locked) { animation: float-top 1200ms ease-in-out infinite; }
+.hex.left:hover:not(.is-locked) { animation: float-left 1200ms ease-in-out infinite; }
+.hex.right:hover:not(.is-locked) { animation: float-right 1200ms ease-in-out infinite; }
+@keyframes float-top { 0% { transform: translateY(var(--topDropY)) scale(1.00); } 50% { transform: translateY(calc(var(--topDropY) - 2px)) scale(1.06); } 100% { transform: translateY(var(--topDropY)) scale(1.00); } }
+@keyframes float-left { 0% { transform: translate(var(--overlapX), calc(-1 * var(--overlapY))) scale(1.00); } 50% { transform: translate(calc(var(--overlapX) + 1px), calc(-1 * var(--overlapY) - 2px)) scale(1.06); } 100% { transform: translate(var(--overlapX), calc(-1 * var(--overlapY))) scale(1.00); } }
+@keyframes float-right { 0% { transform: translate(calc(-1 * var(--overlapX)), calc(-1 * var(--overlapY))) scale(1.00); } 50% { transform: translate(calc(-1 * var(--overlapX) - 1px), calc(-1 * var(--overlapY) - 2px)) scale(1.06); } 100% { transform: translate(calc(-1 * var(--overlapX)), calc(-1 * var(--overlapY))) scale(1.00); } }
 </style>
+
 

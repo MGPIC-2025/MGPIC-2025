@@ -73,7 +73,7 @@ onMounted(async () => {
       <div class="tile__mask"></div>
       <div class="tile__caption tile__caption--bottom">
         <div class="tile__title">开始游戏</div>
-        <div class="tile__subtitle">Start Game</div>
+        <div class="tile__subtitle">Begin Adventure</div>
       </div>
     </button>
     <button
@@ -84,7 +84,7 @@ onMounted(async () => {
       <div class="tile__mask"></div>
       <div class="tile__caption tile__caption--top">
         <div class="tile__title">铜偶仓库</div>
-        <div class="tile__subtitle">Copper Warehouse</div>
+        <div class="tile__subtitle">Character Collection</div>
       </div>
     </button>
     <button
@@ -95,7 +95,7 @@ onMounted(async () => {
       <div class="tile__mask"></div>
       <div class="tile__caption tile__caption--bottom">
         <div class="tile__title">游戏百科</div>
-        <div class="tile__subtitle">Game Wiki</div>
+        <div class="tile__subtitle">Encyclopedia</div>
       </div>
     </button>
     <button
