@@ -163,8 +163,8 @@ fn Map_::get_global_map(map : Map_) -> Map[(Int, Int), MapBlock] {
   let result = {}
   for room in map.rooms {
     let (room_x, room_y) = room.index_position
-    for x in 1..=15 {
-      for y in 1..=15 {
+    for x in 0..<16 {
+      for y in 0..<16 {
         let global_pos = (room_x + x, room_y + y)
         result[global_pos] = room.blocks[x][y]
       }
