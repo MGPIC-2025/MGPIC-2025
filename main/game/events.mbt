@@ -51,7 +51,6 @@ pub fn handle_on_click_copper(id : Int) -> Unit {
   handle_on_move_end()
   handle_on_attack_end()
   handle_on_transfer_end()
-  
   let battle_copper = get_battle_copper_by_id(id)
   let position = battle_copper.position
   let map = force_get_current_map()
@@ -80,7 +79,6 @@ pub fn handle_on_attack_start(map : Map_, id : Int) -> Unit {
   // 先清除之前的移动范围和攻击范围
   handle_on_move_end()
   handle_on_attack_end()
-  
   let battle_copper = get_battle_copper_by_id(id)
   let attack_target = battle_copper.get_can_attack(map)
   for target in attack_target {
@@ -114,10 +112,9 @@ pub fn handle_on_attack_apply(
     // 位置无效，保持范围显示，等待玩家重新选择
     return
   }
-  
+
   // 攻击前将视角聚焦到铜偶
   animate_move(id)
-  
   let battle_copper = get_battle_copper_by_id(id)
   let target = map.get_occupant(position)
   match target {
@@ -141,10 +138,9 @@ pub fn handle_on_attack_apply(
       battle_copper.can_attack = false
       battle_copper.update_move_and_attack_status()
     }
-    Empty => {
+    Empty =>
       // 目标已经死亡或不存在，清除攻击范围但不消耗攻击机会
       ()
-    }
     _ => abort("Target is not enemy or copper")
   }
   // 无论如何都要清除攻击范围
@@ -166,7 +162,6 @@ pub fn handle_on_move_start(map : Map_, id : Int) -> Unit {
   // 先清除之前的移动范围和攻击范围
   handle_on_move_end()
   handle_on_attack_end()
-  
   let battle_copper = get_battle_copper_by_id(id)
   let can_move = battle_copper.get_can_move(map)
   for position in can_move {
@@ -199,10 +194,9 @@ pub fn handle_on_move_apply(
     // 位置无效，保持范围显示，等待玩家重新选择
     return
   }
-  
+
   // 移动前将视角聚焦到铜偶
   animate_move(id)
-  
   let battle_copper = get_battle_copper_by_id(id)
   if map.find_position_in_map(position) is Some(_) {
     // 如果仍在当前已有的房间内  
@@ -302,11 +296,10 @@ pub fn handle_on_game_start(ids : Array[Int]) -> Unit {
   first_room.blocks[0][6].occupant = Occupant::Copper(copper_1)
   first_room.blocks[0][7].occupant = Occupant::Copper(copper_2)
   first_room.blocks[0][8].occupant = Occupant::Copper(copper_3)
-  
+
   // 重新广播房间内容（包括地图块、敌人和铜偶）
   // 前端的"已存在检查"会跳过重复的敌人，只创建新的铜偶
   broadcast_room_content(first_room)
-  
   change_direction(copper_1.id, PositiveY)
   change_direction(copper_2.id, PositiveY)
   change_direction(copper_3.id, PositiveY)
@@ -326,7 +319,6 @@ pub fn handle_on_transfer_start(id : Int, index : Int, count : Int) -> Unit {
   handle_on_move_end()
   handle_on_attack_end()
   handle_on_transfer_end()
-  
   transfer_from_id.val = Some(id)
   let battle_copper = get_battle_copper_by_id(id)
   let item_type = battle_copper.inventory.items[index].item_type
@@ -539,7 +531,6 @@ fn handle_game_round_pass() -> Unit {
       }
     } else {
       let target = enemy.find_nearest_attack_target(map)
-      println("target: " + target.to_json().stringify())
       if target is Some(target) {
         let target_position = target.get_position_from_can_attack_target()
         let path_finder_map = PathFinderMap::new(map)
@@ -550,7 +541,6 @@ fn handle_game_round_pass() -> Unit {
           enemy.enemy_base.move_range,
         )
         if next_position is Some(next_position) {
-          println("next_position: " + next_position.to_json().stringify())
           animate_move(enemy.id)
           // 根据位置改变敌人的朝向
           change_direction(
@@ -560,10 +550,9 @@ fn handle_game_round_pass() -> Unit {
             ),
           )
           move_to(enemy.id, next_position)
-          let old_position = enemy.position
+          map.remove_occupant(enemy.position)
           enemy.position = next_position
-          map.remove_occupant(old_position)
-          map.add_occupant(next_position, Occupant::Enemy(enemy))
+          map.add_occupant(enemy.position, Occupant::Enemy(enemy))
         }
       }
     }

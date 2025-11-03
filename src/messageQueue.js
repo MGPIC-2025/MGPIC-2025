@@ -380,10 +380,9 @@ export function registerAllHandlers() {
     const model = findModelById(context.models || [], id);
     if (model && model.object && context.gridCellSize) {
       const [gridX, gridZ] = to;
-      const cellSize = context.gridCellSize;
-      // 以(0,0)为中心，地图范围 -7 到 7
-      const targetX = (gridX - 7) * cellSize;
-      const targetZ = (gridZ - 7) * cellSize;
+      // 直接使用全局坐标系统：全局坐标 (0,0) 对应世界坐标 (0,0)
+      const targetX = gridX;
+      const targetZ = gridZ;
       const targetY = model.object.position.y;
 
       // 注意：朝向由后端的 change_direction 消息控制

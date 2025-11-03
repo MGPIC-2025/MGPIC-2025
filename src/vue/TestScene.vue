@@ -237,30 +237,9 @@ function initScene() {
   directionalLight.position.set(5, 10, 5);
   scene.add(directionalLight);
 
-  // 创建地板
+  // 网格参数（保留用于其他用途）
   const floorSize = 20;
-  const gridCellSize = 1;
-  const floorGeometry = new THREE.PlaneGeometry(floorSize, floorSize);
-  const floorMaterial = new THREE.MeshStandardMaterial({
-    color: 0x333333,
-    side: THREE.DoubleSide,
-  });
-  const floor = new THREE.Mesh(floorGeometry, floorMaterial);
-  floor.rotation.x = -Math.PI / 2;
-  floor.position.y = 0;
-  scene.add(floor);
-
-  // 添加网格
-  const grid = new THREE.GridHelper(
-    floorSize,
-    floorSize / gridCellSize,
-    0x000000,
-    0x000000
-  );
-  grid.position.y = 0.01;
-  grid.material.opacity = 0.5;
-  grid.material.transparent = true;
-  scene.add(grid);
+  const gridCellSize = 1; // 全局坐标系统，1单位 = 1网格
 
   // 初始化GLTF加载器
   gltfLoader = new GLTFLoader();
@@ -355,7 +334,7 @@ async function loadGLTFModel(copperType, copperName, position, scale = 1.0) {
     group.add(modelInstance);
 
     // 设置容器位置和缩放
-    group.position.set((position[0] - 7) * 1.0, 0, (position[1] - 7) * 1.0);
+    group.position.set(position[0], 0, position[1]);
     group.scale.set(scale, scale, scale);
 
     // 模型默认朝向+Z（正面），rotation.y = 0 表示正面朝+Z
@@ -410,7 +389,7 @@ async function loadEnemyModel(enemyName, position, scale = 1.0) {
     group.add(modelInstance);
 
     // 设置容器位置和缩放
-    group.position.set((position[0] - 7) * 1.0, 0, (position[1] - 7) * 1.0);
+    group.position.set(position[0], 0, position[1]);
     group.scale.set(scale, scale, scale);
 
     // 敌人模型默认已经是正面朝向+Z，不需要额外旋转
@@ -553,9 +532,9 @@ function setupMessageQueue() {
     block.rotation.x = -Math.PI / 2;
     // ✅ 以(0,0)为中心，地图范围 -7 到 7
     block.position.set(
-      (position[0] - 7) * 1.0,
+      position[0],
       0.08, // ✅ 高于地图块（0.05），确保可见
-      (position[1] - 7) * 1.0
+      position[1]
     );
     block.userData = { type, position };
     scene.add(block);
@@ -929,7 +908,7 @@ function setupMessageQueue() {
 
         const material = new THREE.MeshStandardMaterial({ color });
         obj = new THREE.Mesh(geometry, material);
-        obj.position.set((position[0] - 7) * 1.0, 0.4, (position[1] - 7) * 1.0);
+        obj.position.set(position[0], 0.4, position[1]);
       }
 
       obj.userData.modelId = copper.id; // 设置ID以便点击检测
@@ -989,7 +968,7 @@ function setupMessageQueue() {
         const geometry = new THREE.BoxGeometry(0.8, 0.8, 0.8);
         const material = new THREE.MeshStandardMaterial({ color: 0xff0000 });
         obj = new THREE.Mesh(geometry, material);
-        obj.position.set((position[0] - 7) * 1.0, 0.4, (position[1] - 7) * 1.0);
+        obj.position.set(position[0], 0.4, position[1]);
       }
 
       obj.userData.modelId = actualId; // 设置ID以便点击检测
@@ -1028,7 +1007,7 @@ function setupMessageQueue() {
         roughness: 0.4,
       });
       const obj = new THREE.Mesh(geometry, material_mesh);
-      obj.position.set((position[0] - 7) * 1.0, 0.25, (position[1] - 7) * 1.0);
+      obj.position.set(position[0], 0.25, position[1]);
 
       // 添加发光效果
       const pointLight = new THREE.PointLight(0xffaa00, 1.5, 3);
@@ -1069,7 +1048,7 @@ function setupMessageQueue() {
         
         const group = new THREE.Group();
         group.add(modelInstance);
-        group.position.set((position[0] - 7) * 1.0, 0, (position[1] - 7) * 1.0);
+        group.position.set(position[0], 0, position[1]);
         group.scale.set(1.0, 1.0, 1.0);
         group.rotation.y = 0;
         
@@ -1090,7 +1069,7 @@ function setupMessageQueue() {
           roughness: 0.6,
         });
         obj = new THREE.Mesh(geometry, material);
-        obj.position.set((position[0] - 7) * 1.0, 0.6, (position[1] - 7) * 1.0);
+        obj.position.set(position[0], 0.6, position[1]);
       }
 
       obj.userData.modelId = id;
@@ -1155,8 +1134,8 @@ function setupMessageQueue() {
       top.position.y = 0.3;
       group.add(top);
       
-      const worldX = (position[0] - 7) * 1.0;
-      const worldZ = (position[1] - 7) * 1.0;
+      const worldX = position[0];
+      const worldZ = position[1];
       group.position.set(worldX, 0.15, worldZ);
       
       // 添加发光点光源
@@ -1258,9 +1237,9 @@ function setupMessageQueue() {
 
       //  以(0,0)为中心，地图范围 -7 到 7
       block.position.set(
-        (position[0] - 7) * 1.0, // 格子中心
+        position[0], // 格子中心
         0.025, // ⭐ 地板中心（高度0.05的一半）
-        (position[1] - 7) * 1.0 // 格子中心
+        position[1] // 格子中心
       );
 
       scene.add(block);
@@ -1480,9 +1459,9 @@ async function handleFloorClick(mousePos) {
   raycaster.ray.intersectPlane(plane, intersectPoint);
 
   if (intersectPoint) {
-    // 转换为网格坐标 (考虑以(0,0)为中心，范围-7到7)
-    const gridX = Math.round(intersectPoint.x + 7);
-    const gridZ = Math.round(intersectPoint.z + 7);
+    // 转换为网格坐标（直接使用全局坐标系统：世界坐标除以cellSize）
+    const gridX = Math.round(intersectPoint.x);
+    const gridZ = Math.round(intersectPoint.z);
 
     console.log(`[TestScene] 点击地板: (${gridX}, ${gridZ})`);
 
