@@ -297,10 +297,16 @@ pub fn handle_on_game_start(ids : Array[Int]) -> Unit {
   first_room.blocks[0][6].occupant = Occupant::Copper(copper_1)
   first_room.blocks[0][7].occupant = Occupant::Copper(copper_2)
   first_room.blocks[0][8].occupant = Occupant::Copper(copper_3)
-  broadcast_room_content(first_room)
-  change_direction(ids[0], PositiveY)
-  change_direction(ids[1], PositiveY)
-  change_direction(ids[2], PositiveY)
+  
+  // 注意：不需要再次广播房间内容，Map_::new 中已经广播过了
+  // 只需要发送铜偶的位置和朝向
+  set_copper(copper_1, copper_1.id, (0, 6))
+  set_copper(copper_2, copper_2.id, (0, 7))
+  set_copper(copper_3, copper_3.id, (0, 8))
+  
+  change_direction(copper_1.id, PositiveY)
+  change_direction(copper_2.id, PositiveY)
+  change_direction(copper_3.id, PositiveY)
 
   // 显示铜偶的初始状态圈（绿圈和红圈）
   copper_1.update_move_and_attack_status()
