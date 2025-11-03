@@ -632,6 +632,15 @@ export function getStructureModelUrl(structureName) {
 }
 
 /**
+ * 获取矿物/资源模型 URL
+ * @param {string} resourceName - 资源名称
+ * @returns {string} 模型 URL
+ */
+export function getResourceModelUrl(resourceName) {
+  return getAssetUrl(`resource/${resourceName}/${resourceName}.glb`);
+}
+
+/**
  * 获取装备图标 URL
  * @param {string} equipmentName - 装备名称
  * @returns {string} 图标 URL

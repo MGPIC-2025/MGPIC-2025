@@ -9,6 +9,8 @@ import {
   getAssetUrl,
   getCopperModelUrl,
   getEnemyModelUrl,
+  getStructureModelUrl,
+  getResourceModelUrl,
 } from "../utils/resourceLoader.js";
 import modelCache from "../utils/modelCache.js";
 import modelPreloadManager from "../utils/modelPreloadManager.js";
@@ -16,6 +18,10 @@ import {
   getCopperEnglishName,
   getCopperTypeFolder,
 } from "../utils/copperMapping.js";
+import {
+  getStructureEnglishName,
+  getResourceFolderName,
+} from "../utils/structureMapping.js";
 import TestPanel from "./TestPanel.vue";
 import ActionPanel from "./ActionPanel.vue";
 import TurnSystem from "./ActionPanelParts/TurnSystem.vue";
@@ -1029,15 +1035,41 @@ function setupMessageQueue() {
         return;
       }
 
-      // 创建建筑立方体（灰色，较大）
-      const geometry = new THREE.BoxGeometry(0.9, 1.2, 0.9);
-      const material = new THREE.MeshStandardMaterial({
-        color: 0x666666,
-        metalness: 0.5,
-        roughness: 0.6,
-      });
-      const obj = new THREE.Mesh(geometry, material);
-      obj.position.set((position[0] - 7) * 1.0, 0.6, (position[1] - 7) * 1.0);
+      const structureName = structure.structure_base?.name || '';
+      const englishName = getStructureEnglishName(structureName);
+      
+      // 尝试加载GLTF模型
+      const modelUrl = getStructureModelUrl(englishName);
+      let obj = null;
+      
+      try {
+        const modelInstance = await modelCache.loadModel(modelUrl, true);
+        
+        const group = new THREE.Group();
+        group.add(modelInstance);
+        group.position.set((position[0] - 7) * 1.0, 0, (position[1] - 7) * 1.0);
+        group.scale.set(1.0, 1.0, 1.0);
+        group.rotation.y = 0;
+        
+        // 调整Y位置使模型底部对齐地面
+        const scaledBox = new THREE.Box3().setFromObject(group);
+        group.position.y = -scaledBox.min.y;
+        
+        obj = group;
+        console.log(`[TestScene] 建筑模型加载成功: ${structureName}, URL: ${modelUrl}`);
+      } catch (e) {
+        console.warn(`[TestScene] 建筑模型加载失败: ${structureName}`, e);
+        
+        // 创建占位立方体
+        const geometry = new THREE.BoxGeometry(0.9, 1.2, 0.9);
+        const material = new THREE.MeshStandardMaterial({
+          color: 0x666666,
+          metalness: 0.5,
+          roughness: 0.6,
+        });
+        obj = new THREE.Mesh(geometry, material);
+        obj.position.set((position[0] - 7) * 1.0, 0.6, (position[1] - 7) * 1.0);
+      }
 
       obj.userData.modelId = id;
       scene.add(obj);
@@ -1045,11 +1077,11 @@ function setupMessageQueue() {
       models.push({
         id: id,
         object: obj,
-        name: `Structure_${id}`,
+        name: structureName || `Structure_${id}`,
         type: "structure",
       });
 
-      console.log(`[TestScene] 建筑创建成功: Structure_${id}`);
+      console.log(`[TestScene] 建筑创建成功: ${structureName}`);
     },
     onPutResourceMarker: (position) => {
       const key = `${position[0]},${position[1]}`;
@@ -1058,41 +1090,80 @@ function setupMessageQueue() {
       if (resourceMarkers.has(key)) {
         const oldMarker = resourceMarkers.get(key);
         scene.remove(oldMarker);
-        oldMarker.geometry.dispose();
-        oldMarker.material.dispose();
+        
+        // 递归清理所有子对象
+        oldMarker.traverse((obj) => {
+          if (obj.geometry) obj.geometry.dispose();
+          if (obj.material) {
+            if (Array.isArray(obj.material)) {
+              obj.material.forEach(m => m.dispose());
+            } else {
+              obj.material.dispose();
+            }
+          }
+        });
+        
+        resourceMarkers.delete(key);
       }
 
-      // 创建资源标记（小的发光球体）
-      const geometry = new THREE.SphereGeometry(0.15, 16, 16);
-      const material = new THREE.MeshStandardMaterial({
+      // 创建资源标记（发光的宝箱/袋子图标）
+      const group = new THREE.Group();
+      
+      // 主体：小圆柱
+      const bodyGeometry = new THREE.CylinderGeometry(0.15, 0.2, 0.25, 8);
+      const bodyMaterial = new THREE.MeshStandardMaterial({
         color: 0xffd700,
         emissive: 0xffaa00,
-        emissiveIntensity: 0.8,
+        emissiveIntensity: 0.6,
         metalness: 0.7,
-        roughness: 0.3,
+        roughness: 0.3
       });
-      const marker = new THREE.Mesh(geometry, material);
-
+      const body = new THREE.Mesh(bodyGeometry, bodyMaterial);
+      body.position.y = 0.125;
+      group.add(body);
+      
+      // 顶部：发光球
+      const topGeometry = new THREE.SphereGeometry(0.08, 8, 8);
+      const topMaterial = new THREE.MeshStandardMaterial({
+        color: 0xffff00,
+        emissive: 0xffff00,
+        emissiveIntensity: 1.0,
+      });
+      const top = new THREE.Mesh(topGeometry, topMaterial);
+      top.position.y = 0.3;
+      group.add(top);
+      
       const worldX = (position[0] - 7) * 1.0;
       const worldZ = (position[1] - 7) * 1.0;
-      marker.position.set(worldX, 0.3, worldZ); // 悬浮在地面上方
-
+      group.position.set(worldX, 0.15, worldZ);
+      
       // 添加发光点光源
-      const pointLight = new THREE.PointLight(0xffd700, 1.0, 2);
-      pointLight.position.set(0, 0, 0);
-      marker.add(pointLight);
-
-      scene.add(marker);
-      resourceMarkers.set(key, marker);
+      const pointLight = new THREE.PointLight(0xffd700, 1.5, 3);
+      pointLight.position.set(0, 0.3, 0);
+      group.add(pointLight);
+      
+      scene.add(group);
+      resourceMarkers.set(key, group);
     },
     onClearResourceMarker: (position) => {
       const key = `${position[0]},${position[1]}`;
-
+      
       if (resourceMarkers.has(key)) {
         const marker = resourceMarkers.get(key);
         scene.remove(marker);
-        marker.geometry.dispose();
-        marker.material.dispose();
+        
+        // 递归清理所有子对象
+        marker.traverse((obj) => {
+          if (obj.geometry) obj.geometry.dispose();
+          if (obj.material) {
+            if (Array.isArray(obj.material)) {
+              obj.material.forEach(m => m.dispose());
+            } else {
+              obj.material.dispose();
+            }
+          }
+        });
+        
         resourceMarkers.delete(key);
       }
     },
