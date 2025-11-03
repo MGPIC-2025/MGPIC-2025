@@ -207,3 +207,17 @@ pub fn attack_complete(id : Int) -> Unit {
     content: ({ "id": id } : Json).stringify(),
   })
 }
+
+///|
+/// 更新单位血量（用于显示血条）
+pub fn update_health(
+  id : Int,
+  now_health : Float,
+  max_health : Float
+) -> Unit {
+  @global_msg.msg_info.broadcast({
+    type_msg: "update_health",
+    content: (
+      { "id": id, "now_health": now_health, "max_health": max_health } : Json).stringify(),
+  })
+}

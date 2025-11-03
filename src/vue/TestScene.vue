@@ -40,6 +40,27 @@ let raycaster = null;
 let mouse = new THREE.Vector2();
 let gltfLoader = null;
 
+// 血条管理（全局作用域，供 animate() 访问）
+const healthBars = new Map(); // { unitId: { container: Group, background: Mesh, foreground: Mesh } }
+
+// 更新所有血条位置（在动画循环中调用）
+function updateHealthBarsPosition() {
+  healthBars.forEach((healthBar, unitId) => {
+    const model = models.find((m) => m.id === unitId);
+    if (model && model.object) {
+      // 更新血条位置（跟随模型）
+      healthBar.container.position.set(
+        model.object.position.x,
+        model.object.position.y + 1.5,
+        model.object.position.z
+      );
+      
+      // 让血条始终面向相机
+      healthBar.container.lookAt(camera.position);
+    }
+  });
+}
+
 // 第一人称控制
 const keys = {
   w: false,
@@ -410,6 +431,7 @@ function setupMessageQueue() {
   const stateIndicators = new Map(); // { unitId: { canMove: Mesh, canAttack: Mesh } }
   const mapBlocks = new Map(); // { 'x,y': Mesh } 地图块存储
   const resourceMarkers = new Map(); // { 'x,y': Mesh } 资源标记存储
+  // healthBars 已在外部作用域定义
 
   // 创建状态指示器
   function createIndicator(unitId, type, show) {
@@ -456,6 +478,99 @@ function setupMessageQueue() {
       indicators[type] = ring;
     }
   }
+
+  // 创建或更新血条
+  function createOrUpdateHealthBar(unitId, nowHealth, maxHealth) {
+    const model = models.find((m) => m.id === unitId);
+    if (!model || !model.object) return;
+
+    // 如果血条不存在，创建新的
+    if (!healthBars.has(unitId)) {
+      const barWidth = 1.0;
+      const barHeight = 0.1;
+      
+      // 创建血条容器
+      const container = new THREE.Group();
+      
+      // 创建背景（黑色）
+      const bgGeometry = new THREE.PlaneGeometry(barWidth, barHeight);
+      const bgMaterial = new THREE.MeshBasicMaterial({ 
+        color: 0x000000,
+        side: THREE.DoubleSide // 双面渲染
+      });
+      const background = new THREE.Mesh(bgGeometry, bgMaterial);
+      
+      // 创建前景（红色到绿色渐变）
+      const fgGeometry = new THREE.PlaneGeometry(barWidth, barHeight);
+      const fgMaterial = new THREE.MeshBasicMaterial({ 
+        color: 0x00ff00,
+        side: THREE.DoubleSide // 双面渲染
+      });
+      const foreground = new THREE.Mesh(fgGeometry, fgMaterial);
+      foreground.position.z = 0.01; // 稍微前移，避免z-fighting
+      
+      container.add(background);
+      container.add(foreground);
+      
+      // 设置血条位置（在模型上方）
+      container.position.set(
+        model.object.position.x,
+        model.object.position.y + 1.5, // 在模型上方1.5单位
+        model.object.position.z
+      );
+      
+      // 让血条始终面向相机
+      container.lookAt(camera.position);
+      
+      scene.add(container);
+      healthBars.set(unitId, { container, background, foreground });
+    }
+
+    // 更新血条
+    const healthBar = healthBars.get(unitId);
+    const healthPercent = Math.max(0, Math.min(1, nowHealth / maxHealth));
+    
+    // 更新前景宽度
+    const barWidth = 1.0;
+    healthBar.foreground.scale.x = healthPercent;
+    healthBar.foreground.position.x = -barWidth / 2 * (1 - healthPercent);
+    
+    // 根据血量百分比更新颜色（绿->黄->红）
+    if (healthPercent > 0.5) {
+      // 绿色到黄色
+      const t = (1 - healthPercent) * 2;
+      healthBar.foreground.material.color.setRGB(t, 1, 0);
+    } else {
+      // 黄色到红色
+      const t = healthPercent * 2;
+      healthBar.foreground.material.color.setRGB(1, t, 0);
+    }
+    
+    // 更新血条位置（跟随模型）
+    healthBar.container.position.set(
+      model.object.position.x,
+      model.object.position.y + 1.5,
+      model.object.position.z
+    );
+    
+    // 让血条始终面向相机
+    healthBar.container.lookAt(camera.position);
+  }
+
+  // 移除血条
+  function removeHealthBar(unitId) {
+    if (healthBars.has(unitId)) {
+      const healthBar = healthBars.get(unitId);
+      scene.remove(healthBar.container);
+      healthBar.background.geometry.dispose();
+      healthBar.background.material.dispose();
+      healthBar.foreground.geometry.dispose();
+      healthBar.foreground.material.dispose();
+      healthBars.delete(unitId);
+    }
+  }
+
+  // updateHealthBarsPosition 已在外部作用域定义
 
   // 创建地板块缓存（用于显示移动/攻击范围）
   const floorBlocks = new Map(); // key: "x,y", value: THREE.Mesh
@@ -1201,6 +1316,14 @@ function setupMessageQueue() {
         stateIndicators.delete(unitId);
       }
     },
+    onUpdateHealth: (unitId, nowHealth, maxHealth) => {
+      log(`[TestScene] 更新血量: id=${unitId}, hp=${nowHealth}/${maxHealth}`);
+      createOrUpdateHealthBar(unitId, nowHealth, maxHealth);
+    },
+    onRemoveHealthBar: (unitId) => {
+      log(`[TestScene] 移除血条: id=${unitId}`);
+      removeHealthBar(unitId);
+    },
     onPutMapBlock: position => {
       // log(`[TestScene] 放置地图块: position=${position}`)  // 日志太多，已注释
       const key = `${position[0]},${position[1]}`;
@@ -1376,6 +1499,9 @@ function animate() {
       focusState.focusTarget = null;
     }
   }
+
+  // 更新所有血条位置（让血条跟随单位移动并面向相机）
+  updateHealthBarsPosition();
 
   renderer.render(scene, camera);
 }

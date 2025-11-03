@@ -115,8 +115,12 @@ pub fn broadcast_room_content(room : Room) -> Unit {
       let occupant = room.blocks[x][y].occupant
       if occupant is Enemy(enemy) {
         set_enemy(enemy, enemy.id, global_pos)
+        // 显示敌人血条
+        update_health(enemy.id, enemy.now_health, enemy.enemy_base.health)
       } else if occupant is Copper(copper) {
         set_copper(copper, copper.id, global_pos)
+        // 显示铜偶血条
+        update_health(copper.id, copper.now_health, copper.copper.attribute.health)
       } else if occupant is Structure(structure) {
         set_structure(structure, structure.id(), global_pos)
       } else if occupant is ChargingCoil {

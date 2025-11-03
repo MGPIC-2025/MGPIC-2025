@@ -129,12 +129,17 @@ pub fn handle_on_attack_apply(
         enemy_map.remove(enemy.id)
         remove_unit(enemy.id)
         map.remove_occupant(position)
+      } else {
+        // 更新敌人血量显示
+        update_health(enemy.id, enemy.now_health, enemy.enemy_base.health)
       }
       battle_copper.can_attack = false
       battle_copper.update_move_and_attack_status()
     }
     Copper(copper) => {
       copper.apply_mechanic_heal(battle_copper.attribute.attack)
+      // 更新铜偶血量显示
+      update_health(copper.id, copper.now_health, copper.copper.attribute.health)
       battle_copper.can_attack = false
       battle_copper.update_move_and_attack_status()
     }
@@ -526,6 +531,9 @@ fn handle_game_round_pass() -> Unit {
             battle_copper_map.remove(copper.id)
             remove_unit(copper.id)
             map.remove_occupant(copper.position)
+          } else {
+            // 更新铜偶血量显示
+            update_health(copper.id, copper.now_health, copper.copper.attribute.health)
           }
         }
       }
