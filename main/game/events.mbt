@@ -267,8 +267,13 @@ pub fn handle_on_move_apply(
     // 广播新房间的内容到前端
     broadcast_room_content(new_room)
 
-    // 根据位置改变铜偶的朝向
-    change_direction(id, convert_direction_to_unit_direction(direction))
+    // 根据位置改变铜偶的朝向（使用get_direction_by_position计算正确的朝向）
+    change_direction(
+      id,
+      convert_direction_to_unit_direction(
+        get_direction_by_position(now_position, position),
+      ),
+    )
     // 更新铜偶的位置（全局坐标）
     battle_copper.position = position
     // 移动铜偶到新位置（全局坐标）
