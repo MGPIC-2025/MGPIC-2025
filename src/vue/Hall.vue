@@ -40,26 +40,25 @@ onMounted(async () => {
       bgWiki.value,
       bgTutorial.value,
     ];
-    for (let i = 0; i < imageUrls.length; i++) {
-      const url = imageUrls[i];
-      try {
-        const img = new Image();
-        img.crossOrigin = 'anonymous';
-        img.src = url;
-        await new Promise((resolve, reject) => {
-          img.onload = resolve;
-          img.onerror = reject;
-        });
-        log('背景图片预加载成功:', url);
-        if (i < imageUrls.length - 1) {
-          await new Promise(resolve => setTimeout(resolve, 100));
-        }
-      } catch (error) {
-        log('背景图片预加载失败:', url, error.message);
-      }
-    }
+    await Promise.allSettled(
+      imageUrls.map(url =>
+        new Promise(resolve => {
+          const img = new Image();
+          img.crossOrigin = 'anonymous';
+          img.onload = () => {
+            log('背景图片预加载成功:', url);
+            resolve();
+          };
+          img.onerror = () => {
+            log('背景图片预加载失败:', url);
+            resolve();
+          };
+          img.src = url;
+        })
+      )
+    );
   } catch (error) {
-    log('背景图片预加载过程中出现错误:', error.message);
+    log('背景图片预加载过程中出现错误:', error?.message || error);
   }
 });
 </script>

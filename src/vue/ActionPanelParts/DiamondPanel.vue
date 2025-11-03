@@ -122,11 +122,13 @@ onMounted(async () => {
 .diamond-panel {
   position: absolute;
   left: 20px;
-  bottom: 70px;
+  bottom: 80px;
   z-index: 6000;
   display: flex;
   flex-direction: column;
   gap: 4px;
+  transform: scale(1.15);
+  transform-origin: left bottom;
   /* 边框切片默认值 */
   --border-blue-slice: 8;
   --border-green-slice: 8;
@@ -207,16 +209,16 @@ onMounted(async () => {
 
 .diamond-label {
   font-size: 9px;
-  color: rgba(255, 255, 255, 0.7);
-  font-weight: 600;
+  color: #ffffff;
+  font-weight: 900;
   text-transform: uppercase;
-  letter-spacing: 0.3px;
+  letter-spacing: 2px;
 }
 
 .diamond-value {
   font-size: 11px;
-  color: #fff;
-  font-weight: 700;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+  color: #ffffff;
+  font-weight: 900;
+  letter-spacing: 2px;
 }
 </style>

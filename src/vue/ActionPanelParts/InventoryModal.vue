@@ -1,6 +1,5 @@
 <script setup>
-import log from '../../log.js';
-import { getAssetUrl } from '../../utils/resourceLoader.js';
+import { RESOURCE_META, getItemIcon, getItemName } from '../../utils/resourceMeta.js';
 
 const props = defineProps({
   visible: {
@@ -19,33 +18,6 @@ const props = defineProps({
 
 const emit = defineEmits(['close', 'craft', 'drop']);
 
-// 资源元信息映射
-const RESOURCE_META = {
-  HeartCrystalDust: {
-    name: '心晶尘',
-    icon: getAssetUrl('resource/heart_crystal_dust.webp'),
-  },
-  RecallGear: {
-    name: '回响齿轮',
-    icon: getAssetUrl('resource/recall_gear.webp'),
-  },
-  ResonantCrystal: {
-    name: '共鸣星晶',
-    icon: getAssetUrl(
-      'resource/resonant_star_crystal/resonant_star_crystal.webp'
-    ),
-  },
-  RefinedCopper: {
-    name: '精炼铜锭',
-    icon: getAssetUrl(
-      'resource/refined_copper_ingot/refined_copper_ingot.webp'
-    ),
-  },
-  SpiritalSpark: {
-    name: '灵性火花',
-    icon: getAssetUrl('resource/spiritual_spark.webp'),
-  },
-};
 
 // 合成配方物品类型
 const recipeItems = [
@@ -69,30 +41,7 @@ function handleDrop(index) {
   emit('drop', index);
 }
 
-// 获取物品名称
-function getItemName(item) {
-  // MoonBit 枚举序列化为数组: ["Resource", "RefinedCopper"]
-  if (Array.isArray(item.item_type) && item.item_type[0] === 'Resource') {
-    const resourceType = item.item_type[1];
-    return RESOURCE_META[resourceType]?.name || resourceType;
-  } else if (
-    Array.isArray(item.item_type) &&
-    item.item_type[0] === 'Equipment'
-  ) {
-    return '装备';
-  }
-  return '未知物品';
-}
-
-// 获取物品图标
-function getItemIcon(item) {
-  // MoonBit 枚举序列化为数组: ["Resource", "RefinedCopper"]
-  if (Array.isArray(item.item_type) && item.item_type[0] === 'Resource') {
-    const resourceType = item.item_type[1];
-    return RESOURCE_META[resourceType]?.icon || '';
-  }
-  return '';
-}
+// 名称与图标工具改为使用共享方法
 </script>
 
 <template>
@@ -230,12 +179,13 @@ function getItemIcon(item) {
 .inventory-header-mc h3 {
   margin: 0;
   font-size: 18px;
-  color: #fff;
-  text-shadow: 2px 2px 0 rgba(0, 0, 0, 0.5);
+  color: #6a4931;
+  font-weight: 900;
+  letter-spacing: 2px;
 }
 
 .copper-name {
-  color: #cd7f32;
+  color: #6a4931;
 }
 
 .close-btn-mc {
@@ -277,9 +227,9 @@ function getItemIcon(item) {
 
 .crafting-title {
   font-size: 14px;
-  font-weight: bold;
-  color: #fff;
-  text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.5);
+  font-weight: 900;
+  letter-spacing: 2px;
+  color: #6a4931;
   margin-right: 12px;
 }
 
@@ -314,8 +264,10 @@ function getItemIcon(item) {
 
 .craft-arrow {
   font-size: 24px;
-  color: #8b8b8b;
+  color: #6a4931;
   text-align: center;
+  font-weight: 900;
+  letter-spacing: 2px;
 }
 
 .craft-result {
@@ -346,12 +298,13 @@ function getItemIcon(item) {
 .craft-button-mc {
   padding: 8px 16px;
   background: #4a4a4a;
-  color: #fff;
+  color: #fef7f5;
   border: 2px solid #8b8b8b;
   border-top-color: #555;
   border-left-color: #555;
   cursor: pointer;
-  font-weight: bold;
+  font-weight: 900;
+  letter-spacing: 2px;
   font-size: 12px;
   transition: all 0.2s;
   white-space: nowrap;
@@ -409,11 +362,9 @@ function getItemIcon(item) {
   bottom: 2px;
   right: 4px;
   font-size: 10px;
-  font-weight: bold;
-  color: #fff;
-  text-shadow:
-    1px 1px 0 rgba(0, 0, 0, 0.8),
-    -1px -1px 0 rgba(0, 0, 0, 0.8);
+  font-weight: 900;
+  letter-spacing: 1px;
+  color: #6a4931;
   pointer-events: none;
 }
 
@@ -438,16 +389,20 @@ function getItemIcon(item) {
 
 .tooltip-name {
   font-size: 12px;
-  color: #fff;
+  color: #6a4931;
   margin-bottom: 4px;
+  font-weight: 900;
+  letter-spacing: 1px;
 }
 
 .tooltip-drop {
   background: #8b1414;
   border: 1px solid #666;
-  color: #fff;
+  color: #fef7f5;
   padding: 4px 8px;
   font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 1px;
   cursor: pointer;
   width: 100%;
 }

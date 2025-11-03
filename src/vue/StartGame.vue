@@ -2,7 +2,7 @@
 import log from '../log.js';
 import { ref, onMounted, onBeforeUnmount, computed, watch } from 'vue';
 import { get_copper_list, eventloop } from '../glue.js';
-import { getAssetUrl, getCopperModelUrl } from '../utils/resourceLoader.js';
+import { getAssetUrl } from '../utils/resourceLoader.js';
 import modelCache from '../utils/modelCache.js';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';

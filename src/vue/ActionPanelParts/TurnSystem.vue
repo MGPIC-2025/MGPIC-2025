@@ -1,6 +1,6 @@
 <script setup>
 import log from '../../log.js';
-import { computed, onMounted, watch, ref } from 'vue';
+import { computed, onMounted, ref } from 'vue';
 import { eventloop } from '../../glue.js';
 
 const props = defineProps({
@@ -20,7 +20,6 @@ const props = defineProps({
 
 const emit = defineEmits(['nextCopper', 'endRound', 'selectCopper']);
 
-const choicesContainer = ref(null);
 const turnSystemRef = ref(null);
 
 const currentCopperInfo = computed(() => {
@@ -31,49 +30,11 @@ const currentCopperInfo = computed(() => {
   return {
     id: copper.id,
     name: copper.name || `铜偶 #${copper.id}`,
+    level: copper.level || 1,
   };
 });
 
-// 同步更新图片状态（与 7/index.html 逻辑一致）
-function updateChoiceImages() {
-  if (!choicesContainer.value) return;
-  const buttons = choicesContainer.value.querySelectorAll('.choice');
-  buttons.forEach(btn => {
-    const img = btn.querySelector('img');
-    if (!img) return;
-    const copperId = parseInt(btn.getAttribute('data-copper-id'));
-    const isSelected = copperId === props.currentCopperId;
-    btn.setAttribute('aria-pressed', String(isSelected));
-    const defaultSrc =
-      img.getAttribute('data-default-src') || '/assets/choice.png';
-    const selectedSrc =
-      img.getAttribute('data-selected-src') || '/assets/choice-active.png';
-    if (isSelected) {
-      img.setAttribute('data-default-src', defaultSrc);
-      img.setAttribute('src', selectedSrc);
-    } else {
-      img.setAttribute('src', defaultSrc);
-    }
-  });
-}
-
-// 监听 currentCopperId 变化，同步更新图片状态
-watch(
-  () => props.currentCopperId,
-  () => {
-    updateChoiceImages();
-  },
-  { immediate: true }
-);
-
-// 监听 copperList 变化，同步更新图片状态
-watch(
-  () => props.copperList,
-  () => {
-    updateChoiceImages();
-  },
-  { deep: true }
-);
+// 依赖模板绑定自动切换选中态，无需手动 DOM 操作
 
 function handleNextCopper() {
   emit('nextCopper');
@@ -86,27 +47,6 @@ async function handleEndRound() {
 }
 
 function handleSelectCopper(id) {
-  // 立即更新图片状态（本地反馈）
-  if (choicesContainer.value) {
-    const buttons = choicesContainer.value.querySelectorAll('.choice');
-    buttons.forEach(btn => {
-      const img = btn.querySelector('img');
-      if (!img) return;
-      const copperId = parseInt(btn.getAttribute('data-copper-id'));
-      const isSelected = copperId === id;
-      btn.setAttribute('aria-pressed', String(isSelected));
-      const defaultSrc =
-        img.getAttribute('data-default-src') || '/assets/choice.png';
-      const selectedSrc =
-        img.getAttribute('data-selected-src') || '/assets/choice-active.png';
-      if (isSelected) {
-        img.setAttribute('data-default-src', defaultSrc);
-        img.setAttribute('src', selectedSrc);
-      } else {
-        img.setAttribute('src', defaultSrc);
-      }
-    });
-  }
   emit('selectCopper', id);
 }
 
@@ -197,11 +137,11 @@ onMounted(async () => {
                 ? `当前铜偶：${currentCopperInfo.name || `铜偶 #${currentCopperId}`}`
                 : '当前铜偶：—'
             }}
+            （Lv.{{ currentCopperInfo?.level || 1 }}）
           </div>
         </section>
 
         <section
-          ref="choicesContainer"
           class="section section-choices"
           role="group"
           aria-label="Character Queue"
@@ -250,7 +190,7 @@ onMounted(async () => {
 /* 位置调整变量 */
 .turn-system {
   /* ribbon 位置偏移 */
-  --ribbon-offset-x: 75px; /* 水平偏移（负为左，正为右） */
+  --ribbon-offset-x: 65px; /* 水平偏移（负为左，正为右） */
   --ribbon-offset-y: 20px; /* 垂直偏移（负为上，正为下） */
 
   /* btn/actions 位置偏移 */
@@ -273,8 +213,8 @@ onMounted(async () => {
   --current-doll-offset-y: 8px; /* 垂直偏移（负为上，正为下） */
 
   /* current-doll 尺寸调整 */
-  --current-doll-min-width: 200px; /* 最小宽度，用于使边框更长 */
-  --current-doll-padding-x: 20px; /* 左右内边距，用于使边框更长 */
+  --current-doll-min-width: 280px; /* 最小宽度，用于使边框更长 */
+  --current-doll-padding-x: 28px; /* 左右内边距，用于使边框更长 */
 }
 
 .turn-system {

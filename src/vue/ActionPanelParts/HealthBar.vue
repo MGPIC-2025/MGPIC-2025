@@ -17,16 +17,10 @@ const bloodBorderLeftSrc = new URL(
   '../../../assets/blood-border-left.png',
   import.meta.url
 ).href;
-const bloodBorderMiddleSrc = new URL(
-  '../../../assets/blood-border-middle.png',
-  import.meta.url
-).href;
 const bloodBorderRightSrc = new URL(
   '../../../assets/blood-border-right.png',
   import.meta.url
 ).href;
-const bloodBarSrc = new URL('../../../assets/blood-bar.png', import.meta.url)
-  .href;
 
 const hpPercentage = computed(() => {
   if (!props.maxHp || props.maxHp === 0) return 0;
@@ -72,7 +66,7 @@ const hpText = computed(() => {
   left: 20px;
   bottom: 20px;
   width: min(360px, 40vw);
-  transform: scale(0.5);
+  transform: scale(0.7);
   transform-origin: left bottom;
   z-index: 6000;
   image-rendering: pixelated;
@@ -142,11 +136,9 @@ const hpText = computed(() => {
   top: 50%;
   transform: translate(-50%, -50%);
   z-index: 2;
-  color: #fff;
+  color: #ffffff;
   font-size: 14px;
   font-weight: bold;
-  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
   white-space: nowrap;
-  font-family: 'Press Start 2P', 'Courier New', monospace;
 }
 </style>

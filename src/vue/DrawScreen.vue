@@ -13,12 +13,6 @@ const tempName = ref('抽卡展示');
 const tempIcon = ref('✨');
 const tempImage = ref('');
 const tempRect = ref({ left: 0, top: 0, width: 0, height: 0 });
-function resolveAssetUrl(path) {
-  if (!path) return '';
-  // 后端多为以 /assets 开头的绝对路径，直接使用即可
-  if (typeof path === 'string' && path.startsWith('/')) return path;
-  return getAssetUrl(path);
-}
 
 const infoVisible = ref(false);
 const cardFlipped = ref(false);

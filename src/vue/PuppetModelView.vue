@@ -4,7 +4,6 @@ import { ref, watch, onMounted, onBeforeUnmount, nextTick } from 'vue';
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js';
-import { getAssetUrl, loadResourceWithCache } from '../utils/resourceLoader.js';
 import modelCache from '../utils/modelCache.js';
 
 const props = defineProps({
@@ -283,7 +282,7 @@ async function loadPuppetModel(puppet) {
     log('[PuppetModelView] Puppet data:', puppet);
 
     // 尝试不使用 Draco 解码器重新加载
-    if (e.message.includes('DRACOLoader')) {
+    if (typeof e?.message === 'string' && e.message.includes('DRACOLoader')) {
       log('[PuppetModelView] Retrying without Draco decoder...');
       try {
         // 创建一个临时的fallback loader，不使用Draco

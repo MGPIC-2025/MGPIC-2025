@@ -19,7 +19,6 @@ const props = defineProps({
 });
 
 const canvasRef = ref(null);
-const uiRootRef = ref(null);
 let scene = null;
 let camera = null;
 let renderer = null;
@@ -129,7 +128,7 @@ async function initScene(onProgress = null) {
   } catch (_) {}
 
   if (!scene || !renderer) {
-    logor('[StartMenu] Scene or renderer not initialized in onMounted');
+    log('[StartMenu] Scene or renderer not initialized in onMounted');
     return;
   }
 
@@ -324,7 +323,6 @@ onBeforeUnmount(() => {
     <canvas ref="canvasRef" class="startmenu__canvas" />
 
     <div
-      ref="uiRootRef"
       class="startmenu-ui"
       v-show="showButtons"
       :class="{ 'fade-in': showButtons }"

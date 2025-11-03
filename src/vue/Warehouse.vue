@@ -2,6 +2,7 @@
 import log from '../log.js';
 import { ref, onMounted, defineExpose, nextTick } from 'vue';
 import { getAssetUrl } from '../utils/resourceLoader.js';
+import { RESOURCE_META } from '../utils/resourceMeta.js';
 import DrawScreen from './DrawScreen.vue';
 import PuppetModelView from './PuppetModelView.vue';
 import {
@@ -20,32 +21,6 @@ const ORDERED_RESOURCE_KEYS = [
   'HeartCrystalDust',
 ];
 
-const RESOURCE_META = {
-  SpiritalSpark: {
-    name: '灵性火花',
-    icon: getAssetUrl('resource/spiritual_spark.webp'),
-  },
-  RecallGear: {
-    name: '回响齿轮',
-    icon: getAssetUrl('resource/recall_gear.webp'),
-  },
-  ResonantCrystal: {
-    name: '共鸣星晶',
-    icon: getAssetUrl(
-      'resource/resonant_star_crystal/resonant_star_crystal.webp'
-    ),
-  },
-  RefinedCopper: {
-    name: '精炼铜锭',
-    icon: getAssetUrl(
-      'resource/refined_copper_ingot/refined_copper_ingot.webp'
-    ),
-  },
-  HeartCrystalDust: {
-    name: '心晶尘',
-    icon: getAssetUrl('resource/heart_crystal_dust.webp'),
-  },
-};
 
 function mapResources(plain) {
   return ORDERED_RESOURCE_KEYS.map(k => ({
@@ -96,9 +71,7 @@ function mapPuppets(arr) {
 
     const modelUrlRaw = info?.model_url || '';
     const modelUrl = modelUrlRaw ? getAssetUrl(modelUrlRaw) : '';
-    log(
-      `[Warehouse] Copper ${info?.name || idx + 1}: model_url=${modelUrlRaw}, processed=${modelUrl}`
-    );
+    // 记录模型URL解析
 
     return {
       id: Number(copper?.id ?? idx + 1),
@@ -229,10 +202,10 @@ onMounted(async () => {
         log('[Warehouse] copper entries sample:', plainCopper.entries);
       }
     }
-    log(
-      '[Warehouse] copper array length:',
-      Array.isArray(arr) ? arr.length : 'not array'
-    );
+    // 简化日志：仅在数组不可用时记录
+    if (!Array.isArray(arr)) {
+      log('[Warehouse] copper list not array');
+    }
     puppets.value = mapPuppets(arr);
     if (Array.isArray(puppets.value) && puppets.value.length > 0) {
       selectedPuppet.value = puppets.value[0];

@@ -2,10 +2,11 @@
 import log from '../log.js';
 import { ref, computed } from 'vue';
 import { eventloop } from '../glue.js';
-import { getAssetUrl } from '../utils/resourceLoader.js';
+import { getItemName } from '../utils/resourceMeta.js';
 import DiamondPanel from './ActionPanelParts/DiamondPanel.vue';
 import InventoryModal from './ActionPanelParts/InventoryModal.vue';
 import HealthBar from './ActionPanelParts/HealthBar.vue';
+import TriPanel from './ActionPanelParts/TriPanel.vue';
 
 const props = defineProps({
   copper: {
@@ -28,39 +29,8 @@ const props = defineProps({
 
 const emit = defineEmits(['close', 'action', 'selectCopper']);
 
-// 资源元信息映射
-const RESOURCE_META = {
-  HeartCrystalDust: {
-    name: '心晶尘',
-    icon: getAssetUrl('resource/heart_crystal_dust.webp'),
-  },
-  RecallGear: {
-    name: '回响齿轮',
-    icon: getAssetUrl('resource/recall_gear.webp'),
-  },
-  ResonantCrystal: {
-    name: '共鸣星晶',
-    icon: getAssetUrl(
-      'resource/resonant_star_crystal/resonant_star_crystal.webp'
-    ),
-  },
-  RefinedCopper: {
-    name: '精炼铜锭',
-    icon: getAssetUrl(
-      'resource/refined_copper_ingot/refined_copper_ingot.webp'
-    ),
-  },
-  SpiritalSpark: {
-    name: '灵性火花',
-    icon: getAssetUrl('resource/spiritual_spark.webp'),
-  },
-};
 
-// 三角图标资源
-const hexSrc = new URL('../../assets/your-image.png', import.meta.url).href; // 六边形背景
-const moveIconSrc = new URL('../../assets/boot.png', import.meta.url).href; // 移动图标（靴子）
-const waitIconSrc = new URL('../../assets/mushroom.png', import.meta.url).href; // 等待图标（蘑菇）
-const attackIconSrc = new URL('../../assets/sword.png', import.meta.url).href; // 攻击图标（剑）
+// 三角操作面板已独立为组件 TriPanel
 
 // 面板状态：'full' = 完整显示, 'minimized' = 最小化到底部
 const panelMode = ref('full');
@@ -189,28 +159,9 @@ function close() {
   emit('close');
 }
 
-// 恢复完整显示
-function restore() {
-  panelMode.value = 'full';
-  actionMode.value = null;
-}
+// 恢复完整显示逻辑已移除
 
-// 获取资源名称
-function getResourceName(resource) {
-  if (
-    Array.isArray(resource.item_type) &&
-    resource.item_type[0] === 'Resource'
-  ) {
-    const resourceType = resource.item_type[1];
-    return RESOURCE_META[resourceType]?.name || resourceType;
-  } else if (
-    Array.isArray(resource.item_type) &&
-    resource.item_type[0] === 'Equipment'
-  ) {
-    return '装备';
-  }
-  return '未知物品';
-}
+// 使用共享工具获取资源名称
 
 // 取消当前操作
 function cancelAction() {
@@ -228,8 +179,8 @@ async function handleSelectCopper(copperId) {
   }
 }
 
-// 暴露方法给父组件
-defineExpose({ restore, cancelAction, handleSelectCopper });
+// 暴露方法给父组件（不再暴露 restore）
+defineExpose({ cancelAction, handleSelectCopper });
 </script>
 
 <template>
@@ -245,8 +196,13 @@ defineExpose({ restore, cancelAction, handleSelectCopper });
     <HealthBar :hp="copperInfo?.hp || 0" :max-hp="copperInfo?.maxHp || 100" />
 
     <div
+      v-if="panelMode === 'minimized' || (resources && resources.length > 0)"
       class="copper-panel"
-      :class="{ 'copper-panel--minimized': panelMode === 'minimized' }"
+      :class="{
+        'copper-panel--minimized': panelMode === 'minimized',
+        'copper-panel--min-attack': panelMode === 'minimized' && actionMode === 'attacking',
+        'copper-panel--min-move': panelMode === 'minimized' && actionMode === 'moving'
+      }"
       @click.stop
     >
       <!-- 最小化状态 -->
@@ -256,19 +212,12 @@ defineExpose({ restore, cancelAction, handleSelectCopper });
           <span class="minimized-action">
             {{
               actionMode === 'moving'
-                ? '🚶 选择移动位置...'
-                : '⚔️ 选择攻击目标...'
+                ? '选择移动位置...'
+                : '选择攻击目标...'
             }}
           </span>
         </div>
         <div class="minimized-actions">
-          <button
-            class="mini-btn mini-btn--restore"
-            @click="restore"
-            title="展开"
-          >
-            ▲
-          </button>
           <button
             class="mini-btn mini-btn--cancel"
             @click="cancelAction"
@@ -285,15 +234,7 @@ defineExpose({ restore, cancelAction, handleSelectCopper });
         <button class="close-btn" @click="close" title="关闭">✕</button>
 
         <div class="panel-content">
-          <!-- 铜偶信息 -->
-          <div class="copper-info">
-            <div class="info-top">
-              <div class="copper-header">
-                <h3 class="copper-name">{{ copperInfo.name }}</h3>
-                <span class="copper-level">Lv.{{ copperInfo.level }}</span>
-              </div>
-            </div>
-          </div>
+          <!-- 铜偶信息（已移除不再展示） -->
 
           <!-- 地面资源（如果有） -->
           <div v-if="resources && resources.length > 0" class="resources">
@@ -307,7 +248,7 @@ defineExpose({ restore, cancelAction, handleSelectCopper });
                 title="点击拾取"
               >
                 <span class="resource-name">{{
-                  getResourceName(resource)
+                  getItemName(resource)
                 }}</span>
                 <span class="resource-count">x{{ resource.count || 1 }}</span>
                 <span class="resource-pickup">⬆️</span>
@@ -318,36 +259,14 @@ defineExpose({ restore, cancelAction, handleSelectCopper });
       </template>
     </div>
 
-    <!-- 操作三角图标 ！-->
-    <div class="tri-panel">
-      <div class="tri" aria-label="三角排列图像">
-        <!-- 顶部：移动 -->
-        <div
-          class="hex top"
-          :title="copperInfo?.canMove ? '移动' : '本回合已移动'"
-          :class="{ 'is-locked': copperInfo && copperInfo.canMove === false }"
-          @click="handleMove"
-        >
-          <img class="hex-bg" :src="hexSrc" alt="六边形背景" />
-          <img class="hex-icon" :src="waitIconSrc" alt="移动图标（蘑菇）" />
-        </div>
-        <!-- 左下：等待 -->
-        <div class="hex left" title="等待" @click="handleWait">
-          <img class="hex-bg" :src="hexSrc" alt="六边形背景" />
-          <img class="hex-icon" :src="moveIconSrc" alt="等待图标（靴子）" />
-        </div>
-        <!-- 右下：攻击 -->
-        <div
-          class="hex right"
-          :title="copperInfo?.canAttack ? '攻击' : '本回合已攻击'"
-          :class="{ 'is-locked': copperInfo && copperInfo.canAttack === false }"
-          @click="handleAttack"
-        >
-          <img class="hex-bg" :src="hexSrc" alt="六边形背景" />
-          <img class="hex-icon" :src="attackIconSrc" alt="攻击图标（剑）" />
-        </div>
-      </div>
-    </div>
+    <!-- 操作三角图标 -->
+    <TriPanel
+      :can-move="copperInfo?.canMove !== false"
+      :can-attack="copperInfo?.canAttack !== false"
+      @move="handleMove"
+      @wait="handleWait"
+      @attack="handleAttack"
+    />
   </div>
 
   <!-- 背包弹窗 -->
@@ -390,9 +309,53 @@ defineExpose({ restore, cancelAction, handleSelectCopper });
 
 .copper-panel--minimized {
   bottom: 48px;
-  width: min(300px, 75vw);
+  /* Use 320px (10x of 32px) to keep pixel-art crisp */
+  width: min(300px,170vw);
+  /* Increase height in 32px multiples for pixel-art clarity */
+  min-height: 100px; /* 32 * 6 */
   padding: 12px 16px;
   border-radius: 12px;
+}
+
+/* 边框：攻击 = 红色；移动 = 绿色（仅在最小化时生效） */
+.copper-panel--minimized.copper-panel--min-attack {
+  border: none;
+  /* Two-layer background: top = sword badge, bottom = red panel */
+  background-image: url('/assets/sword.png'), url('/assets/red.png');
+  background-repeat: no-repeat, no-repeat;
+  background-position: 8px 8px, center;
+  /* keep red panel slightly expanded to compensate asset margins */
+  background-size: 32px 32px, 130% 122%;
+  background-origin: padding-box, border-box;
+  background-clip: padding-box, border-box;
+  image-rendering: pixelated;
+}
+
+.copper-panel--minimized.copper-panel--min-move {
+  border: none;
+  /* Two-layer background: top = boot badge, bottom = green panel */
+  background-image: url('/assets/boot.png'), url('/assets/green.png');
+  background-repeat: no-repeat, no-repeat;
+  background-position: 8px 8px, center;
+  /* keep green panel slightly expanded to compensate asset margins */
+  background-size: 32px 32px, 130% 122%;
+  background-origin: padding-box, border-box;
+  background-clip: padding-box, border-box;
+  image-rendering: pixelated;
+}
+
+/* 居中最小化面板文字 */
+.minimized-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.minimized-info {
+  width: 100%;
+  text-align: center;
+  margin-top: 30px;
 }
 
 @keyframes slideUp {
@@ -512,147 +475,5 @@ defineExpose({ restore, cancelAction, handleSelectCopper });
   opacity: 0.7;
 }
 
-/* ====== Tri icons (migrated from ClockPanel) ====== */
-.tri-panel {
-  position: absolute;
-  right: 29px;
-  bottom: 10px;
-  z-index: 6000;
-}
-.tri-panel {
-  --gap: 0px;
-  --size: 64px;
-  --overlapY: 16px;
-  --overlapX: 37px;
-  --topDropY: -8px;
-}
-@media (min-width: 640px) {
-  .tri-panel {
-    --size: 80px;
-  }
-}
-.tri {
-  display: grid;
-  grid-template-columns: repeat(3, max-content);
-  grid-template-rows: repeat(2, max-content);
-  gap: var(--gap);
-  align-items: center;
-  justify-items: center;
-}
-.hex {
-  position: relative;
-  width: var(--size);
-  height: var(--size);
-  image-rendering: pixelated;
-  image-rendering: crisp-edges;
-  user-select: none;
-  -webkit-user-drag: none;
-  transition:
-    transform 120ms ease,
-    opacity 120ms ease,
-    filter 120ms ease;
-  cursor: pointer;
-}
-.hex-bg {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  image-rendering: pixelated;
-  image-rendering: crisp-edges;
-  pointer-events: none;
-}
-.hex-icon {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 47%;
-  height: 47%;
-  image-rendering: pixelated;
-  image-rendering: crisp-edges;
-  pointer-events: none;
-}
-.top {
-  grid-column: 2;
-  grid-row: 1;
-}
-.left {
-  grid-column: 1;
-  grid-row: 2;
-}
-.right {
-  grid-column: 3;
-  grid-row: 2;
-}
-.top {
-  transform: translateY(var(--topDropY));
-}
-.left {
-  transform: translate(var(--overlapX), calc(-1 * var(--overlapY)));
-}
-.right {
-  transform: translate(calc(-1 * var(--overlapX)), calc(-1 * var(--overlapY)));
-}
-.hex:is(.top, .left, .right):hover {
-  filter: brightness(1.08);
-}
-.is-locked {
-  opacity: 0.5;
-  cursor: not-allowed;
-  filter: grayscale(0.2);
-}
-.hex.top:hover:not(.is-locked) {
-  animation: float-top 1200ms ease-in-out infinite;
-}
-.hex.left:hover:not(.is-locked) {
-  animation: float-left 1200ms ease-in-out infinite;
-}
-.hex.right:hover:not(.is-locked) {
-  animation: float-right 1200ms ease-in-out infinite;
-}
-@keyframes float-top {
-  0% {
-    transform: translateY(var(--topDropY)) scale(1);
-  }
-  50% {
-    transform: translateY(calc(var(--topDropY) - 2px)) scale(1.06);
-  }
-  100% {
-    transform: translateY(var(--topDropY)) scale(1);
-  }
-}
-@keyframes float-left {
-  0% {
-    transform: translate(var(--overlapX), calc(-1 * var(--overlapY))) scale(1);
-  }
-  50% {
-    transform: translate(
-        calc(var(--overlapX) + 1px),
-        calc(-1 * var(--overlapY) - 2px)
-      )
-      scale(1.06);
-  }
-  100% {
-    transform: translate(var(--overlapX), calc(-1 * var(--overlapY))) scale(1);
-  }
-}
-@keyframes float-right {
-  0% {
-    transform: translate(calc(-1 * var(--overlapX)), calc(-1 * var(--overlapY)))
-      scale(1);
-  }
-  50% {
-    transform: translate(
-        calc(-1 * var(--overlapX) - 1px),
-        calc(-1 * var(--overlapY) - 2px)
-      )
-      scale(1.06);
-  }
-  100% {
-    transform: translate(calc(-1 * var(--overlapX)), calc(-1 * var(--overlapY)))
-      scale(1);
-  }
-}
+/* TriPanel styles moved into the component */
 </style>
