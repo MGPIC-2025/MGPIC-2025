@@ -110,6 +110,17 @@ pub fn display_can_attack(id : Int, can_attack : Bool) -> Unit {
 }
 
 ///|
+/// 显示一个单位的可召唤状态，true 表示可召唤，false 表示不可召唤
+/// 可以召唤的时候我希望可以在单位脚下显示一个黄色圈圈，然后不可以召唤的时候清除就好
+/// 他和 display_can_move 和 display_can_attack 的圈圈最好可以叠加显示
+pub fn display_can_summon(id : Int, can_summon : Bool) -> Unit {
+  @global_msg.msg_info.broadcast({
+    type_msg: "display_can_summon",
+    content: ({ "id": id, "can_summon": can_summon.to_string() } : Json).stringify(),
+  })
+}
+
+///|
 /// 清除一个单位的任何状态（包括可移动状态和可攻击状态）
 pub fn clear_state(id : Int) -> Unit {
   @global_msg.msg_info.broadcast({
@@ -191,6 +202,15 @@ pub fn set_attack_block(position : (Int, Int)) -> Unit {
 }
 
 ///|
+/// 设置一个地图块为可召唤状态，就是把它直接渲染为黄色就可以了
+pub fn set_can_summon_blocks(position : (Int, Int)) -> Unit {
+  @global_msg.msg_info.broadcast({
+    type_msg: "set_can_summon_blocks",
+    content: ({ "position": position } : Json).stringify(),
+  })
+}
+
+///|
 /// 清除一个地图块的任何状态
 pub fn clear_block(position : (Int, Int)) -> Unit {
   @global_msg.msg_info.broadcast({
@@ -210,11 +230,7 @@ pub fn attack_complete(id : Int) -> Unit {
 
 ///|
 /// 更新单位血量（用于显示血条）
-pub fn update_health(
-  id : Int,
-  now_health : Float,
-  max_health : Float
-) -> Unit {
+pub fn update_health(id : Int, now_health : Float, max_health : Float) -> Unit {
   @global_msg.msg_info.broadcast({
     type_msg: "update_health",
     content: (

@@ -8,6 +8,7 @@ struct BattleCopper {
   copper : @coppers.Copper
   mut can_move : Bool // 可移动状态，如果为 false，前端应该不允许点击移动按钮
   mut can_attack : Bool // 可攻击状态，如果为 false，前端应该不允许点击攻击按钮
+  mut can_summon : Bool // 可召唤状态，如果为 false，前端应该不允许点击召唤按钮
   mut position : (Int, Int)
   mut now_health : Float
   attribute : @attribute.Attribute
@@ -36,6 +37,7 @@ fn BattleCopper::new(
     original_id,
     can_move: true,
     can_attack,
+    can_summon: copper.copper_type is Resonator,
     position,
     now_health: copper.attribute.health,
     attribute: copper.attribute,
@@ -111,20 +113,6 @@ fn BattleCopper::get_can_attack(
 }
 
 ///|
-fn BattleCopper::attack(
-  battle_copper : BattleCopper,
-  map : Map_,
-  enemy : Enemy,
-  target_position : (Int, Int),
-) -> Unit {
-  let result = enemy.apply_attack(battle_copper.attribute.attack)
-  if result {
-    remove_unit(enemy.id)
-    map.remove_occupant(target_position)
-  }
-}
-
-///|
 fn BattleCopper::get_can_move(
   battle_copper : BattleCopper,
   map : Map_,
@@ -182,13 +170,18 @@ fn BattleCopper::transfer(
 }
 
 ///|
-fn BattleCopper::update_move_and_attack_status(copper : BattleCopper) -> Unit {
+fn BattleCopper::update_move_and_attack_and_summon_status(
+  copper : BattleCopper,
+) -> Unit {
   clear_state(copper.id)
   if copper.can_move {
     display_can_move(copper.id, true)
   }
   if copper.can_attack {
     display_can_attack(copper.id, true)
+  }
+  if copper.can_summon {
+    display_can_summon(copper.id, true)
   }
 }
 

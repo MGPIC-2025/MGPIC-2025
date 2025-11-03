@@ -56,9 +56,12 @@ pub fn Room::new(
     let position = sumoon_postion(escape_set)
     escape_set.add(position)
     // 将房间内的本地坐标转换为全局坐标
-    let global_position = (index_position.0 + position.0, index_position.1 + position.1)
+    let global_position = (
+      index_position.0 + position.0,
+      index_position.1 + position.1,
+    )
     blocks[position.0][position.1].occupant = Occupant::Enemy(
-      Enemy::new(enemy, global_position),
+      Enemy::new(enemy, global_position, false),
     )
   }
   // 生成 RefinedCopperIngot（作为地面资源，不占用格子）

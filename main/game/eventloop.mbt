@@ -73,6 +73,35 @@ pub fn eventloop(msg : String) -> Unit {
       ..
     } => handle_on_copper_unequip_item(string_to_int(id), string_to_int(index))
     { "type": "on_game_round_pass", .. } => handle_game_round_pass()
+    { "type": "on_click_enemy", "content": { "id": id, .. }, .. } =>
+      handle_on_click_enemy(string_to_int(id))
+    { "type": "on_enemy_attack_start", "content": { "id": id, .. }, .. } =>
+      handle_on_enemy_attack_start(force_get_current_map(), string_to_int(id))
+    { "type": "on_enemy_attack_end", .. } => handle_on_enemy_attack_end()
+    {
+      "type": "on_enemy_attack_apply",
+      "content": { "id": id, "position": { "x": x, "y": y, .. }, .. },
+      ..
+    } =>
+      handle_on_enemy_attack_apply(
+        string_to_int(id),
+        (string_to_int(x), string_to_int(y)),
+        force_get_current_map(),
+      )
+    { "type": "on_enemy_move_start", "content": { "id": id, .. }, .. } =>
+      handle_on_enemy_move_start(force_get_current_map(), string_to_int(id))
+    { "type": "on_enemy_move_end", .. } => handle_on_enemy_move_end()
+    {
+      "type": "on_enemy_move_apply",
+      "content": { "id": id, "position": { "x": x, "y": y, .. }, .. },
+      ..
+    } =>
+      handle_on_enemy_move_apply(
+        string_to_int(id),
+        (string_to_int(x), string_to_int(y)),
+        force_get_current_map(),
+      )
+    { "type": "on_summon_end", .. } => handle_on_summon_end()
     _ => abort("Invalid message")
   }
 }

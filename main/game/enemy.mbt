@@ -4,6 +4,10 @@ let enemy_map : Map[Int, Enemy] = {}
 ///|
 pub struct Enemy {
   id : Int
+  owned : Bool
+  // 是否可以移动/攻击（仅用于 owned 为 true 的敌人）
+  mut can_move : Bool
+  mut can_attack : Bool
   mut position : (Int, Int)
   mut now_health : Float
   enemy_base : EnemyBase
@@ -27,10 +31,17 @@ struct EnemyBase {
 } derive(ToJson)
 
 ///|
-fn Enemy::new(enemy_base : EnemyBase, position : (Int, Int)) -> Enemy {
+fn Enemy::new(
+  enemy_base : EnemyBase,
+  position : (Int, Int),
+  owned : Bool,
+) -> Enemy {
   let enemy = {
     id: @id.id_pool.get_id(),
     position,
+    owned,
+    can_move: owned,
+    can_attack: owned,
     now_health: enemy_base.health,
     enemy_base,
   }
@@ -77,8 +88,8 @@ fn Enemy::get_attack_targets(
     let position = (enemy.position.0 + offset_.0, enemy.position.1 + offset_.1)
     if map.is_occupy(position) {
       let occupant = map.get_occupant(position)
-      if occupant is Copper(copper) {
-        can_attack.push(CanAttackTarget::Copper(copper))
+      if occupant is Enemy(enemy) && enemy.owned == false {
+        can_attack.push(CanAttackTarget::Enemy(enemy))
       }
     }
   }
@@ -114,4 +125,28 @@ fn Enemy::find_nearest_attack_target(
     }
   }
   nearest_target
+}
+
+///|
+fn Enemy::get_can_move(enemy : Enemy, map : Map_) -> Array[(Int, Int)] {
+  let offset = generate_offset(enemy.enemy_base.move_range)
+  let can_move = []
+  for offset_ in offset {
+    let position = (enemy.position.0 + offset_.0, enemy.position.1 + offset_.1)
+    if !map.is_occupy_or_out_of_map(position) {
+      can_move.push(position)
+    }
+  }
+  can_move
+}
+
+///|
+fn Enemy::update_move_and_attack_and_summon_status(enemy : Enemy) -> Unit {
+  clear_state(enemy.id)
+  if enemy.can_move {
+    display_can_move(enemy.id, true)
+  }
+  if enemy.can_attack {
+    display_can_attack(enemy.id, true)
+  }
 }

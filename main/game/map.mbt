@@ -33,6 +33,16 @@ fn Map_::new(escape_set : Set[(Int, Int)]) -> Map_ {
 }
 
 ///|
+fn Map_::is_occupy_or_out_of_map(map : Map_, position : (Int, Int)) -> Bool {
+  let room = Map_::find_position_in_map(map, position)
+  if room is Some(room) {
+    guard map.global_position_to_room_position(position) is Some((_, position))
+    return !(room.blocks[position.0][position.1].occupant is Empty)
+  }
+  true
+}
+
+///|
 fn Map_::is_occupy(map : Map_, position : (Int, Int)) -> Bool {
   let room = Map_::find_position_in_map(map, position)
   if room is Some(room) {
@@ -120,7 +130,11 @@ pub fn broadcast_room_content(room : Room) -> Unit {
       } else if occupant is Copper(copper) {
         set_copper(copper, copper.id, global_pos)
         // 显示铜偶血条
-        update_health(copper.id, copper.now_health, copper.copper.attribute.health)
+        update_health(
+          copper.id,
+          copper.now_health,
+          copper.copper.attribute.health,
+        )
       } else if occupant is Structure(structure) {
         set_structure(structure, structure.id(), global_pos)
       } else if occupant is ChargingCoil {
