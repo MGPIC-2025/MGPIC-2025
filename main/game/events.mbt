@@ -547,6 +547,7 @@ fn handle_game_round_pass() -> Unit {
           enemy.position,
           target_position,
           enemy.enemy_base.move_range,
+          enemy.enemy_base.attack_range,
         )
         if next_position is Some(next_position) {
           animate_move(enemy.id)

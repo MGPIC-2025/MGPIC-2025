@@ -81,7 +81,8 @@ fn PathFinderMap::get_next_step(
   path_finder_map : PathFinderMap,
   start : (Int, Int),
   end : (Int, Int),
-  range : Int,
+  move_range : Int,
+  attack_range : Int,
 ) -> (Int, Int)? {
   if start == end {
     return Some(start)
@@ -108,9 +109,9 @@ fn PathFinderMap::get_next_step(
     }
     open_list.remove(current_index) |> ignore
     closed_list.set(current.position, true)
-    // 如果到达终点，或者当前位置在end的range范围内（足够接近目标）
+    // 如果到达终点，或者当前位置在攻击范围内（可以攻击目标）
     let distance_to_end = manhattan_distance(current.position, end)
-    if current.position == end || distance_to_end <= range {
+    if current.position == end || distance_to_end <= attack_range {
       let mut current_pos = current.position
       let mut next_step = current.position
       while came_from.get(current_pos) is Some(parent_pos) {
@@ -123,7 +124,7 @@ fn PathFinderMap::get_next_step(
       return Some(next_step)
     }
     let neighbors = path_finder_map.get_walkable_neighbors(
-      range,
+      move_range,
       current.position,
     )
     for neighbor in neighbors {

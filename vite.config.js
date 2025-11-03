@@ -54,7 +54,7 @@ export default defineConfig(({ mode }) => ({
             );
             console.log('MoonBit 构建完成');
           } catch (error) {
-            log('MoonBit 构建失败:', error.message);
+            console.log('MoonBit 构建失败:', error.message);
           }
         };
 
