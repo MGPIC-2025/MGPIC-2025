@@ -1,20 +1,21 @@
 <script setup>
+import log from '../../log.js';
 import { computed, onMounted, watch, ref } from 'vue';
 import { eventloop } from '../../glue.js';
 
 const props = defineProps({
   currentCopperId: {
     type: Number,
-    default: null
+    default: null,
   },
   copperList: {
     type: Array,
-    default: () => []
+    default: () => [],
   },
   roundNumber: {
     type: Number,
-    default: 1
-  }
+    default: 1,
+  },
 });
 
 const emit = defineEmits(['nextCopper', 'endRound', 'selectCopper']);
@@ -29,7 +30,7 @@ const currentCopperInfo = computed(() => {
   // copperList 中的对象结构是 { id, name, turnDone }
   return {
     id: copper.id,
-    name: copper.name || `铜偶 #${copper.id}`
+    name: copper.name || `铜偶 #${copper.id}`,
   };
 });
 
@@ -43,8 +44,10 @@ function updateChoiceImages() {
     const copperId = parseInt(btn.getAttribute('data-copper-id'));
     const isSelected = copperId === props.currentCopperId;
     btn.setAttribute('aria-pressed', String(isSelected));
-    const defaultSrc = img.getAttribute('data-default-src') || '/assets/choice.png';
-    const selectedSrc = img.getAttribute('data-selected-src') || '/assets/choice-active.png';
+    const defaultSrc =
+      img.getAttribute('data-default-src') || '/assets/choice.png';
+    const selectedSrc =
+      img.getAttribute('data-selected-src') || '/assets/choice-active.png';
     if (isSelected) {
       img.setAttribute('data-default-src', defaultSrc);
       img.setAttribute('src', selectedSrc);
@@ -55,14 +58,22 @@ function updateChoiceImages() {
 }
 
 // 监听 currentCopperId 变化，同步更新图片状态
-watch(() => props.currentCopperId, () => {
-  updateChoiceImages();
-}, { immediate: true });
+watch(
+  () => props.currentCopperId,
+  () => {
+    updateChoiceImages();
+  },
+  { immediate: true }
+);
 
 // 监听 copperList 变化，同步更新图片状态
-watch(() => props.copperList, () => {
-  updateChoiceImages();
-}, { deep: true });
+watch(
+  () => props.copperList,
+  () => {
+    updateChoiceImages();
+  },
+  { deep: true }
+);
 
 function handleNextCopper() {
   emit('nextCopper');
@@ -84,8 +95,10 @@ function handleSelectCopper(id) {
       const copperId = parseInt(btn.getAttribute('data-copper-id'));
       const isSelected = copperId === id;
       btn.setAttribute('aria-pressed', String(isSelected));
-      const defaultSrc = img.getAttribute('data-default-src') || '/assets/choice.png';
-      const selectedSrc = img.getAttribute('data-selected-src') || '/assets/choice-active.png';
+      const defaultSrc =
+        img.getAttribute('data-default-src') || '/assets/choice.png';
+      const selectedSrc =
+        img.getAttribute('data-selected-src') || '/assets/choice-active.png';
       if (isSelected) {
         img.setAttribute('data-default-src', defaultSrc);
         img.setAttribute('src', selectedSrc);
@@ -100,13 +113,13 @@ function handleSelectCopper(id) {
 // 依据 7/ 的 index.html 动态设置九宫格切片尺寸
 onMounted(async () => {
   if (!turnSystemRef.value) return;
-  
+
   function loadImage(src) {
     return new Promise((resolve, reject) => {
       const img = new Image();
       img.onload = () => resolve(img);
-      img.onerror = (err) => {
-        console.error('图片加载失败:', src, err);
+      img.onerror = err => {
+        log('图片加载失败:', src, err);
         reject(err);
       };
       img.src = src;
@@ -116,39 +129,39 @@ onMounted(async () => {
     // 将 CSS 变量直接设置到组件根元素上，scoped 样式才能访问
     if (turnSystemRef.value) {
       turnSystemRef.value.style.setProperty(name, String(value));
-      console.log(`设置 CSS 变量 ${name} = ${value}`);
+      log(`设置 CSS 变量 ${name} = ${value}`);
     }
   }
   try {
     const [panelImg, btnImg, currentImg] = await Promise.all([
       loadImage('/assets/panel.png'),
       loadImage('/assets/btn.png'),
-      loadImage('/assets/currentcupper.png')
+      loadImage('/assets/currentcupper.png'),
     ]);
     const panelSlice = Math.max(4, Math.round(panelImg.naturalHeight / 4));
     const btnSlice = Math.max(3, Math.round(btnImg.naturalHeight / 3));
     const currentSlice = Math.max(3, Math.round(currentImg.naturalHeight / 4));
-    console.log('图片加载成功，设置切片值:', { 
-      panelSlice, 
-      btnSlice, 
+    log('图片加载成功，设置切片值:', {
+      panelSlice,
+      btnSlice,
       currentSlice,
-      currentImgSize: `${currentImg.naturalWidth}x${currentImg.naturalHeight}`
+      currentImgSize: `${currentImg.naturalWidth}x${currentImg.naturalHeight}`,
     });
     setCssVar('--panel-slice', panelSlice);
     setCssVar('--btn-slice', btnSlice);
     setCssVar('--current-slice', currentSlice);
-    
+
     // 验证 CSS 变量是否设置成功
     setTimeout(() => {
       const computed = getComputedStyle(turnSystemRef.value);
-      console.log('CSS 变量验证:', {
+      log('CSS 变量验证:', {
         '--current-slice': computed.getPropertyValue('--current-slice'),
         '--panel-slice': computed.getPropertyValue('--panel-slice'),
-        '--btn-slice': computed.getPropertyValue('--btn-slice')
+        '--btn-slice': computed.getPropertyValue('--btn-slice'),
       });
     }, 100);
   } catch (err) {
-    console.warn('资源加载失败，使用默认值:', err);
+    log('资源加载失败，使用默认值:', err);
     // 如果资源加载失败，设置默认值以确保边框可以显示
     setCssVar('--panel-slice', '8');
     setCssVar('--btn-slice', '11');
@@ -168,19 +181,29 @@ onMounted(async () => {
     <div class="panel">
       <div class="panel-inner">
         <section class="section section-header">
-          <div class="round-header" role="img" :aria-label="`Round ${roundNumber}`">Round {{ roundNumber }}</div>
+          <div
+            class="round-header"
+            role="img"
+            :aria-label="`Round ${roundNumber}`"
+          >
+            Round {{ roundNumber }}
+          </div>
         </section>
 
         <section class="section section-body">
           <div class="current-doll" role="status" aria-live="polite">
-            {{ currentCopperInfo ? `当前铜偶：${currentCopperInfo.name || `铜偶 #${currentCopperId}`}` : '当前铜偶：—' }}
+            {{
+              currentCopperInfo
+                ? `当前铜偶：${currentCopperInfo.name || `铜偶 #${currentCopperId}`}`
+                : '当前铜偶：—'
+            }}
           </div>
         </section>
 
-        <section 
+        <section
           ref="choicesContainer"
-          class="section section-choices" 
-          role="group" 
+          class="section section-choices"
+          role="group"
           aria-label="Character Queue"
         >
           <button
@@ -195,7 +218,11 @@ onMounted(async () => {
           >
             <img
               :alt="copper.name || `Character ${copper.id}`"
-              :src="copper.id === currentCopperId ? '/assets/choice-active.png' : '/assets/choice.png'"
+              :src="
+                copper.id === currentCopperId
+                  ? '/assets/choice-active.png'
+                  : '/assets/choice.png'
+              "
               data-default-src="/assets/choice.png"
               data-selected-src="/assets/choice-active.png"
             />
@@ -205,8 +232,16 @@ onMounted(async () => {
     </div>
 
     <div class="actions">
-      <button class="btn btn-primary" @click="handleNextCopper" :disabled="!currentCopperId">下一个</button>
-      <button class="btn btn-secondary" @click="handleEndRound">结束回合</button>
+      <button
+        class="btn btn-primary"
+        @click="handleNextCopper"
+        :disabled="!currentCopperId"
+      >
+        下一个
+      </button>
+      <button class="btn btn-secondary" @click="handleEndRound">
+        结束回合
+      </button>
     </div>
   </div>
 </template>
@@ -217,26 +252,26 @@ onMounted(async () => {
   /* ribbon 位置偏移 */
   --ribbon-offset-x: 75px; /* 水平偏移（负为左，正为右） */
   --ribbon-offset-y: 20px; /* 垂直偏移（负为上，正为下） */
-  
+
   /* btn/actions 位置偏移 */
   --actions-offset-x: 50px; /* 水平偏移（负为左，正为右） */
   --actions-offset-y: -30px; /* 垂直偏移（负为上，正为下） */
-  
+
   /* 九宫格切片厚度默认值 */
   --round-slice: 8;
   --panel-slice: 8;
   --btn-slice: 11;
   --current-slice: 8;
-  
+
   /* panel 内容位置偏移 */
   --panel-content-offset-x: -8px; /* 负值向左，正值向右 */
-  
+
   /* round 位置偏移 */
   --round-offset-y: 8px; /* 垂直偏移（负为上，正为下） */
-  
+
   /* current-doll 位置偏移 */
   --current-doll-offset-y: 8px; /* 垂直偏移（负为上，正为下） */
-  
+
   /* current-doll 尺寸调整 */
   --current-doll-min-width: 200px; /* 最小宽度，用于使边框更长 */
   --current-doll-padding-x: 20px; /* 左右内边距，用于使边框更长 */
@@ -265,9 +300,17 @@ onMounted(async () => {
   top: var(--ribbon-offset-y, 0px);
   z-index: 1;
 }
-.ribbon-cap { width: 56px; background-repeat: no-repeat; background-size: 100% 100%; }
-.ribbon-cap.left { background-image: url('/assets/ribbon-left.png'); }
-.ribbon-cap.right { background-image: url('/assets/ribbon-right.png'); }
+.ribbon-cap {
+  width: 56px;
+  background-repeat: no-repeat;
+  background-size: 100% 100%;
+}
+.ribbon-cap.left {
+  background-image: url('/assets/ribbon-left.png');
+}
+.ribbon-cap.right {
+  background-image: url('/assets/ribbon-right.png');
+}
 .ribbon-fill {
   min-width: 80px;
   padding: 0 12px;
@@ -280,7 +323,7 @@ onMounted(async () => {
   background-repeat: repeat-x;
   background-size: auto 100%;
   background-origin: border-box;
-  text-shadow: 0 2px 0 rgba(120,0,0,0.35);
+  text-shadow: 0 2px 0 rgba(120, 0, 0, 0.35);
 }
 
 .panel {
@@ -306,9 +349,17 @@ onMounted(async () => {
   padding: 12px;
   transform: translateX(var(--panel-content-offset-x, 0px));
 }
-.section { width: 100%; }
-.section-header { display: flex; justify-content: center; }
-.section-body { display: flex; justify-content: center; }
+.section {
+  width: 100%;
+}
+.section-header {
+  display: flex;
+  justify-content: center;
+}
+.section-body {
+  display: flex;
+  justify-content: center;
+}
 .round-header {
   display: inline-flex;
   align-items: center;
@@ -354,25 +405,62 @@ onMounted(async () => {
   position: relative;
   transform: translateY(var(--current-doll-offset-y, 0px));
 }
-.section-choices { display: flex; gap: 12px; justify-content: center; align-items: center; }
-.choice { background: none; border: 0; padding: 0; cursor: pointer; line-height: 0; transition: transform 80ms ease; will-change: transform; }
-.choice[aria-pressed="true"] { transform: translateY(-1px) scale(1.02); animation: choice-pop 200ms ease-out, choice-bob 1200ms ease-in-out 200ms infinite; }
-.choice img { width: 64px; height: 64px; image-rendering: pixelated; image-rendering: crisp-edges; }
+.section-choices {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  align-items: center;
+}
+.choice {
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  line-height: 0;
+  transition: transform 80ms ease;
+  will-change: transform;
+}
+.choice[aria-pressed='true'] {
+  transform: translateY(-1px) scale(1.02);
+  animation:
+    choice-pop 200ms ease-out,
+    choice-bob 1200ms ease-in-out 200ms infinite;
+}
+.choice img {
+  width: 64px;
+  height: 64px;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+}
 
 @keyframes choice-pop {
-  0% { transform: translateY(0) scale(0.98); }
-  60% { transform: translateY(-2px) scale(1.04); }
-  100% { transform: translateY(-1px) scale(1.02); }
+  0% {
+    transform: translateY(0) scale(0.98);
+  }
+  60% {
+    transform: translateY(-2px) scale(1.04);
+  }
+  100% {
+    transform: translateY(-1px) scale(1.02);
+  }
 }
 
 @keyframes choice-bob {
-  0% { transform: translateY(-1px) scale(1.02) rotate(0.2deg); }
-  50% { transform: translateY(-3px) scale(1.02) rotate(-0.2deg); }
-  100% { transform: translateY(-1px) scale(1.02) rotate(0.2deg); }
+  0% {
+    transform: translateY(-1px) scale(1.02) rotate(0.2deg);
+  }
+  50% {
+    transform: translateY(-3px) scale(1.02) rotate(-0.2deg);
+  }
+  100% {
+    transform: translateY(-1px) scale(1.02) rotate(0.2deg);
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .choice[aria-pressed="true"] { animation: none; }
+  .choice[aria-pressed='true'] {
+    animation: none;
+  }
 }
 
 .actions {
@@ -401,10 +489,15 @@ onMounted(async () => {
   cursor: pointer;
   background: none;
 }
-.btn:disabled { opacity: 0.6; cursor: not-allowed; }
-.btn-primary { color: #fef7f5; }
-.btn-secondary { color: #fef7f5; filter: brightness(0.92); }
+.btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+.btn-primary {
+  color: #fef7f5;
+}
+.btn-secondary {
+  color: #fef7f5;
+  filter: brightness(0.92);
+}
 </style>
-
-
-

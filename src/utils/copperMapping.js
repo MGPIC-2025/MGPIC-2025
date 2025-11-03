@@ -6,44 +6,44 @@
 // 铜偶中文名到英文文件夹名的映射
 export const copperNameMap = {
   // Arcanist
-  '咝咝': 'spark',
-  '拉斐尔': 'syrup',
-  '波普尔': 'bubble',
-  '菲尼': 'glimmer',
-  '卷卷': 'turner',
+  咝咝: 'spark',
+  拉斐尔: 'syrup',
+  波普尔: 'bubble',
+  菲尼: 'glimmer',
+  卷卷: 'turner',
   // CraftsMan
-  '波波': 'wrench',
-  '公输': 'artifex',
-  '特斯拉': 'coil',
-  '丁格': 'drillbit',
-  '小卯': 'quickhand',
+  波波: 'wrench',
+  公输: 'artifex',
+  特斯拉: 'coil',
+  丁格: 'drillbit',
+  小卯: 'quickhand',
   // IronWall
-  '阿磐': 'rocky',
-  '卫斯理': 'wesley',
-  '大贝尔': 'bell',
-  '团团': 'tumble',
-  '铿铿': 'chief',
+  阿磐: 'rocky',
+  卫斯理: 'wesley',
+  大贝尔: 'bell',
+  团团: 'tumble',
+  铿铿: 'chief',
   // Mechanic
-  '米洛': 'gyro',
-  '杰克': 'tricky',
-  '格洛克': 'pendulum',
-  '溜溜': 'yoyo',
-  '卡琳': 'karin',
+  米洛: 'gyro',
+  杰克: 'tricky',
+  格洛克: 'pendulum',
+  溜溜: 'yoyo',
+  卡琳: 'karin',
   // Resonator
-  '絮絮': 'murmur',
-  '啾啾': 'melody',
-  '库克': 'clawster',
-  '鼹鼠的地洞': 'diggs',
-  '蜜拉': 'hive'
+  絮絮: 'murmur',
+  啾啾: 'melody',
+  库克: 'clawster',
+  鼹鼠的地洞: 'diggs',
+  蜜拉: 'hive',
 };
 
 // 铜偶类型到文件夹名的映射
 export const copperTypeFolderMap = {
-  'IronWall': 'iron_wall',
-  'Arcanist': 'arcanist',
-  'Mechanic': 'mechanic',
-  'Resonator': 'resonator',
-  'CraftsMan': 'craftsman'
+  IronWall: 'iron_wall',
+  Arcanist: 'arcanist',
+  Mechanic: 'mechanic',
+  Resonator: 'resonator',
+  CraftsMan: 'craftsman',
 };
 
 /**
@@ -63,6 +63,3 @@ export function getCopperEnglishName(chineseName) {
 export function getCopperTypeFolder(copperType) {
   return copperTypeFolderMap[copperType] || copperType.toLowerCase();
 }
-
-
-

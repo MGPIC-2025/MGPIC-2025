@@ -1,37 +1,38 @@
 <script setup>
-import { ref, onMounted } from "vue";
-import { getAssetUrl } from "../utils/resourceLoader.js";
+import log from '../log.js';
+import { ref, onMounted } from 'vue';
+import { getAssetUrl } from '../utils/resourceLoader.js';
 
 const emit = defineEmits([
-  "startGame",
-  "openWarehouse",
-  "openTutorial",
-  "openEncyclopedia",
+  'startGame',
+  'openWarehouse',
+  'openTutorial',
+  'openEncyclopedia',
 ]);
 
 function startGame() {
-  emit("startGame");
+  emit('startGame');
 }
 function openWarehouse() {
-  emit("openWarehouse");
+  emit('openWarehouse');
 }
 function openTutorial() {
-  emit("openTutorial");
+  emit('openTutorial');
 }
 function openEncyclopedia() {
-  emit("openEncyclopedia");
+  emit('openEncyclopedia');
 }
 
-const bgStart = ref(getAssetUrl("frontend_resource/start_game.webp"));
-const bgWarehouse = ref(getAssetUrl("frontend_resource/copper_warehouse.webp"));
-const bgWiki = ref(getAssetUrl("frontend_resource/game_wiki.webp"));
-const bgTutorial = ref(getAssetUrl("frontend_resource/Tutorial.webp"));
+const bgStart = ref(getAssetUrl('frontend_resource/start_game.webp'));
+const bgWarehouse = ref(getAssetUrl('frontend_resource/copper_warehouse.webp'));
+const bgWiki = ref(getAssetUrl('frontend_resource/game_wiki.webp'));
+const bgTutorial = ref(getAssetUrl('frontend_resource/Tutorial.webp'));
 
 onMounted(async () => {
   try {
     if (window.getCacheStatus) {
       const status = await window.getCacheStatus();
-      console.log("缓存状态:", status);
+      log('缓存状态:', status);
     }
     const imageUrls = [
       bgStart.value,
@@ -43,22 +44,22 @@ onMounted(async () => {
       const url = imageUrls[i];
       try {
         const img = new Image();
-        img.crossOrigin = "anonymous";
+        img.crossOrigin = 'anonymous';
         img.src = url;
         await new Promise((resolve, reject) => {
           img.onload = resolve;
           img.onerror = reject;
         });
-        console.log("背景图片预加载成功:", url);
+        log('背景图片预加载成功:', url);
         if (i < imageUrls.length - 1) {
-          await new Promise((resolve) => setTimeout(resolve, 100));
+          await new Promise(resolve => setTimeout(resolve, 100));
         }
       } catch (error) {
-        console.warn("背景图片预加载失败:", url, error.message);
+        log('背景图片预加载失败:', url, error.message);
       }
     }
   } catch (error) {
-    console.warn("背景图片预加载过程中出现错误:", error.message);
+    log('背景图片预加载过程中出现错误:', error.message);
   }
 });
 </script>
@@ -140,7 +141,10 @@ onMounted(async () => {
   height: 100%;
   transform: rotateY(0deg);
   transform-origin: center;
-  transition: transform 0.3s ease, box-shadow 0.3s ease, filter 0.3s ease;
+  transition:
+    transform 0.3s ease,
+    box-shadow 0.3s ease,
+    filter 0.3s ease;
   will-change: transform, box-shadow;
 }
 .tile__mask {

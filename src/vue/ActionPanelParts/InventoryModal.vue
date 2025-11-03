@@ -1,20 +1,20 @@
 <script setup>
-import { computed } from 'vue';
+import log from '../../log.js';
 import { getAssetUrl } from '../../utils/resourceLoader.js';
 
 const props = defineProps({
   visible: {
     type: Boolean,
-    default: false
+    default: false,
   },
   copperName: {
     type: String,
-    default: '未知铜偶'
+    default: '未知铜偶',
   },
   inventoryItems: {
     type: Array,
-    default: () => []
-  }
+    default: () => [],
+  },
 });
 
 const emit = defineEmits(['close', 'craft', 'drop']);
@@ -31,11 +31,15 @@ const RESOURCE_META = {
   },
   ResonantCrystal: {
     name: '共鸣星晶',
-    icon: getAssetUrl('resource/resonant_star_crystal/resonant_star_crystal.webp'),
+    icon: getAssetUrl(
+      'resource/resonant_star_crystal/resonant_star_crystal.webp'
+    ),
   },
   RefinedCopper: {
     name: '精炼铜锭',
-    icon: getAssetUrl('resource/refined_copper_ingot/refined_copper_ingot.webp'),
+    icon: getAssetUrl(
+      'resource/refined_copper_ingot/refined_copper_ingot.webp'
+    ),
   },
   SpiritalSpark: {
     name: '灵性火花',
@@ -48,7 +52,7 @@ const recipeItems = [
   'HeartCrystalDust',
   'RecallGear',
   'ResonantCrystal',
-  'RefinedCopper'
+  'RefinedCopper',
 ];
 
 function close() {
@@ -71,7 +75,10 @@ function getItemName(item) {
   if (Array.isArray(item.item_type) && item.item_type[0] === 'Resource') {
     const resourceType = item.item_type[1];
     return RESOURCE_META[resourceType]?.name || resourceType;
-  } else if (Array.isArray(item.item_type) && item.item_type[0] === 'Equipment') {
+  } else if (
+    Array.isArray(item.item_type) &&
+    item.item_type[0] === 'Equipment'
+  ) {
     return '装备';
   }
   return '未知物品';
@@ -93,7 +100,9 @@ function getItemIcon(item) {
   <div v-if="visible" class="inventory-modal" @click.self="close">
     <div class="minecraft-inventory">
       <div class="inventory-header-mc">
-        <h3><span class="copper-name">{{ copperName }}</span> 的背包</h3>
+        <h3>
+          <span class="copper-name">{{ copperName }}</span> 的背包
+        </h3>
         <button class="close-btn-mc" @click="close">✕</button>
       </div>
 
@@ -103,14 +112,26 @@ function getItemIcon(item) {
           <div class="crafting-title">合成</div>
           <div class="crafting-grid">
             <!-- 2x2 合成网格 -->
-            <div class="craft-slot" v-for="(itemType, i) in recipeItems" :key="i">
-              <img v-if="RESOURCE_META[itemType]?.icon" :src="RESOURCE_META[itemType].icon" class="craft-icon" />
+            <div
+              class="craft-slot"
+              v-for="(itemType, i) in recipeItems"
+              :key="i"
+            >
+              <img
+                v-if="RESOURCE_META[itemType]?.icon"
+                :src="RESOURCE_META[itemType].icon"
+                class="craft-icon"
+              />
             </div>
           </div>
           <div class="craft-arrow">→</div>
           <div class="craft-result">
             <div class="recipe-display">
-              <img v-if="RESOURCE_META['SpiritalSpark']?.icon" :src="RESOURCE_META['SpiritalSpark'].icon" class="recipe-icon" />
+              <img
+                v-if="RESOURCE_META['SpiritalSpark']?.icon"
+                :src="RESOURCE_META['SpiritalSpark'].icon"
+                class="recipe-icon"
+              />
             </div>
           </div>
           <button class="craft-button-mc" @click="handleCraft">合成</button>
@@ -120,19 +141,25 @@ function getItemIcon(item) {
         <div class="inventory-section">
           <div class="inventory-grid">
             <!-- 5个格子 -->
-            <div 
-              v-for="(item, index) in 5" 
-              :key="index" 
+            <div
+              v-for="(item, index) in 5"
+              :key="index"
               class="inv-slot"
               :class="{ 'has-item': index < inventoryItems.length }"
             >
               <template v-if="index < inventoryItems.length">
-                <img v-if="getItemIcon(inventoryItems[index])" :src="getItemIcon(inventoryItems[index])" class="slot-icon" />
+                <img
+                  v-if="getItemIcon(inventoryItems[index])"
+                  :src="getItemIcon(inventoryItems[index])"
+                  class="slot-icon"
+                />
                 <div class="slot-count" v-if="inventoryItems[index].count > 1">
                   {{ inventoryItems[index].count }}
                 </div>
                 <div class="slot-tooltip">
-                  <div class="tooltip-name">{{ getItemName(inventoryItems[index]) }}</div>
+                  <div class="tooltip-name">
+                    {{ getItemName(inventoryItems[index]) }}
+                  </div>
                   <button class="tooltip-drop" @click.stop="handleDrop(index)">
                     丢弃
                   </button>
@@ -146,12 +173,16 @@ function getItemIcon(item) {
       <!-- 底部快捷栏 -->
       <div class="hotbar-section">
         <div class="hotbar-grid">
-          <div 
-            v-for="(item, index) in Math.min(9, inventoryItems.length)" 
-            :key="index" 
+          <div
+            v-for="(item, index) in Math.min(9, inventoryItems.length)"
+            :key="index"
             class="hotbar-slot"
           >
-            <img v-if="getItemIcon(item)" :src="getItemIcon(item)" class="slot-icon" />
+            <img
+              v-if="getItemIcon(item)"
+              :src="getItemIcon(item)"
+              class="slot-icon"
+            />
             <div class="slot-count" v-if="item.count > 1">{{ item.count }}</div>
           </div>
         </div>
@@ -183,7 +214,7 @@ function getItemIcon(item) {
   padding: 20px;
   width: 92%;
   max-width: 560px;
-  box-shadow: 
+  box-shadow:
     0 8px 16px rgba(0, 0, 0, 0.5),
     inset 0 1px 0 rgba(255, 255, 255, 0.3),
     inset 0 -4px 0 rgba(0, 0, 0, 0.3);
@@ -204,7 +235,7 @@ function getItemIcon(item) {
 }
 
 .copper-name {
-  color: #CD7F32;
+  color: #cd7f32;
 }
 
 .close-btn-mc {
@@ -380,7 +411,7 @@ function getItemIcon(item) {
   font-size: 10px;
   font-weight: bold;
   color: #fff;
-  text-shadow: 
+  text-shadow:
     1px 1px 0 rgba(0, 0, 0, 0.8),
     -1px -1px 0 rgba(0, 0, 0, 0.8);
   pointer-events: none;
@@ -455,8 +486,11 @@ function getItemIcon(item) {
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 </style>
-

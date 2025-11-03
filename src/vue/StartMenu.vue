@@ -1,14 +1,15 @@
 <script setup>
-import { onMounted, onBeforeUnmount, ref, watch } from "vue";
-import * as THREE from "three";
-import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
-import { DRACOLoader } from "three/examples/jsm/loaders/DRACOLoader.js";
+import log from '../log.js';
+import { onMounted, onBeforeUnmount, ref, watch } from 'vue';
+import * as THREE from 'three';
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
+import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js';
 import {
   getAssetUrl,
   precacheAllResources,
   getCacheStatus,
-} from "../utils/resourceLoader.js";
-import modelPreloadManager from "../utils/modelPreloadManager.js";
+} from '../utils/resourceLoader.js';
+import modelPreloadManager from '../utils/modelPreloadManager.js';
 
 const props = defineProps({
   visible: {
@@ -30,12 +31,12 @@ const showButtons = ref(false);
 const showSettings = ref(false);
 
 // 对外事件（仅对外通知 started；设置改为本地弹层）
-const emit = defineEmits(["started"]);
+const emit = defineEmits(['started']);
 
 // 监听可见性变化，自动恢复/暂停渲染
 watch(
   () => props.visible,
-  (visible) => {
+  visible => {
     if (visible && scene && logoObject) {
       resume();
     } else if (!visible) {
@@ -85,16 +86,16 @@ function destroyScene() {
     pause();
   } catch (_) {}
   try {
-    window.removeEventListener("resize", handleResize);
+    window.removeEventListener('resize', handleResize);
   } catch (_) {}
   try {
     if (scene) {
-      scene.traverse((obj) => {
+      scene.traverse(obj => {
         if (obj.isMesh) {
           if (obj.geometry && obj.geometry.dispose) obj.geometry.dispose();
           const mat = obj.material;
           if (Array.isArray(mat)) {
-            mat.forEach((m) => m && m.dispose && m.dispose());
+            mat.forEach(m => m && m.dispose && m.dispose());
           } else if (mat && mat.dispose) {
             mat.dispose();
           }
@@ -109,7 +110,7 @@ function destroyScene() {
       renderer.dispose();
       const gl = renderer.getContext && renderer.getContext();
       const lose =
-        gl && gl.getExtension && gl.getExtension("WEBGL_lose_context");
+        gl && gl.getExtension && gl.getExtension('WEBGL_lose_context');
       if (lose && lose.loseContext) lose.loseContext();
     }
   } catch (_) {}
@@ -128,7 +129,7 @@ async function initScene(onProgress = null) {
   } catch (_) {}
 
   if (!scene || !renderer) {
-    console.error("[StartMenu] Scene or renderer not initialized in onMounted");
+    logor('[StartMenu] Scene or renderer not initialized in onMounted');
     return;
   }
 
@@ -146,7 +147,7 @@ async function initScene(onProgress = null) {
 
   const dracoLoader = new DRACOLoader();
   dracoLoader.setDecoderPath(
-    "https://www.gstatic.com/draco/versioned/decoders/1.5.7/"
+    'https://www.gstatic.com/draco/versioned/decoders/1.5.7/'
   );
   const loader = new GLTFLoader();
   loader.setDRACOLoader(dracoLoader);
@@ -155,16 +156,16 @@ async function initScene(onProgress = null) {
   if (onProgress) onProgress(0, 100, 50);
 
   const logoUrl = window.getAssetUrl
-    ? window.getAssetUrl("logo.glb")
-    : "./assets/logo.glb";
+    ? window.getAssetUrl('logo.glb')
+    : './assets/logo.glb';
 
   const tryLoad = () =>
     new Promise((resolve, reject) => {
       loader.load(
         logoUrl,
-        (gltf) => resolve(gltf),
+        gltf => resolve(gltf),
         undefined,
-        (err) => reject(err)
+        err => reject(err)
       );
     });
 
@@ -187,33 +188,33 @@ async function initScene(onProgress = null) {
 
     // 步骤8：预加载游戏模型
     if (onProgress) onProgress(0, 100, 80);
-    console.log("[StartMenu] Logo 加载完成，开始预加载游戏模型...");
+    log('[StartMenu] Logo 加载完成，开始预加载游戏模型...');
 
     try {
       await modelPreloadManager.startPreload(
-        ["high", "medium"],
+        ['high', 'medium'],
         (loaded, total, percentage) => {
           // 将模型预加载进度映射到80-95%的进度条范围
           const mappedProgress = 80 + percentage * 0.15;
           if (onProgress) onProgress(0, 100, Math.round(mappedProgress));
-          console.log(
+          log(
             `[StartMenu] 模型预加载进度: ${loaded}/${total} (${percentage}%)`
           );
         }
       );
-      console.log("[StartMenu] 所有游戏模型预加载完成");
+      log('[StartMenu] 所有游戏模型预加载完成');
     } catch (err) {
-      console.warn("[StartMenu] 游戏模型预加载失败:", err);
+      log('[StartMenu] 游戏模型预加载失败:', err);
     }
 
     // 步骤9：完成
     if (onProgress) onProgress(0, 100, 100);
     isReady.value = true;
-    console.log("[StartMenu] 所有资源加载完成");
+    log('[StartMenu] 所有资源加载完成');
 
     showButtons.value = true;
   } catch (e) {
-    console.warn("[StartMenu] 3D模型加载失败，使用占位符", e);
+    log('[StartMenu] 3D模型加载失败，使用占位符', e);
     // 创建占位符，不影响启动速度
     const geometry = new THREE.BoxGeometry(1, 1, 1);
     const material = new THREE.MeshBasicMaterial({ color: 0xf59e0b });
@@ -222,28 +223,28 @@ async function initScene(onProgress = null) {
     logoObject = placeholder;
 
     // 即使使用占位符也要预加载游戏模型
-    console.log("[StartMenu] 使用占位符，开始预加载游戏模型...");
+    log('[StartMenu] 使用占位符，开始预加载游戏模型...');
 
     try {
       await modelPreloadManager.startPreload(
-        ["high", "medium"],
+        ['high', 'medium'],
         (loaded, total, percentage) => {
           // 将模型预加载进度映射到80-95%的进度条范围
           const mappedProgress = 80 + percentage * 0.15;
           if (onProgress) onProgress(0, 100, Math.round(mappedProgress));
-          console.log(
+          log(
             `[StartMenu] 模型预加载进度: ${loaded}/${total} (${percentage}%)`
           );
         }
       );
-      console.log("[StartMenu] 所有游戏模型预加载完成");
+      log('[StartMenu] 所有游戏模型预加载完成');
     } catch (err) {
-      console.warn("[StartMenu] 游戏模型预加载失败:", err);
+      log('[StartMenu] 游戏模型预加载失败:', err);
     }
 
     if (onProgress) onProgress(0, 100, 100);
     isReady.value = true;
-    console.log("[StartMenu] 所有资源加载完成（使用占位符）");
+    log('[StartMenu] 所有资源加载完成（使用占位符）');
 
     showButtons.value = true;
   }
@@ -254,7 +255,7 @@ async function initScene(onProgress = null) {
 }
 
 function onStart() {
-  emit("started");
+  emit('started');
   // 仅暂停渲染，保留资源以便快速返回
   pause();
 }
@@ -270,15 +271,15 @@ onMounted(() => {
   showButtons.value = false;
   isReady.value = false;
 
-  console.log("[StartMenu] 组件挂载，开始加载...");
+  log('[StartMenu] 组件挂载，开始加载...');
 
   if (!scene && canvasRef.value) {
     scene = new THREE.Scene();
-    scene.background = new THREE.Color("#a0a0a0");
+    scene.background = new THREE.Color('#a0a0a0');
 
     camera = new THREE.PerspectiveCamera(50, 1.333, 0.1, 1000);
     camera.position.set(-3.655, 0.2, -0.006);
-    camera.rotation.set(-1.618275, -1.538307, -1.6183, "XYZ");
+    camera.rotation.set(-1.618275, -1.538307, -1.6183, 'XYZ');
 
     renderer = new THREE.WebGLRenderer({
       antialias: true,
@@ -287,28 +288,28 @@ onMounted(() => {
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.setPixelRatio(window.devicePixelRatio);
 
-    window.addEventListener("resize", handleResize);
+    window.addEventListener('resize', handleResize);
     renderLoop();
 
     // 不在这里调用initScene，等待__INIT_THREE_SCENE__调用
-    console.log("[StartMenu] 场景已初始化，等待进度条调用");
+    log('[StartMenu] 场景已初始化，等待进度条调用');
   } else if (scene && !logoObject) {
-    console.log("[StartMenu] 场景已存在，等待进度条调用");
+    log('[StartMenu] 场景已存在，等待进度条调用');
   } else if (logoObject) {
-    console.log("[StartMenu] Logo已存在，直接显示");
+    log('[StartMenu] Logo已存在，直接显示');
     showButtons.value = true;
     isReady.value = true;
   }
 
-  window.__INIT_THREE_SCENE__ = async (onProgress) => {
+  window.__INIT_THREE_SCENE__ = async onProgress => {
     if (scene && logoObject) {
-      console.log("[StartMenu] 场景和Logo已存在，直接显示按钮");
+      log('[StartMenu] 场景和Logo已存在，直接显示按钮');
       showButtons.value = true;
       isReady.value = true;
       return;
     }
 
-    console.log("[StartMenu] 开始初始化3D场景...");
+    log('[StartMenu] 开始初始化3D场景...');
     await initScene(onProgress);
   };
 });
@@ -418,7 +419,9 @@ onBeforeUnmount(() => {
   box-shadow: 0 12px 28px rgba(0, 0, 0, 0.35);
   width: min(560px, 64vw);
   min-height: 72px;
-  transition: transform 0.12s ease, box-shadow 0.12s ease;
+  transition:
+    transform 0.12s ease,
+    box-shadow 0.12s ease;
 }
 .startmenu-btn:hover {
   transform: translateY(-1px);

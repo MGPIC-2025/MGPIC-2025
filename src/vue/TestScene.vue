@@ -1,30 +1,27 @@
 <script setup>
-import { ref, computed, onMounted, onBeforeUnmount } from "vue";
-import * as THREE from "three";
-import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
-import { DRACOLoader } from "three/addons/loaders/DRACOLoader.js";
-import { messageQueue } from "../glue.js";
-import { eventloop } from "../glue.js";
+import log from '../log.js';
+import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
+import * as THREE from 'three';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
+import { messageQueue } from '../glue.js';
+import { eventloop } from '../glue.js';
 import {
   getAssetUrl,
   getCopperModelUrl,
   getEnemyModelUrl,
   getStructureModelUrl,
   getResourceModelUrl,
-} from "../utils/resourceLoader.js";
-import modelCache from "../utils/modelCache.js";
-import modelPreloadManager from "../utils/modelPreloadManager.js";
+} from '../utils/resourceLoader.js';
+import modelCache from '../utils/modelCache.js';
 import {
   getCopperEnglishName,
   getCopperTypeFolder,
-} from "../utils/copperMapping.js";
-import {
-  getStructureEnglishName,
-  getResourceFolderName,
-} from "../utils/structureMapping.js";
-import TestPanel from "./TestPanel.vue";
-import ActionPanel from "./ActionPanel.vue";
-import TurnSystem from "./ActionPanelParts/TurnSystem.vue";
+} from '../utils/copperMapping.js';
+import { getStructureEnglishName } from '../utils/structureMapping.js';
+import TestPanel from './TestPanel.vue';
+import ActionPanel from './ActionPanel.vue';
+import TurnSystem from './ActionPanelParts/TurnSystem.vue';
 
 const props = defineProps({
   isGameMode: {
@@ -34,7 +31,7 @@ const props = defineProps({
 });
 
 const container = ref(null);
-const emit = defineEmits(["back"]);
+const emit = defineEmits(['back']);
 
 let scene, camera, renderer, controls;
 let models = [];
@@ -59,11 +56,11 @@ const mouseSensitivity = 0.002;
 // 键盘事件处理
 function handleKeyDown(event) {
   const key = event.key.toLowerCase();
-  if (key === "w" || key === "a" || key === "s" || key === "d") {
+  if (key === 'w' || key === 'a' || key === 's' || key === 'd') {
     keys[key] = true;
-  } else if (key === "shift") {
+  } else if (key === 'shift') {
     keys.shift = true;
-  } else if (key === " ") {
+  } else if (key === ' ') {
     keys.space = true;
     event.preventDefault(); // 防止页面滚动
   }
@@ -71,11 +68,11 @@ function handleKeyDown(event) {
 
 function handleKeyUp(event) {
   const key = event.key.toLowerCase();
-  if (key === "w" || key === "a" || key === "s" || key === "d") {
+  if (key === 'w' || key === 'a' || key === 's' || key === 'd') {
     keys[key] = false;
-  } else if (key === "shift") {
+  } else if (key === 'shift') {
     keys.shift = false;
-  } else if (key === " ") {
+  } else if (key === ' ') {
     keys.space = false;
   }
 }
@@ -99,22 +96,22 @@ function handleMouseUp() {
 
 function handleMouseMove(event) {
   if (!isMouseDown) return;
-  
+
   const deltaX = event.clientX - lastMouseX;
   const deltaY = event.clientY - lastMouseY;
-  
+
   // 更新旋转角度
   yaw -= deltaX * mouseSensitivity;
   pitch -= deltaY * mouseSensitivity;
-  
+
   // 限制上下旋转角度
   pitch = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, pitch));
-  
+
   // 应用旋转到相机
-  camera.rotation.order = "YXZ";
+  camera.rotation.order = 'YXZ';
   camera.rotation.y = yaw;
   camera.rotation.x = pitch;
-  
+
   lastMouseX = event.clientX;
   lastMouseY = event.clientY;
 }
@@ -142,17 +139,17 @@ onMounted(async () => {
   setupMessageQueue();
 
   // 默认切换到EventLoop模式（隐藏测试模型）
-  const { messageQueue } = await import("../messageQueue.js");
+  const { messageQueue } = await import('../messageQueue.js');
   if (messageQueue.sceneContext?.setTestMode) {
-    messageQueue.sceneContext.setTestMode("eventloop");
+    messageQueue.sceneContext.setTestMode('eventloop');
   }
 
   // 添加键盘和鼠标事件监听
-  window.addEventListener("keydown", handleKeyDown);
-  window.addEventListener("keyup", handleKeyUp);
-  window.addEventListener("mousedown", handleMouseDown);
-  window.addEventListener("mouseup", handleMouseUp);
-  window.addEventListener("mousemove", handleMouseMove);
+  window.addEventListener('keydown', handleKeyDown);
+  window.addEventListener('keyup', handleKeyUp);
+  window.addEventListener('mousedown', handleMouseDown);
+  window.addEventListener('mouseup', handleMouseUp);
+  window.addEventListener('mousemove', handleMouseMove);
 
   animate();
 
@@ -161,9 +158,7 @@ onMounted(async () => {
     window.setCameraFocus = (distance = 8, height = 6) => {
       window.cameraFocusDistance = distance;
       window.cameraFocusHeight = height;
-      console.log(
-        `[TestScene] 相机聚焦参数已更新: 距离=${distance}, 高度=${height}`
-      );
+      log(`[TestScene] 相机聚焦参数已更新: 距离=${distance}, 高度=${height}`);
     };
     window.resetCamera = () => {
       camera.position.set(0, 10, 15);
@@ -172,13 +167,11 @@ onMounted(async () => {
       pitch = camera.rotation.x;
       focusState.focusPosition = null;
       focusState.focusTarget = null;
-      console.log("[TestScene] 相机已重置");
+      log('[TestScene] 相机已重置');
     };
     window.toggleAutoFocus = () => {
       window.disableAutoFocus = !window.disableAutoFocus;
-      console.log(
-        `[TestScene] 自动聚焦已${window.disableAutoFocus ? "禁用" : "启用"}`
-      );
+      log(`[TestScene] 自动聚焦已${window.disableAutoFocus ? '禁用' : '启用'}`);
       if (window.disableAutoFocus) {
         focusState.focusPosition = null;
         focusState.focusTarget = null;
@@ -188,15 +181,15 @@ onMounted(async () => {
 });
 
 onBeforeUnmount(() => {
-  window.removeEventListener("resize", onWindowResize);
-  window.removeEventListener("click", onSceneClick);
-  
+  window.removeEventListener('resize', onWindowResize);
+  window.removeEventListener('click', onSceneClick);
+
   // 移除键盘和鼠标事件监听
-  window.removeEventListener("keydown", handleKeyDown);
-  window.removeEventListener("keyup", handleKeyUp);
-  window.removeEventListener("mousedown", handleMouseDown);
-  window.removeEventListener("mouseup", handleMouseUp);
-  window.removeEventListener("mousemove", handleMouseMove);
+  window.removeEventListener('keydown', handleKeyDown);
+  window.removeEventListener('keyup', handleKeyUp);
+  window.removeEventListener('mousedown', handleMouseDown);
+  window.removeEventListener('mouseup', handleMouseUp);
+  window.removeEventListener('mousemove', handleMouseMove);
 
   if (renderer) {
     renderer.dispose();
@@ -245,23 +238,23 @@ function initScene() {
   gltfLoader = new GLTFLoader();
   const dracoLoader = new DRACOLoader();
   dracoLoader.setDecoderPath(
-    "https://www.gstatic.com/draco/versioned/decoders/1.5.6/"
+    'https://www.gstatic.com/draco/versioned/decoders/1.5.6/'
   );
   gltfLoader.setDRACOLoader(dracoLoader);
 
   // 添加点击事件监听（仅游戏模式）
   if (props.isGameMode) {
-    window.addEventListener("click", onSceneClick);
+    window.addEventListener('click', onSceneClick);
   }
 
   // 创建测试用的立方体（用于后端测试，ID=1和2）
   createTestUnits();
-  console.log("[TestScene] 场景初始化完成");
-  console.log('[TestScene] - 蓝/红立方体(ID=1,2)用于"后端测试"');
-  console.log("[TestScene] - EventLoop测试会动态创建新模型");
+  log('[TestScene] 场景初始化完成');
+  log('[TestScene] - 蓝/红立方体(ID=1,2)用于"后端测试"');
+  log('[TestScene] - EventLoop测试会动态创建新模型');
 
   // 窗口大小变化
-  window.addEventListener("resize", onWindowResize);
+  window.addEventListener('resize', onWindowResize);
 }
 
 function createTestUnits() {
@@ -275,8 +268,8 @@ function createTestUnits() {
   models.push({
     id: 1,
     object: cube1,
-    name: "单位1",
-    type: "test", // ✅ 标记为测试模型
+    name: '单位1',
+    type: 'test', // ✅ 标记为测试模型
   });
 
   // 创建单位2（红色立方体）
@@ -289,13 +282,13 @@ function createTestUnits() {
   models.push({
     id: 2,
     object: cube2,
-    name: "单位2",
-    type: "test", // ✅ 标记为测试模型
+    name: '单位2',
+    type: 'test', // ✅ 标记为测试模型
   });
 
-  console.log(
-    "[TestScene] 创建了测试单位:",
-    models.map((m) => `ID=${m.id}`)
+  log(
+    '[TestScene] 创建了测试单位:',
+    models.map(m => `ID=${m.id}`)
   );
 
   // 默认显示测试模型（向后兼容）
@@ -309,16 +302,16 @@ async function loadGLTFModel(copperType, copperName, position, scale = 1.0) {
   try {
     // 使用全局模型缓存管理器
     const cachedModel = await modelCache.loadModel(modelUrl, true);
-    console.log(`[TestScene] 从缓存加载铜偶模型: ${copperName}`);
+    log(`[TestScene] 从缓存加载铜偶模型: ${copperName}`);
 
     // 深度克隆模型实例，避免多个单位共享同一个模型对象和材质
     const modelInstance = cachedModel.clone(true);
 
     // 确保所有材质都是独立的副本
-    modelInstance.traverse((child) => {
+    modelInstance.traverse(child => {
       if (child.material) {
         if (Array.isArray(child.material)) {
-          child.material = child.material.map((mat) => mat.clone());
+          child.material = child.material.map(mat => mat.clone());
         } else {
           child.material = child.material.clone();
         }
@@ -347,12 +340,10 @@ async function loadGLTFModel(copperType, copperName, position, scale = 1.0) {
     // 调整Y位置使模型底部对齐地面
     group.position.y = -scaledBox.min.y;
 
-    console.log(
-      `[TestScene] 铜偶模型加载成功: ${copperName}, URL: ${modelUrl}`
-    );
+    log(`[TestScene] 铜偶模型加载成功: ${copperName}, URL: ${modelUrl}`);
     return group;
   } catch (e) {
-    console.warn(`[TestScene] 模型加载失败: ${copperName}`, e);
+    log(`[TestScene] 模型加载失败: ${copperName}`, e);
     return null;
   }
 }
@@ -364,16 +355,16 @@ async function loadEnemyModel(enemyName, position, scale = 1.0) {
   try {
     // 使用全局模型缓存管理器
     const cachedModel = await modelCache.loadModel(modelUrl, true);
-    console.log(`[TestScene] 从缓存加载敌人模型: ${enemyName}`);
+    log(`[TestScene] 从缓存加载敌人模型: ${enemyName}`);
 
     // 深度克隆模型实例，避免多个单位共享同一个模型对象和材质
     const modelInstance = cachedModel.clone(true);
 
     // 确保所有材质都是独立的副本
-    modelInstance.traverse((child) => {
+    modelInstance.traverse(child => {
       if (child.material) {
         if (Array.isArray(child.material)) {
-          child.material = child.material.map((mat) => mat.clone());
+          child.material = child.material.map(mat => mat.clone());
         } else {
           child.material = child.material.clone();
         }
@@ -406,10 +397,10 @@ async function loadEnemyModel(enemyName, position, scale = 1.0) {
     pointLight.position.set(0, size.y * scale * 0.8, 0);
     group.add(pointLight);
 
-    console.log(`[TestScene] 敌人模型加载成功: ${enemyName}, URL: ${modelUrl}`);
+    log(`[TestScene] 敌人模型加载成功: ${enemyName}, URL: ${modelUrl}`);
     return group;
   } catch (e) {
-    console.warn(`[TestScene] 敌人模型加载失败: ${enemyName}`, e);
+    log(`[TestScene] 敌人模型加载失败: ${enemyName}`, e);
     return null;
   }
 }
@@ -422,11 +413,11 @@ function setupMessageQueue() {
 
   // 创建状态指示器
   function createIndicator(unitId, type, show) {
-    const model = models.find((m) => m.id === unitId);
+    const model = models.find(m => m.id === unitId);
     if (!model || !model.object) return;
 
-    const color = type === "move" ? 0x00ff00 : 0xff0000; // 绿色/红色
-    const radius = type === "move" ? 0.8 : 1.0;
+    const color = type === 'move' ? 0x00ff00 : 0xff0000; // 绿色/红色
+    const radius = type === 'move' ? 0.8 : 1.0;
 
     // 获取或创建指示器容器
     if (!stateIndicators.has(unitId)) {
@@ -471,13 +462,13 @@ function setupMessageQueue() {
 
   // 高亮选中的铜偶
   let selectedCopperId = null;
-  const highlightSelectedCopper = (copperId) => {
+  const highlightSelectedCopper = copperId => {
     // 清除旧的高亮
-    models.forEach((model) => {
-      if (model.type === "copper") {
+    models.forEach(model => {
+      if (model.type === 'copper') {
         model.object.scale.set(1, 1, 1);
         // 遍历所有子对象设置材质
-        model.object.traverse((child) => {
+        model.object.traverse(child => {
           if (child.material) {
             child.material.emissive?.setHex(0x000000);
             if (child.material.emissiveIntensity !== undefined) {
@@ -490,18 +481,18 @@ function setupMessageQueue() {
 
     // 添加新的高亮
     if (copperId !== null) {
-      const model = models.find((m) => m.id === copperId);
+      const model = models.find(m => m.id === copperId);
       if (model) {
         model.object.scale.set(1.1, 1.1, 1.1);
         // 遍历所有子对象设置高亮
-        model.object.traverse((child) => {
+        model.object.traverse(child => {
           if (child.material && child.material.emissive) {
             child.material.emissive.setHex(0xffaa00);
             child.material.emissiveIntensity = 0.5;
           }
         });
         selectedCopperId = copperId;
-        console.log(`[TestScene] 高亮铜偶: ${model.name} (ID=${copperId})`);
+        log(`[TestScene] 高亮铜偶: ${model.name} (ID=${copperId})`);
       }
     } else {
       selectedCopperId = null;
@@ -542,10 +533,10 @@ function setupMessageQueue() {
   };
 
   // 清除地板块
-  const clearFloorBlock = (position) => {
+  const clearFloorBlock = position => {
     const key = `${position[0]},${position[1]}`;
     const block = floorBlocks.get(key);
-    console.log(
+    log(
       `[TestScene] 尝试清除地板块: 坐标=${position}, key=${key}, 找到=${!!block}, 总数=${
         floorBlocks.size
       }`
@@ -556,9 +547,9 @@ function setupMessageQueue() {
       if (block.geometry) block.geometry.dispose();
       if (block.material) block.material.dispose();
       floorBlocks.delete(key);
-      console.log(`[TestScene] 已清除地板块: ${key}, 剩余=${floorBlocks.size}`);
+      log(`[TestScene] 已清除地板块: ${key}, 剩余=${floorBlocks.size}`);
     } else {
-      console.log(
+      log(
         `[TestScene] 未找到地板块: ${key}, 现有keys:`,
         Array.from(floorBlocks.keys())
       );
@@ -566,7 +557,7 @@ function setupMessageQueue() {
   };
 
   // 清除所有特定类型的地板块
-  const clearFloorBlocksByType = (type) => {
+  const clearFloorBlocksByType = type => {
     let count = 0;
     floorBlocks.forEach((block, key) => {
       if (block.userData.type === type) {
@@ -576,18 +567,18 @@ function setupMessageQueue() {
       }
     });
     if (count > 0) {
-      console.log(`[TestScene] 清除了${count}个${type}地板块`);
+      log(`[TestScene] 清除了${count}个${type}地板块`);
     }
   };
 
   // 创建攻击特效（闪光）
   const createAttackEffect = (attackerId, targetPosition) => {
-    const attacker = models.find((m) => m.id === attackerId);
+    const attacker = models.find(m => m.id === attackerId);
     if (!attacker) return;
 
     // 攻击者闪光 - 遍历所有材质
     const originalEmissives = new Map();
-    attacker.object.traverse((child) => {
+    attacker.object.traverse(child => {
       if (child.material && child.material.emissive) {
         originalEmissives.set(child, {
           color: child.material.emissive.getHex(),
@@ -673,7 +664,7 @@ function setupMessageQueue() {
     }
 
     animateEffect();
-    console.log(
+    log(
       `[TestScene] 攻击特效: 攻击者ID=${attackerId} → 目标位置${targetPosition}`
     );
   };
@@ -693,7 +684,7 @@ function setupMessageQueue() {
       selectedCopperResources.value = resources || [];
       // 使用后端返回的攻击目标状态
       hasAttackTargets.value = has_attack_targets || false;
-      console.log(
+      log(
         `[TestScene] 更新铜偶信息: ID=${copper.id}, has_attack_targets=${hasAttackTargets.value}`
       );
     },
@@ -701,19 +692,19 @@ function setupMessageQueue() {
     floorBlocks,
     createAttackEffect, // 攻击特效
     // 移动完成后的回调
-    onMoveComplete: (id) => {
+    onMoveComplete: id => {
       if (!props.isGameMode) return;
 
       // 检查移动的是否是玩家的铜偶（而不是敌人）
       const isPlayerCopper = playerCoppers.value.some(
-        (copper) => copper.id === id
+        copper => copper.id === id
       );
       if (!isPlayerCopper) {
-        console.log("[TestScene] 敌人移动完成，不做处理");
+        log('[TestScene] 敌人移动完成，不做处理');
         return;
       }
 
-      console.log("[TestScene] 移动完成，准备切换铜偶");
+      log('[TestScene] 移动完成，准备切换铜偶');
       // 重置状态
       currentActionMode.value = null;
       if (copperActionPanelRef.value) {
@@ -733,17 +724,15 @@ function setupMessageQueue() {
     },
     // 合成结果回调
     onCraftResult: (success, message) => {
-      console.log(
-        `[TestScene] 合成结果: ${success ? "成功" : "失败"} - ${message}`
-      );
+      log(`[TestScene] 合成结果: ${success ? '成功' : '失败'} - ${message}`);
       // TODO: 可以添加UI提示
       alert(message);
     },
     // 移除铜偶（死亡时从列表中移除）
-    onRemoveCopper: (id) => {
-      const index = playerCoppers.value.findIndex((c) => c.id === id);
+    onRemoveCopper: id => {
+      const index = playerCoppers.value.findIndex(c => c.id === id);
       if (index > -1) {
-        console.log(`[TestScene] 移除死亡铜偶: ID=${id}`);
+        log(`[TestScene] 移除死亡铜偶: ID=${id}`);
         playerCoppers.value.splice(index, 1);
 
         // 如果当前选中的是死亡铜偶，清除选中状态
@@ -761,19 +750,19 @@ function setupMessageQueue() {
       }
     },
     // 攻击完成后的回调
-    onAttackComplete: (id) => {
+    onAttackComplete: id => {
       if (!props.isGameMode) return;
 
       // 检查攻击的是否是玩家的铜偶（而不是敌人）
       const isPlayerCopper = playerCoppers.value.some(
-        (copper) => copper.id === id
+        copper => copper.id === id
       );
       if (!isPlayerCopper) {
-        console.log("[TestScene] 敌人攻击完成，不做处理");
+        log('[TestScene] 敌人攻击完成，不做处理');
         return;
       }
 
-      console.log("[TestScene] 攻击完成，准备切换铜偶");
+      log('[TestScene] 攻击完成，准备切换铜偶');
       // 重置状态
       currentActionMode.value = null;
       if (copperActionPanelRef.value) {
@@ -791,27 +780,27 @@ function setupMessageQueue() {
         }, 100);
       }, 300);
     },
-    onSetMoveBlock: (position) => {
+    onSetMoveBlock: position => {
       const key = `${position[0]},${position[1]}`;
-      createOrUpdateFloorBlock(position, 0x44ff44, "move");
-      console.log(`[TestScene] 显示移动范围: 坐标=${position}, key=${key}`);
+      createOrUpdateFloorBlock(position, 0x44ff44, 'move');
+      log(`[TestScene] 显示移动范围: 坐标=${position}, key=${key}`);
     },
-    onSetAttackBlock: (position) => {
-      createOrUpdateFloorBlock(position, 0xff4444, "attack");
+    onSetAttackBlock: position => {
+      createOrUpdateFloorBlock(position, 0xff4444, 'attack');
       hasAttackTargets.value = true; // 有攻击范围说明有目标
-      console.log(`[TestScene] 显示攻击范围: ${position}`);
+      log(`[TestScene] 显示攻击范围: ${position}`);
     },
-    onClearBlock: (position) => {
+    onClearBlock: position => {
       clearFloorBlock(position);
     },
     // 从后端消息创建铜偶模型
     onSetCopper: async (_id, position, copper) => {
-      console.log(`[TestScene] 创建铜偶模型: id=${copper.id}, pos=${position}`);
+      log(`[TestScene] 创建铜偶模型: id=${copper.id}, pos=${position}`);
 
       // 检查是否已存在
-      const existing = models.find((m) => m.id === copper.id);
+      const existing = models.find(m => m.id === copper.id);
       if (existing) {
-        console.log(`[TestScene] 铜偶ID=${copper.id}已存在，跳过`);
+        log(`[TestScene] 铜偶ID=${copper.id}已存在，跳过`);
         return;
       }
 
@@ -823,14 +812,14 @@ function setupMessageQueue() {
           turnDone: false,
         };
         const isFirstCopper = playerCoppers.value.length === 0;
-        if (!playerCoppers.value.find((c) => c.id === copper.id)) {
+        if (!playerCoppers.value.find(c => c.id === copper.id)) {
           playerCoppers.value.push(copperData);
-          console.log(`[TestScene] 添加玩家铜偶: ${copperData.name}`);
+          log(`[TestScene] 添加玩家铜偶: ${copperData.name}`);
 
           // 如果是第一个铜偶，自动点击显示动作面板
           if (isFirstCopper) {
             setTimeout(() => {
-              console.log(`[TestScene] 自动点击第一个铜偶: ${copperData.name}`);
+              log(`[TestScene] 自动点击第一个铜偶: ${copperData.name}`);
               handleClickCopper(copper.id);
             }, 500);
           }
@@ -838,8 +827,8 @@ function setupMessageQueue() {
       }
 
       // 获取铜偶信息
-      const copperType = copper.copper.copper_type || "Arcanist";
-      const copperChineseName = copper.copper.copper_info?.name || "default";
+      const copperType = copper.copper.copper_type || 'Arcanist';
+      const copperChineseName = copper.copper.copper_info?.name || 'default';
 
       // 将中文名转换为英文文件夹名
       const copperName = getCopperEnglishName(copperChineseName);
@@ -847,26 +836,26 @@ function setupMessageQueue() {
       // 将类型名转换为文件夹名
       const typeFolder = getCopperTypeFolder(copperType);
 
-      console.log(
+      log(
         `[TestScene] 铜偶信息: 中文名=${copperChineseName}, 英文名=${copperName}, type=${copperType}, typeFolder=${typeFolder}`
       );
 
       // 根据铜偶类型调整缩放
       let modelScale = 1.0;
       switch (copperType) {
-        case "IronWall":
+        case 'IronWall':
           modelScale = 1.2;
           break;
-        case "Arcanist":
+        case 'Arcanist':
           modelScale = 1.0;
           break;
-        case "Mechanic":
+        case 'Mechanic':
           modelScale = 1.1;
           break;
-        case "Resonator":
+        case 'Resonator':
           modelScale = 1.0;
           break;
-        case "CraftsMan":
+        case 'CraftsMan':
           modelScale = 1.0;
           break;
         default:
@@ -883,25 +872,25 @@ function setupMessageQueue() {
 
       // 如果模型加载失败，创建备用立方体
       if (!obj) {
-        console.log(`[TestScene] 使用备用立方体代替模型: ${copperName}`);
+        log(`[TestScene] 使用备用立方体代替模型: ${copperName}`);
         const geometry = new THREE.BoxGeometry(0.8, 0.8, 0.8);
         let color = 0x4488ff;
 
         // 根据铜偶类型选择颜色
         switch (copperType) {
-          case "IronWall":
+          case 'IronWall':
             color = 0x888888;
             break;
-          case "Arcanist":
+          case 'Arcanist':
             color = 0xff4488;
             break;
-          case "Mechanic":
+          case 'Mechanic':
             color = 0x44ff88;
             break;
-          case "Resonator":
+          case 'Resonator':
             color = 0xffaa44;
             break;
-          case "CraftsMan":
+          case 'CraftsMan':
             color = 0x4444ff;
             break;
         }
@@ -919,40 +908,38 @@ function setupMessageQueue() {
         id: copper.id,
         object: obj,
         name: copper.copper.copper_info?.name || `Copper_${copper.id}`,
-        type: "copper",
+        type: 'copper',
       };
       models.push(modelData);
 
-      console.log(
-        `[TestScene] 铜偶创建成功: ${modelData.name} (ID=${copper.id})`
-      );
+      log(`[TestScene] 铜偶创建成功: ${modelData.name} (ID=${copper.id})`);
     },
     onSetEnemy: async (id, position, enemy) => {
       // 使用后端传递的实际 enemy.id
       const actualId = enemy.id;
-      console.log(`[TestScene] 创建敌人模型: id=${actualId}, pos=${position}`);
+      log(`[TestScene] 创建敌人模型: id=${actualId}, pos=${position}`);
 
       // 检查是否已存在
-      const existing = models.find((m) => m.id === actualId);
+      const existing = models.find(m => m.id === actualId);
       if (existing) {
-        console.log(`[TestScene] 敌人ID=${actualId}已存在，跳过`);
+        log(`[TestScene] 敌人ID=${actualId}已存在，跳过`);
         return;
       }
 
       // 获取敌人类型名称
-      const enemyType = enemy.enemy_base?.enemy_type || "";
-      const enemyName = enemyType.toLowerCase() || "goblin";
+      const enemyType = enemy.enemy_base?.enemy_type || '';
+      const enemyName = enemyType.toLowerCase() || 'goblin';
 
       // 根据敌人类型调整缩放
       let modelScale = 1.0;
       switch (enemyName) {
-        case "demon":
-        case "glutton":
-        case "devourer":
+        case 'demon':
+        case 'glutton':
+        case 'devourer':
           modelScale = 1.5;
           break;
-        case "guard":
-        case "horn":
+        case 'guard':
+        case 'horn':
           modelScale = 1.2;
           break;
         default:
@@ -964,7 +951,7 @@ function setupMessageQueue() {
 
       // 如果模型加载失败，创建备用立方体
       if (!obj) {
-        console.log(`[TestScene] 使用备用立方体代替敌人模型: ${enemyName}`);
+        log(`[TestScene] 使用备用立方体代替敌人模型: ${enemyName}`);
         const geometry = new THREE.BoxGeometry(0.8, 0.8, 0.8);
         const material = new THREE.MeshStandardMaterial({ color: 0xff0000 });
         obj = new THREE.Mesh(geometry, material);
@@ -978,22 +965,22 @@ function setupMessageQueue() {
         id: actualId,
         object: obj,
         name: enemy.enemy_base?.enemy_type || `Enemy_${actualId}`,
-        type: "enemy",
+        type: 'enemy',
       });
 
-      console.log(
+      log(
         `[TestScene] 敌人创建成功: ${enemy.enemy_base?.enemy_type || actualId}`
       );
     },
     onSetMaterial: async (id, position, material) => {
-      console.log(
+      log(
         `[TestScene] 创建矿物: id=${id}, pos=${position}, name=${material.material_base?.name}`
       );
 
       // 检查是否已存在
-      const existing = models.find((m) => m.id === id);
+      const existing = models.find(m => m.id === id);
       if (existing) {
-        console.log(`[TestScene] 矿物ID=${id}已存在，跳过`);
+        log(`[TestScene] 矿物ID=${id}已存在，跳过`);
         return;
       }
 
@@ -1021,46 +1008,46 @@ function setupMessageQueue() {
         id: id,
         object: obj,
         name: material.material_base?.name || `Material_${id}`,
-        type: "material",
+        type: 'material',
       });
 
-      console.log(`[TestScene] 矿物创建成功: ${material.material_base?.name}`);
+      log(`[TestScene] 矿物创建成功: ${material.material_base?.name}`);
     },
     onSetStructure: async (id, position, structure) => {
-      console.log(`[TestScene] 创建建筑: id=${id}, pos=${position}`);
+      log(`[TestScene] 创建建筑: id=${id}, pos=${position}`);
 
       // 检查是否已存在
-      const existing = models.find((m) => m.id === id);
+      const existing = models.find(m => m.id === id);
       if (existing) {
-        console.log(`[TestScene] 建筑ID=${id}已存在，跳过`);
+        log(`[TestScene] 建筑ID=${id}已存在，跳过`);
         return;
       }
 
       const structureName = structure.structure_base?.name || '';
       const englishName = getStructureEnglishName(structureName);
-      
+
       // 尝试加载GLTF模型
       const modelUrl = getStructureModelUrl(englishName);
       let obj = null;
-      
+
       try {
         const modelInstance = await modelCache.loadModel(modelUrl, true);
-        
+
         const group = new THREE.Group();
         group.add(modelInstance);
         group.position.set(position[0], 0, position[1]);
         group.scale.set(1.0, 1.0, 1.0);
         group.rotation.y = 0;
-        
+
         // 调整Y位置使模型底部对齐地面
         const scaledBox = new THREE.Box3().setFromObject(group);
         group.position.y = -scaledBox.min.y;
-        
+
         obj = group;
-        console.log(`[TestScene] 建筑模型加载成功: ${structureName}, URL: ${modelUrl}`);
+        log(`[TestScene] 建筑模型加载成功: ${structureName}, URL: ${modelUrl}`);
       } catch (e) {
-        console.warn(`[TestScene] 建筑模型加载失败: ${structureName}`, e);
-        
+        log(`[TestScene] 建筑模型加载失败: ${structureName}`, e);
+
         // 创建占位立方体
         const geometry = new THREE.BoxGeometry(0.9, 1.2, 0.9);
         const material = new THREE.MeshStandardMaterial({
@@ -1079,21 +1066,21 @@ function setupMessageQueue() {
         id: id,
         object: obj,
         name: structureName || `Structure_${id}`,
-        type: "structure",
+        type: 'structure',
       });
 
-      console.log(`[TestScene] 建筑创建成功: ${structureName}`);
+      log(`[TestScene] 建筑创建成功: ${structureName}`);
     },
-    onPutResourceMarker: (position) => {
+    onPutResourceMarker: position => {
       const key = `${position[0]},${position[1]}`;
 
       // 如果已存在，先移除
       if (resourceMarkers.has(key)) {
         const oldMarker = resourceMarkers.get(key);
         scene.remove(oldMarker);
-        
+
         // 递归清理所有子对象
-        oldMarker.traverse((obj) => {
+        oldMarker.traverse(obj => {
           if (obj.geometry) obj.geometry.dispose();
           if (obj.material) {
             if (Array.isArray(obj.material)) {
@@ -1103,13 +1090,13 @@ function setupMessageQueue() {
             }
           }
         });
-        
+
         resourceMarkers.delete(key);
       }
 
       // 创建资源标记（发光的宝箱/袋子图标）
       const group = new THREE.Group();
-      
+
       // 主体：小圆柱
       const bodyGeometry = new THREE.CylinderGeometry(0.15, 0.2, 0.25, 8);
       const bodyMaterial = new THREE.MeshStandardMaterial({
@@ -1117,12 +1104,12 @@ function setupMessageQueue() {
         emissive: 0xffaa00,
         emissiveIntensity: 0.6,
         metalness: 0.7,
-        roughness: 0.3
+        roughness: 0.3,
       });
       const body = new THREE.Mesh(bodyGeometry, bodyMaterial);
       body.position.y = 0.125;
       group.add(body);
-      
+
       // 顶部：发光球
       const topGeometry = new THREE.SphereGeometry(0.08, 8, 8);
       const topMaterial = new THREE.MeshStandardMaterial({
@@ -1133,28 +1120,28 @@ function setupMessageQueue() {
       const top = new THREE.Mesh(topGeometry, topMaterial);
       top.position.y = 0.3;
       group.add(top);
-      
+
       const worldX = position[0];
       const worldZ = position[1];
       group.position.set(worldX, 0.15, worldZ);
-      
+
       // 添加发光点光源
       const pointLight = new THREE.PointLight(0xffd700, 1.5, 3);
       pointLight.position.set(0, 0.3, 0);
       group.add(pointLight);
-      
+
       scene.add(group);
       resourceMarkers.set(key, group);
     },
-    onClearResourceMarker: (position) => {
+    onClearResourceMarker: position => {
       const key = `${position[0]},${position[1]}`;
-      
+
       if (resourceMarkers.has(key)) {
         const marker = resourceMarkers.get(key);
         scene.remove(marker);
-        
+
         // 递归清理所有子对象
-        marker.traverse((obj) => {
+        marker.traverse(obj => {
           if (obj.geometry) obj.geometry.dispose();
           if (obj.material) {
             if (Array.isArray(obj.material)) {
@@ -1164,13 +1151,13 @@ function setupMessageQueue() {
             }
           }
         });
-        
+
         resourceMarkers.delete(key);
       }
     },
     onDisplayCanMove: (unitId, canMove) => {
-      console.log(`[TestScene] 显示可移动状态: id=${unitId}, show=${canMove}`);
-      createIndicator(unitId, "move", canMove);
+      log(`[TestScene] 显示可移动状态: id=${unitId}, show=${canMove}`);
+      createIndicator(unitId, 'move', canMove);
 
       // 如果是当前选中的铜偶，同步更新状态（创建新对象触发响应式）
       if (selectedCopper.value && selectedCopper.value.id === unitId) {
@@ -1178,14 +1165,12 @@ function setupMessageQueue() {
           ...selectedCopper.value,
           can_move: canMove,
         };
-        console.log(`[TestScene] 同步更新selectedCopper.can_move=${canMove}`);
+        log(`[TestScene] 同步更新selectedCopper.can_move=${canMove}`);
       }
     },
     onDisplayCanAttack: (unitId, canAttack) => {
-      console.log(
-        `[TestScene] 显示可攻击状态: id=${unitId}, show=${canAttack}`
-      );
-      createIndicator(unitId, "attack", canAttack);
+      log(`[TestScene] 显示可攻击状态: id=${unitId}, show=${canAttack}`);
+      createIndicator(unitId, 'attack', canAttack);
 
       // 如果是当前选中的铜偶，同步更新状态（创建新对象触发响应式）
       if (selectedCopper.value && selectedCopper.value.id === unitId) {
@@ -1193,13 +1178,11 @@ function setupMessageQueue() {
           ...selectedCopper.value,
           can_attack: canAttack,
         };
-        console.log(
-          `[TestScene] 同步更新selectedCopper.can_attack=${canAttack}`
-        );
+        log(`[TestScene] 同步更新selectedCopper.can_attack=${canAttack}`);
       }
     },
-    onClearState: (unitId) => {
-      console.log(`[TestScene] 清除状态: id=${unitId}`);
+    onClearState: unitId => {
+      log(`[TestScene] 清除状态: id=${unitId}`);
       // 清除该单位的所有指示器
       if (stateIndicators.has(unitId)) {
         const indicators = stateIndicators.get(unitId);
@@ -1218,8 +1201,8 @@ function setupMessageQueue() {
         stateIndicators.delete(unitId);
       }
     },
-    onPutMapBlock: (position) => {
-      // console.log(`[TestScene] 放置地图块: position=${position}`)  // 日志太多，已注释
+    onPutMapBlock: position => {
+      // log(`[TestScene] 放置地图块: position=${position}`)  // 日志太多，已注释
       const key = `${position[0]},${position[1]}`;
 
       // 如果已存在，先移除
@@ -1284,32 +1267,32 @@ function setupMessageQueue() {
       animate();
     },
     //  模式切换：控制测试模型和EventLoop模型的显示
-    setTestMode: (mode) => {
-      console.log(
+    setTestMode: mode => {
+      log(
         `[TestScene] 切换到${
-          mode === "backend" ? "后端测试" : "EventLoop测试"
+          mode === 'backend' ? '后端测试' : 'EventLoop测试'
         }模式`
       );
 
-      models.forEach((model) => {
-        if (model.type === "test") {
+      models.forEach(model => {
+        if (model.type === 'test') {
           // 测试模型：后端测试和自定义测试时显示
-          model.object.visible = mode === "backend";
-        } else if (model.type === "copper" || model.type === "enemy") {
+          model.object.visible = mode === 'backend';
+        } else if (model.type === 'copper' || model.type === 'enemy') {
           // EventLoop模型：EventLoop测试时显示
-          model.object.visible = mode === "eventloop";
+          model.object.visible = mode === 'eventloop';
         }
       });
 
-      console.log(
-        `[TestScene] 已${mode === "backend" ? "显示" : "隐藏"}测试模型，${
-          mode === "eventloop" ? "显示" : "隐藏"
+      log(
+        `[TestScene] 已${mode === 'backend' ? '显示' : '隐藏'}测试模型，${
+          mode === 'eventloop' ? '显示' : '隐藏'
         }EventLoop模型`
       );
     },
   });
 
-  console.log("[TestScene] 消息队列已配置");
+  log('[TestScene] 消息队列已配置');
 }
 
 function focusOnModelFunc(modelObject, camera, controls) {
@@ -1352,23 +1335,23 @@ function animate() {
   // 第一人称移动控制
   if (keys.w || keys.a || keys.s || keys.d || keys.shift || keys.space) {
     const velocity = new THREE.Vector3();
-    
+
     // 根据相机朝向计算移动方向
     if (keys.w) velocity.z -= 1; // 向前
     if (keys.s) velocity.z += 1; // 向后
     if (keys.a) velocity.x -= 1; // 向左
     if (keys.d) velocity.x += 1; // 向右
-    
+
     // 垂直移动
     if (keys.shift) velocity.y -= 1; // 向下
     if (keys.space) velocity.y += 1; // 向上
-    
+
     // 应用相机旋转到水平移动
     velocity.applyQuaternion(camera.quaternion);
-    
+
     // 重置Y轴，只保留水平移动
     velocity.y = keys.shift ? -1 : keys.space ? 1 : 0;
-    
+
     // 移动相机位置
     camera.position.add(velocity.multiplyScalar(moveSpeed));
   }
@@ -1388,7 +1371,7 @@ function animate() {
     // 当接近目标位置时，清除聚焦状态
     const distance = camera.position.distanceTo(focusState.focusPosition);
     if (distance < 0.5) {
-      console.log("[TestScene] 相机聚焦完成");
+      log('[TestScene] 相机聚焦完成');
       focusState.focusPosition = null;
       focusState.focusTarget = null;
     }
@@ -1398,13 +1381,13 @@ function animate() {
 }
 
 function goBack() {
-  emit("back");
+  emit('back');
 }
 
 // 点击场景中的对象
 function onSceneClick(event) {
   // 忽略UI点击
-  if (event.target.tagName !== "CANVAS") return;
+  if (event.target.tagName !== 'CANVAS') return;
 
   // 计算鼠标位置（归一化设备坐标）
   mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
@@ -1415,8 +1398,8 @@ function onSceneClick(event) {
 
   // 如果在移动/攻击模式，检测地板点击
   if (
-    currentActionMode.value === "moving" ||
-    currentActionMode.value === "attacking"
+    currentActionMode.value === 'moving' ||
+    currentActionMode.value === 'attacking'
   ) {
     handleFloorClick(mouse);
     return;
@@ -1424,8 +1407,8 @@ function onSceneClick(event) {
 
   // 检测铜偶点击
   const clickableObjects = models
-    .filter((m) => m.type === "copper" && m.object)
-    .map((m) => m.object);
+    .filter(m => m.type === 'copper' && m.object)
+    .map(m => m.object);
 
   const intersects = raycaster.intersectObjects(clickableObjects, true);
 
@@ -1438,7 +1421,7 @@ function onSceneClick(event) {
 
     const modelId = clickedObject.userData.modelId;
     if (modelId !== undefined) {
-      console.log("[TestScene] 点击铜偶，ID:", modelId);
+      log('[TestScene] 点击铜偶，ID:', modelId);
       // 发送点击事件到后端
       handleClickCopper(modelId);
     }
@@ -1463,11 +1446,11 @@ async function handleFloorClick(mousePos) {
     const gridX = Math.round(intersectPoint.x);
     const gridZ = Math.round(intersectPoint.z);
 
-    console.log(`[TestScene] 点击地板: (${gridX}, ${gridZ})`);
+    log(`[TestScene] 点击地板: (${gridX}, ${gridZ})`);
 
-    if (currentActionMode.value === "moving") {
+    if (currentActionMode.value === 'moving') {
       await handleMoveApply(gridX, gridZ);
-    } else if (currentActionMode.value === "attacking") {
+    } else if (currentActionMode.value === 'attacking') {
       await handleAttackApply(gridX, gridZ);
     }
   }
@@ -1477,9 +1460,9 @@ async function handleFloorClick(mousePos) {
 async function handleMoveApply(x, z) {
   if (!selectedCopper.value) return;
 
-  console.log(`[TestScene] 请求移动到: (${x}, ${z})`);
+  log(`[TestScene] 请求移动到: (${x}, ${z})`);
   const message = JSON.stringify({
-    type: "on_move_apply",
+    type: 'on_move_apply',
     content: {
       id: String(selectedCopper.value.id),
       position: { x: String(x), y: String(z) },
@@ -1494,9 +1477,9 @@ async function handleMoveApply(x, z) {
 async function handleAttackApply(x, z) {
   if (!selectedCopper.value) return;
 
-  console.log(`[TestScene] 请求攻击位置: (${x}, ${z})`);
+  log(`[TestScene] 请求攻击位置: (${x}, ${z})`);
   const message = JSON.stringify({
-    type: "on_attack_apply",
+    type: 'on_attack_apply',
     content: {
       id: String(selectedCopper.value.id),
       position: { x: String(x), y: String(z) },
@@ -1514,9 +1497,9 @@ async function handleClickCopper(copperId) {
   if (index !== -1) {
     currentCopperIndex.value = index;
   }
-  
+
   const message = JSON.stringify({
-    type: "on_click_copper",
+    type: 'on_click_copper',
     content: { id: String(copperId) },
   });
   await eventloop(message);
@@ -1531,16 +1514,16 @@ function closeCopperPanel() {
 
 // 处理铜偶操作
 function handleCopperAction(action) {
-  console.log("[TestScene] 铜偶操作:", action);
+  log('[TestScene] 铜偶操作:', action);
 
-  if (action.type === "moveStart") {
-    currentActionMode.value = "moving";
-  } else if (action.type === "attackStart") {
-    currentActionMode.value = "attacking";
-  } else if (action.type === "cancel") {
+  if (action.type === 'moveStart') {
+    currentActionMode.value = 'moving';
+  } else if (action.type === 'attackStart') {
+    currentActionMode.value = 'attacking';
+  } else if (action.type === 'cancel') {
     currentActionMode.value = null;
-  } else if (action.type === "wait") {
-    console.log("[TestScene] 铜偶选择等待，跳转到下一个");
+  } else if (action.type === 'wait') {
+    log('[TestScene] 铜偶选择等待，跳转到下一个');
     // 跳转到下一个铜偶
     nextCopper();
   }
@@ -1555,7 +1538,7 @@ function tryNextCopper() {
     const canMove = selectedCopper.value.can_move;
     const canAttack = selectedCopper.value.can_attack;
 
-    console.log(
+    log(
       `[TestScene] 检查铜偶状态: ID=${selectedCopper.value.id}, can_move=${canMove}, can_attack=${canAttack}, hasAttackTargets=${hasAttackTargets.value}`
     );
 
@@ -1565,12 +1548,12 @@ function tryNextCopper() {
     const hasValidActions = canMove || (canAttack && hasAttackTargets.value);
 
     if (hasValidActions) {
-      console.log("[TestScene] 当前铜偶还能操作，不切换");
+      log('[TestScene] 当前铜偶还能操作，不切换');
       return;
     }
   }
 
-  console.log("[TestScene] 当前铜偶不能操作，切换到下一个");
+  log('[TestScene] 当前铜偶不能操作，切换到下一个');
   // 当前铜偶不能操作了，尝试切换到下一个
   nextCopper();
 }
@@ -1594,14 +1577,14 @@ async function nextCopper() {
       (currentCopperIndex.value + 1) % playerCoppers.value.length;
     const nextCopper = playerCoppers.value[currentCopperIndex.value];
 
-    console.log(
+    log(
       `[TestScene] 检查铜偶: ${nextCopper.name || nextCopper.id} (尝试 ${
         attempts + 1
       }/${maxAttempts})`
     );
 
     // 点击铜偶获取最新状态
-    await new Promise((resolve) => {
+    await new Promise(resolve => {
       setTimeout(async () => {
         await handleClickCopper(nextCopper.id);
         resolve();
@@ -1609,7 +1592,7 @@ async function nextCopper() {
     });
 
     // 等待状态更新
-    await new Promise((resolve) => setTimeout(resolve, 200));
+    await new Promise(resolve => setTimeout(resolve, 200));
 
     // 检查这个铜偶是否真的可以操作
     // 实际可执行的操作：
@@ -1619,14 +1602,12 @@ async function nextCopper() {
     const canAttack = selectedCopper.value?.can_attack || false;
     const hasValidActions = canMove || (canAttack && hasAttackTargets.value);
 
-    console.log(
+    log(
       `[TestScene] 铜偶 ${nextCopper.name}: can_move=${canMove}, can_attack=${canAttack}, hasTargets=${hasAttackTargets.value}, valid=${hasValidActions}`
     );
 
     if (selectedCopper.value && hasValidActions) {
-      console.log(
-        `[TestScene] 找到可操作的铜偶: ${nextCopper.name || nextCopper.id}`
-      );
+      log(`[TestScene] 找到可操作的铜偶: ${nextCopper.name || nextCopper.id}`);
       return; // 找到可操作的铜偶，停止
     }
 
@@ -1634,14 +1615,12 @@ async function nextCopper() {
   }
 
   // 所有铜偶都不能操作了
-  console.log("[TestScene] 所有铜偶都不能操作，回合可以结束");
+  log('[TestScene] 所有铜偶都不能操作，回合可以结束');
   selectedCopper.value = null;
 
   // 提示玩家可以结束回合
   if (props.isGameMode) {
-    console.log(
-      '[TestScene] 提示：所有铜偶都已完成操作，可以点击"结束回合"按钮'
-    );
+    log('[TestScene] 提示：所有铜偶都已完成操作，可以点击"结束回合"按钮');
   }
 }
 
@@ -1653,17 +1632,15 @@ function endRound() {
   currentActionMode.value = null;
 
   // 重置所有铜偶的turnDone状态
-  playerCoppers.value.forEach((c) => (c.turnDone = false));
+  playerCoppers.value.forEach(c => (c.turnDone = false));
 
-  console.log(`[TestScene] 进入回合 ${currentRound.value}`);
+  log(`[TestScene] 进入回合 ${currentRound.value}`);
 
   // 新回合开始，自动点击第一个铜偶显示动作面板
   if (playerCoppers.value.length > 0) {
     setTimeout(() => {
       const firstCopper = playerCoppers.value[0];
-      console.log(
-        `[TestScene] 新回合开始，自动点击第一个铜偶: ${firstCopper.name}`
-      );
+      log(`[TestScene] 新回合开始，自动点击第一个铜偶: ${firstCopper.name}`);
       handleClickCopper(firstCopper.id);
     }, 500);
   }
@@ -1680,7 +1657,7 @@ function endRound() {
       @click="goBack"
       :title="isGameMode ? '返回大厅' : '返回主菜单'"
     >
-      ← {{ isGameMode ? "返回大厅" : "返回" }}
+      ← {{ isGameMode ? '返回大厅' : '返回' }}
     </button>
 
     <!-- 测试面板（仅测试模式显示） -->

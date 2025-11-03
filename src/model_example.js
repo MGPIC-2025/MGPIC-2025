@@ -10,7 +10,7 @@ import {
   getModelsArray,
   setModelConfig,
   setSelectedModel,
-} from "./model.js";
+} from './model.js';
 
 // ✅ 配置参数
 const FLOOR_TEXTURE = null;
@@ -19,8 +19,8 @@ const GRID_CELL_SIZE = 1.0;
 const HOLD_DELAY = 500;
 
 // 🌐 初始化场景
-const container = document.getElementById("container");
-const guiContainer = document.getElementById("gui-container");
+const container = document.getElementById('container');
+const guiContainer = document.getElementById('gui-container');
 
 const {
   scene,
@@ -53,13 +53,13 @@ const moveState = {
 // 🎛️ 光照参数
 const lightingParams = {
   ambientIntensity: 0.8,
-  ambientColor: "#ffffff",
+  ambientColor: '#ffffff',
   directionalIntensity: 1.0,
-  directionalColor: "#ffffff",
+  directionalColor: '#ffffff',
   dirLightX: 5,
   dirLightY: 10,
   dirLightZ: 5,
-  bgColor: "#222222",
+  bgColor: '#222222',
 };
 
 // 🎨 更新光照回调
@@ -78,7 +78,7 @@ const interaction = setupInteraction(
   floor,
   GRID_CELL_SIZE,
   selectedModelRef,
-  (model) => setSelectedModel(selectedModelRef, scene, model),
+  model => setSelectedModel(selectedModelRef, scene, model),
   focusState,
   controls,
   HOLD_DELAY,
@@ -86,26 +86,26 @@ const interaction = setupInteraction(
 );
 
 // 🎮 WASD键盘控制
-["keydown", "keyup"].forEach((type) => {
-  window.addEventListener(type, (e) => {
-    const state = type === "keydown";
+['keydown', 'keyup'].forEach(type => {
+  window.addEventListener(type, e => {
+    const state = type === 'keydown';
     switch (e.code) {
-      case "KeyW":
+      case 'KeyW':
         moveState.back = state;
         break; // W = 前进
-      case "KeyS":
+      case 'KeyS':
         moveState.forward = state;
         break; // S = 后退
-      case "KeyA":
+      case 'KeyA':
         moveState.right = state;
         break; // A = 左移
-      case "KeyD":
+      case 'KeyD':
         moveState.left = state;
         break; // D = 右移
-      case "KeyQ":
+      case 'KeyQ':
         moveState.up = state;
         break; // Q = 上升
-      case "KeyE":
+      case 'KeyE':
         moveState.down = state;
         break; // E = 下降
     }
@@ -120,14 +120,14 @@ let modelCounter = 0;
 
 // 🗺️ 设置模型配置（示例）
 // 你可以为每个不同的模型文件设置不同的参数
-setModelConfig("variant", "./assets/enemy/variant/variant.glb", {
+setModelConfig('variant', './assets/enemy/variant/variant.glb', {
   initialX: 2, // 初始位置X = 2
   initialY: 2, // 初始位置Y = 0
   initialZ: 3, // 初始位置Z = -3
   initialScale: 4, // 初始缩放 = 1.5倍
   lightIntensity: 2.0, // 光源强度 = 2.0
   lightDistance: 150, // 光源距离 = 150
-  lightColor: "#ffffffff", // 光源颜色 = 橙色
+  lightColor: '#ffffffff', // 光源颜色 = 橙色
   lightPosX: 0.75, // 光源相对X位置 = 1.0
   lightPosY: 0, // 光源相对Y位置 = 0.5
   lightPosZ: 0, // 光源相对Z位置 = 0.5
@@ -136,27 +136,27 @@ setModelConfig("variant", "./assets/enemy/variant/variant.glb", {
 loadModel(
   gltfLoader,
   scene,
-  "variant",
+  'variant',
   GRID_CELL_SIZE,
   modelCounter++,
-  (modelData) => {
+  modelData => {
     models.push(modelData);
   },
-  (error) => {
-    console.error("Load error:", error);
+  error => {
+    log('Load error:', error);
   }
 );
 
 loadModel(
   gltfLoader,
   scene,
-  "variant",
+  'variant',
   GRID_CELL_SIZE,
   modelCounter++,
-  (modelData) => {
+  modelData => {
     models.push(modelData);
   },
-  (error) => {
-    console.error("Load error:", error);
+  error => {
+    log('Load error:', error);
   }
 );

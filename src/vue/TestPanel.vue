@@ -1,35 +1,36 @@
 <script setup>
-import { ref } from "vue";
-import { eventloop } from "../glue.js";
+import log from '../log.js';
+import { ref } from 'vue';
+import { eventloop } from '../glue.js';
 
-const emit = defineEmits(["enter-scene"]);
+const emit = defineEmits(['enter-scene']);
 
 // 测试函数列表
 const testFunctions = ref([
   {
-    name: "简单移动",
-    key: "test_simple_move",
-    desc: "移动单位到(2,2)并改变朝向",
+    name: '简单移动',
+    key: 'test_simple_move',
+    desc: '移动单位到(2,2)并改变朝向',
   },
   {
-    name: "显示状态",
-    key: "test_display_states",
-    desc: "显示可移动和可攻击圈圈",
+    name: '显示状态',
+    key: 'test_display_states',
+    desc: '显示可移动和可攻击圈圈',
   },
-  { name: "清除状态", key: "test_clear_states", desc: "清除所有状态指示器" },
+  { name: '清除状态', key: 'test_clear_states', desc: '清除所有状态指示器' },
   {
-    name: "移除单位",
-    key: "test_remove",
-    desc: "移除ID为2的单位（带淡出动画）",
+    name: '移除单位',
+    key: 'test_remove',
+    desc: '移除ID为2的单位（带淡出动画）',
   },
-  { name: "聚焦单位", key: "test_camera_control", desc: "相机聚焦到单位1" },
-  { name: "复位视角", key: "test_camera_reset", desc: "相机复位到默认位置" },
-  { name: "地图块", key: "test_blocks", desc: "放置并设置地图块状态" },
-  { name: "完整序列", key: "test_sequence", desc: "演示完整的交互流程（8步）" },
-  { 
-    name: "🔄 回合结束", 
-    key: "test_game_round_pass", 
-    desc: "清除地块并恢复所有铜偶的可移动/攻击状态" 
+  { name: '聚焦单位', key: 'test_camera_control', desc: '相机聚焦到单位1' },
+  { name: '复位视角', key: 'test_camera_reset', desc: '相机复位到默认位置' },
+  { name: '地图块', key: 'test_blocks', desc: '放置并设置地图块状态' },
+  { name: '完整序列', key: 'test_sequence', desc: '演示完整的交互流程（8步）' },
+  {
+    name: '🔄 回合结束',
+    key: 'test_game_round_pass',
+    desc: '清除地块并恢复所有铜偶的可移动/攻击状态',
   },
 ]);
 
@@ -39,68 +40,68 @@ const actualCopperIds = ref([]); // 存储实际的铜偶ID
 
 const eventloopTests = ref([
   {
-    name: "🎮 游戏开始",
-    key: "on_game_start",
-    desc: "⚠️ 必须先执行！初始化游戏并放置铜偶[1,2,3]",
-    params: { ids: ["1", "2", "3"] },
+    name: '🎮 游戏开始',
+    key: 'on_game_start',
+    desc: '⚠️ 必须先执行！初始化游戏并放置铜偶[1,2,3]',
+    params: { ids: ['1', '2', '3'] },
     required: true,
   },
   {
-    name: "🎯 点击铜偶",
-    key: "on_click_copper",
-    desc: "点击并高亮选中铜偶，显示状态信息",
+    name: '🎯 点击铜偶',
+    key: 'on_click_copper',
+    desc: '点击并高亮选中铜偶，显示状态信息',
     get params() {
-      return { id: String(actualCopperIds.value[0] || "1") };
+      return { id: String(actualCopperIds.value[0] || '1') };
     },
   },
   {
-    name: "🟢 开始移动",
-    key: "on_move_start",
-    desc: "显示绿色移动范围（可移动的地块）",
+    name: '🟢 开始移动',
+    key: 'on_move_start',
+    desc: '显示绿色移动范围（可移动的地块）',
     get params() {
-      return { id: String(actualCopperIds.value[0] || "1") };
+      return { id: String(actualCopperIds.value[0] || '1') };
     },
   },
   {
-    name: "实施移动",
-    key: "on_move_apply",
-    desc: "移动到位置(3,3)",
+    name: '实施移动',
+    key: 'on_move_apply',
+    desc: '移动到位置(3,3)',
     get params() {
       return {
-        id: String(actualCopperIds.value[0] || "1"),
-        position: { x: "3", y: "3" },
+        id: String(actualCopperIds.value[0] || '1'),
+        position: { x: '3', y: '3' },
       };
     },
   },
   {
-    name: "🔴 开始攻击",
-    key: "on_attack_start",
-    desc: "显示红色攻击范围（可攻击的敌人）",
+    name: '🔴 开始攻击',
+    key: 'on_attack_start',
+    desc: '显示红色攻击范围（可攻击的敌人）',
     get params() {
-      return { id: String(actualCopperIds.value[0] || "1") };
+      return { id: String(actualCopperIds.value[0] || '1') };
     },
   },
   {
-    name: "⬜ 取消攻击",
-    key: "on_attack_end",
-    desc: "清除所有红色攻击范围地块",
+    name: '⬜ 取消攻击',
+    key: 'on_attack_end',
+    desc: '清除所有红色攻击范围地块',
     params: {},
   },
   {
-    name: "实施攻击",
-    key: "on_attack_apply",
-    desc: "攻击位置(4,4)的目标",
+    name: '实施攻击',
+    key: 'on_attack_apply',
+    desc: '攻击位置(4,4)的目标',
     get params() {
       return {
-        id: String(actualCopperIds.value[0] || "1"),
-        position: { x: "4", y: "4" },
+        id: String(actualCopperIds.value[0] || '1'),
+        position: { x: '4', y: '4' },
       };
     },
   },
   {
-    name: "🔄 回合结束",
-    key: "on_game_round_pass",
-    desc: "清除所有地块，恢复所有铜偶状态",
+    name: '🔄 回合结束',
+    key: 'on_game_round_pass',
+    desc: '清除所有地块，恢复所有铜偶状态',
     params: {},
   },
 ]);
@@ -113,7 +114,7 @@ const showCustom = ref(false);
 const showEventloop = ref(false);
 
 // 测试模式：'backend' 或 'eventloop'
-const testMode = ref("eventloop"); // 默认EventLoop模式
+const testMode = ref('eventloop'); // 默认EventLoop模式
 
 // 自定义测试参数
 const customParams = ref({
@@ -121,34 +122,34 @@ const customParams = ref({
   moveX: 0,
   moveZ: 0,
   rotateId: 1,
-  rotateDir: "PositiveX",
+  rotateDir: 'PositiveX',
   removeId: 2,
 });
 
-const directions = ["PositiveX", "NegativeX", "PositiveY", "NegativeY"];
+const directions = ['PositiveX', 'NegativeX', 'PositiveY', 'NegativeY'];
 
 async function runTest(testKey) {
   try {
     executing.value = testKey;
-    console.log(`[TestPanel] 执行后端测试: ${testKey}`);
+    log(`[TestPanel] 执行后端测试: ${testKey}`);
 
     // 动态导入后端编译的 main.js
-    const backend = await import("../main.js");
+    const backend = await import('../main.js');
     const testFunc = backend[testKey];
 
-    if (testFunc && typeof testFunc === "function") {
+    if (testFunc && typeof testFunc === 'function') {
       testFunc();
-      console.log(`[TestPanel] 后端测试执行成功: ${testKey}`);
+      log(`[TestPanel] 后端测试执行成功: ${testKey}`);
     } else {
-      console.error(`[TestPanel] 后端测试函数不存在: ${testKey}`);
-      console.log(
-        "[TestPanel] 可用的后端函数:",
-        Object.keys(backend).filter((k) => k.startsWith("test_"))
+      log(`[TestPanel] 后端测试函数不存在: ${testKey}`);
+      log(
+        '[TestPanel] 可用的后端函数:',
+        Object.keys(backend).filter(k => k.startsWith('test_'))
       );
     }
   } catch (error) {
-    console.error(`[TestPanel] 后端测试执行失败:`, error);
-    console.error("[TestPanel] 请确保已编译后端代码: moon build");
+    log(`[TestPanel] 后端测试执行失败:`, error);
+    log('[TestPanel] 请确保已编译后端代码: moon build');
   } finally {
     setTimeout(() => {
       executing.value = null;
@@ -168,12 +169,12 @@ function toggleCustom() {
 // 切换测试模式并通知TestScene
 async function switchTestMode(mode) {
   testMode.value = mode;
-  console.log(
-    `[TestPanel] 切换到${mode === "backend" ? "后端测试" : "EventLoop测试"}模式`
+  log(
+    `[TestPanel] 切换到${mode === 'backend' ? '后端测试' : 'EventLoop测试'}模式`
   );
 
   // 通知TestScene切换模型显示
-  const { messageQueue } = await import("../messageQueue.js");
+  const { messageQueue } = await import('../messageQueue.js');
   if (messageQueue.sceneContext?.setTestMode) {
     messageQueue.sceneContext.setTestMode(mode);
   }
@@ -181,12 +182,12 @@ async function switchTestMode(mode) {
 
 async function runCustomMove() {
   try {
-    executing.value = "custom_move";
-    console.log(
+    executing.value = 'custom_move';
+    log(
       `[TestPanel] 自定义移动: ID=${customParams.value.moveId} 到 (${customParams.value.moveX}, ${customParams.value.moveZ})`
     );
 
-    const backend = await import("../main.js");
+    const backend = await import('../main.js');
     if (backend.move_to_xy) {
       // 使用单独的x, y参数版本
       backend.move_to_xy(
@@ -194,12 +195,12 @@ async function runCustomMove() {
         customParams.value.moveX,
         customParams.value.moveZ
       );
-      console.log("[TestPanel] 自定义移动命令已发送");
+      log('[TestPanel] 自定义移动命令已发送');
     } else {
-      console.error("[TestPanel] move_to_xy 函数不存在");
+      log('[TestPanel] move_to_xy 函数不存在');
     }
   } catch (error) {
-    console.error("[TestPanel] 执行失败:", error);
+    log('[TestPanel] 执行失败:', error);
   } finally {
     setTimeout(() => {
       executing.value = null;
@@ -209,24 +210,24 @@ async function runCustomMove() {
 
 async function runCustomRotate() {
   try {
-    executing.value = "custom_rotate";
-    console.log(
+    executing.value = 'custom_rotate';
+    log(
       `[TestPanel] 自定义旋转: ID=${customParams.value.rotateId} 方向=${customParams.value.rotateDir}`
     );
 
-    const backend = await import("../main.js");
+    const backend = await import('../main.js');
     if (backend.change_direction_str) {
       // 直接传递字符串
       backend.change_direction_str(
         customParams.value.rotateId,
         customParams.value.rotateDir
       );
-      console.log("[TestPanel] 自定义旋转命令已发送");
+      log('[TestPanel] 自定义旋转命令已发送');
     } else {
-      console.error("[TestPanel] change_direction_str 函数不存在");
+      log('[TestPanel] change_direction_str 函数不存在');
     }
   } catch (error) {
-    console.error("[TestPanel] 执行失败:", error);
+    log('[TestPanel] 执行失败:', error);
   } finally {
     setTimeout(() => {
       executing.value = null;
@@ -236,18 +237,18 @@ async function runCustomRotate() {
 
 async function runCustomRemove() {
   try {
-    executing.value = "custom_remove";
-    console.log(`[TestPanel] 自定义移除: ID=${customParams.value.removeId}`);
+    executing.value = 'custom_remove';
+    log(`[TestPanel] 自定义移除: ID=${customParams.value.removeId}`);
 
-    const backend = await import("../main.js");
+    const backend = await import('../main.js');
     if (backend.remove_unit) {
       backend.remove_unit(customParams.value.removeId);
-      console.log("[TestPanel] 自定义移除命令已发送");
+      log('[TestPanel] 自定义移除命令已发送');
     } else {
-      console.error("[TestPanel] remove_unit 函数不存在");
+      log('[TestPanel] remove_unit 函数不存在');
     }
   } catch (error) {
-    console.error("[TestPanel] 执行失败:", error);
+    log('[TestPanel] 执行失败:', error);
   } finally {
     setTimeout(() => {
       executing.value = null;
@@ -264,29 +265,29 @@ function toggleEventloop() {
 async function runEventloopTest(test) {
   try {
     executing.value = test.key;
-    console.log(`[TestPanel] 执行EventLoop测试: ${test.name}`);
+    log(`[TestPanel] 执行EventLoop测试: ${test.name}`);
 
     // 检查是否需要先初始化游戏
-    if (!gameInitialized.value && test.key !== "on_game_start") {
-      console.warn('[TestPanel] ⚠️ 游戏未初始化，请先点击 "🎮 游戏开始"');
+    if (!gameInitialized.value && test.key !== 'on_game_start') {
+      log('[TestPanel] ⚠️ 游戏未初始化，请先点击 "🎮 游戏开始"');
       alert('⚠️ 请先点击 "🎮 游戏开始" 按钮初始化游戏！');
       return;
     }
 
     // 如果是游戏开始，先初始化ID收集器
-    if (test.key === "on_game_start") {
+    if (test.key === 'on_game_start') {
       window.__ACTUAL_COPPER_IDS__ = [];
-      console.log("[TestPanel] ✅ 已初始化ID收集器");
+      log('[TestPanel] ✅ 已初始化ID收集器');
 
       // 检查是否在3D场景中
-      import("../messageQueue.js").then((module) => {
+      import('../messageQueue.js').then(module => {
         const sceneContext = module.messageQueue.sceneContext;
 
         if (!sceneContext?.onSetCopper) {
-          console.warn("[TestPanel] ⚠️ 当前不在3D场景中，模型不会显示");
-          console.warn('[TestPanel] 💡 点击"🎮 进入3D场景"按钮查看3D效果');
+          log('[TestPanel] ⚠️ 当前不在3D场景中，模型不会显示');
+          log('[TestPanel] 💡 点击"🎮 进入3D场景"按钮查看3D效果');
         } else {
-          console.log("[TestPanel] ✅ 已检测到3D场景，模型将正常创建");
+          log('[TestPanel] ✅ 已检测到3D场景，模型将正常创建');
         }
       });
     }
@@ -297,10 +298,10 @@ async function runEventloopTest(test) {
       content: test.params,
     });
 
-    console.log("[TestPanel] 发送消息:", message);
+    log('[TestPanel] 发送消息:', message);
 
     // 如果是实施攻击，触发攻击特效
-    if (test.key === "on_attack_apply") {
+    if (test.key === 'on_attack_apply') {
       // 从消息中提取攻击者ID和目标位置
       const attackerId = test.params.id;
       const targetPos = [
@@ -309,11 +310,11 @@ async function runEventloopTest(test) {
       ];
 
       // 调用攻击特效
-      import("../messageQueue.js").then((module) => {
+      import('../messageQueue.js').then(module => {
         const sceneContext = module.messageQueue.sceneContext;
         if (sceneContext?.createAttackEffect) {
           sceneContext.createAttackEffect(parseInt(attackerId), targetPos);
-          console.log("[TestPanel] 💥 触发攻击特效");
+          log('[TestPanel] 💥 触发攻击特效');
         }
       });
     }
@@ -322,12 +323,12 @@ async function runEventloopTest(test) {
     await eventloop(message);
 
     // 标记游戏已初始化
-    if (test.key === "on_game_start") {
+    if (test.key === 'on_game_start') {
       // eventloop已经调用，现在等待消息到达
-      console.log("[TestPanel] ⏳ 等待游戏初始化完成...");
+      log('[TestPanel] ⏳ 等待游戏初始化完成...');
 
       // 先等待300ms让消息开始到达
-      await new Promise((resolve) => setTimeout(resolve, 300));
+      await new Promise(resolve => setTimeout(resolve, 300));
 
       // 然后轮询等待ID被捕获
       let attempts = 0;
@@ -337,14 +338,14 @@ async function runEventloopTest(test) {
           window.__ACTUAL_COPPER_IDS__ &&
           window.__ACTUAL_COPPER_IDS__.length >= 3
         ) {
-          console.log(`[TestPanel] 在第 ${attempts} 次尝试时捕获到ID`);
+          log(`[TestPanel] 在第 ${attempts} 次尝试时捕获到ID`);
           break;
         }
-        await new Promise((resolve) => setTimeout(resolve, 100));
+        await new Promise(resolve => setTimeout(resolve, 100));
         attempts++;
       }
 
-      console.log(`[TestPanel] 轮询结束，尝试次数: ${attempts}`);
+      log(`[TestPanel] 轮询结束，尝试次数: ${attempts}`);
 
       // 从全局变量中获取实际的铜偶ID
       if (
@@ -352,56 +353,47 @@ async function runEventloopTest(test) {
         window.__ACTUAL_COPPER_IDS__.length >= 3
       ) {
         actualCopperIds.value = [...window.__ACTUAL_COPPER_IDS__];
-        console.log(
-          "[TestPanel] ✅ 捕获到实际的铜偶ID:",
-          actualCopperIds.value
-        );
+        log('[TestPanel] ✅ 捕获到实际的铜偶ID:', actualCopperIds.value);
         gameInitialized.value = true;
-        console.log("[TestPanel] ✅ 游戏已初始化，可以进行其他操作");
+        log('[TestPanel] ✅ 游戏已初始化，可以进行其他操作');
       } else {
-        console.error("[TestPanel] ❌ 未能捕获铜偶ID！");
-        console.log(
-          "[TestPanel] 当前捕获的ID数量:",
+        log('[TestPanel] ❌ 未能捕获铜偶ID！');
+        log(
+          '[TestPanel] 当前捕获的ID数量:',
           window.__ACTUAL_COPPER_IDS__?.length || 0
         );
-        console.log("[TestPanel] ID内容:", window.__ACTUAL_COPPER_IDS__);
-        console.error("[TestPanel] ⚠️ 这是一个严重错误，可能是：");
-        console.error("[TestPanel]   1. 后端没有发送set_copper消息");
-        console.error("[TestPanel]   2. messageQueue处理消息太慢");
-        console.error(
-          "[TestPanel]   3. 需要重新编译后端：moon build --target js"
-        );
-        console.error("[TestPanel] 💡 请检查上方日志：");
-        console.error("[TestPanel]   - 是否看到 [App] 🔥 收到set_copper消息？");
-        console.error(
-          "[TestPanel]   - 是否看到 [Handler] set_copper at ... ？"
-        );
-        console.error(
-          "[TestPanel]   - 如果都没有，说明后端未发送消息，需要重新编译"
-        );
+        log('[TestPanel] ID内容:', window.__ACTUAL_COPPER_IDS__);
+        log('[TestPanel] ⚠️ 这是一个严重错误，可能是：');
+        log('[TestPanel]   1. 后端没有发送set_copper消息');
+        log('[TestPanel]   2. messageQueue处理消息太慢');
+        log('[TestPanel]   3. 需要重新编译后端：moon build --target js');
+        log('[TestPanel] 💡 请检查上方日志：');
+        log('[TestPanel]   - 是否看到 [App] 🔥 收到set_copper消息？');
+        log('[TestPanel]   - 是否看到 [Handler] set_copper at ... ？');
+        log('[TestPanel]   - 如果都没有，说明后端未发送消息，需要重新编译');
 
         // 不标记为已初始化
         gameInitialized.value = false;
         executing.value = null;
 
-        alert("❌ 未能捕获铜偶ID！");
+        alert('❌ 未能捕获铜偶ID！');
         return; // 提前返回，不继续
       }
     }
 
-    console.log("[TestPanel] EventLoop测试执行成功");
+    log('[TestPanel] EventLoop测试执行成功');
   } catch (error) {
-    console.error("[TestPanel] EventLoop测试失败:", error);
-    console.error("[TestPanel] 错误详情:", error.message);
-    console.error("[TestPanel] 当前使用的铜偶ID:", actualCopperIds.value);
+    log('[TestPanel] EventLoop测试失败:', error);
+    log('[TestPanel] 错误详情:', error.message);
+    log('[TestPanel] 当前使用的铜偶ID:', actualCopperIds.value);
 
     // 提供更友好的错误提示
-    if (error.message && error.message.includes("panic")) {
-      console.error(
+    if (error.message && error.message.includes('panic')) {
+      log(
         '[TestPanel] 💡 提示: 大部分操作需要先初始化游戏（点击"🎮 游戏开始"）'
       );
       if (actualCopperIds.value.length === 0) {
-        console.error("[TestPanel] ⚠️ 未能捕获铜偶ID！请刷新页面重试");
+        log('[TestPanel] ⚠️ 未能捕获铜偶ID！请刷新页面重试');
         alert('⚠️ 未能捕获铜偶ID，请刷新页面后重新点击"🎮 游戏开始"');
       }
     }
@@ -414,11 +406,11 @@ async function runEventloopTest(test) {
 
 // 自定义EventLoop参数
 const customEventloopParams = ref({
-  type: "on_click_copper",
-  copperId: "", // 不设默认值，强制用户输入
-  positionX: "3",
-  positionY: "3",
-  ids: "1,2,3",
+  type: 'on_click_copper',
+  copperId: '', // 不设默认值，强制用户输入
+  positionX: '3',
+  positionY: '3',
+  ids: '1,2,3',
 });
 
 // 自动填充实际铜偶ID
@@ -431,36 +423,36 @@ function fillActualCopperId() {
 }
 
 const eventloopTypes = [
-  "on_click_copper",
-  "on_attack_start",
-  "on_attack_end",
-  "on_attack_apply",
-  "on_move_start",
-  "on_move_apply",
-  "on_game_start",
-  "on_game_round_pass",
+  'on_click_copper',
+  'on_attack_start',
+  'on_attack_end',
+  'on_attack_apply',
+  'on_move_start',
+  'on_move_apply',
+  'on_game_start',
+  'on_game_round_pass',
 ];
 
 // 执行自定义EventLoop
 async function runCustomEventloop() {
   try {
-    executing.value = "custom_eventloop";
+    executing.value = 'custom_eventloop';
     const type = customEventloopParams.value.type;
     let content = {};
 
     // 根据不同类型构造content
     switch (type) {
-      case "on_click_copper":
-      case "on_attack_start":
-      case "on_move_start":
+      case 'on_click_copper':
+      case 'on_attack_start':
+      case 'on_move_start':
         content = { id: customEventloopParams.value.copperId };
         break;
-      case "on_attack_end":
-      case "on_game_round_pass":
+      case 'on_attack_end':
+      case 'on_game_round_pass':
         content = {};
         break;
-      case "on_attack_apply":
-      case "on_move_apply":
+      case 'on_attack_apply':
+      case 'on_move_apply':
         content = {
           id: customEventloopParams.value.copperId,
           position: {
@@ -469,23 +461,23 @@ async function runCustomEventloop() {
           },
         };
         break;
-      case "on_game_start":
+      case 'on_game_start':
         content = {
           ids: customEventloopParams.value.ids
-            .split(",")
-            .map((s) => s.trim())
-            .filter((s) => s),
+            .split(',')
+            .map(s => s.trim())
+            .filter(s => s),
         };
         break;
     }
 
     const message = JSON.stringify({ type, content });
-    console.log("[TestPanel] 自定义EventLoop:", message);
+    log('[TestPanel] 自定义EventLoop:', message);
 
     await eventloop(message);
-    console.log("[TestPanel] 自定义EventLoop执行成功");
+    log('[TestPanel] 自定义EventLoop执行成功');
   } catch (error) {
-    console.error("[TestPanel] 自定义EventLoop失败:", error);
+    log('[TestPanel] 自定义EventLoop失败:', error);
   } finally {
     setTimeout(() => {
       executing.value = null;
@@ -501,7 +493,7 @@ async function runCustomEventloop() {
       @click="togglePanel"
       :title="isOpen ? '关闭测试面板' : '打开测试面板'"
     >
-      {{ isOpen ? "✕" : "🧪" }}
+      {{ isOpen ? '✕' : '🧪' }}
     </button>
 
     <div v-if="isOpen" class="test-panel__content">
@@ -565,10 +557,10 @@ async function runCustomEventloop() {
           <span class="game-status__icon">
             {{
               gameInitialized
-                ? "✅"
-                : executing === "on_game_start"
-                ? "⏳"
-                : "⚠️"
+                ? '✅'
+                : executing === 'on_game_start'
+                  ? '⏳'
+                  : '⚠️'
             }}
           </span>
           <span class="game-status__text">
@@ -578,7 +570,7 @@ async function runCustomEventloop() {
                 v-if="actualCopperIds.length > 0"
                 style="opacity: 0.8; font-size: 0.9em"
               >
-                (铜偶ID: {{ actualCopperIds.join(", ") }})
+                (铜偶ID: {{ actualCopperIds.join(', ') }})
               </span>
             </template>
             <template v-else-if="executing === 'on_game_start'">

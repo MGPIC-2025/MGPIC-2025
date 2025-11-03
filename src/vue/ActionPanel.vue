@@ -1,4 +1,5 @@
 <script setup>
+import log from '../log.js';
 import { ref, computed } from 'vue';
 import { eventloop } from '../glue.js';
 import { getAssetUrl } from '../utils/resourceLoader.js';
@@ -9,20 +10,20 @@ import HealthBar from './ActionPanelParts/HealthBar.vue';
 const props = defineProps({
   copper: {
     type: Object,
-    default: null
+    default: null,
   },
   resources: {
     type: Array,
-    default: () => []
+    default: () => [],
   },
   hasAttackTargets: {
     type: Boolean,
-    default: true // 默认假设有目标
+    default: true, // 默认假设有目标
   },
   onSelectCopper: {
     type: Function,
-    default: null
-  }
+    default: null,
+  },
 });
 
 const emit = defineEmits(['close', 'action', 'selectCopper']);
@@ -39,11 +40,15 @@ const RESOURCE_META = {
   },
   ResonantCrystal: {
     name: '共鸣星晶',
-    icon: getAssetUrl('resource/resonant_star_crystal/resonant_star_crystal.webp'),
+    icon: getAssetUrl(
+      'resource/resonant_star_crystal/resonant_star_crystal.webp'
+    ),
   },
   RefinedCopper: {
     name: '精炼铜锭',
-    icon: getAssetUrl('resource/refined_copper_ingot/refined_copper_ingot.webp'),
+    icon: getAssetUrl(
+      'resource/refined_copper_ingot/refined_copper_ingot.webp'
+    ),
   },
   SpiritalSpark: {
     name: '灵性火花',
@@ -89,10 +94,10 @@ const copperInfo = computed(() => {
 
 async function handleMove() {
   if (!copperInfo.value.canMove) return;
-  console.log('[ActionPanel] 请求移动范围');
+  log('[ActionPanel] 请求移动范围');
   const message = JSON.stringify({
     type: 'on_move_start',
-    content: { id: String(copperInfo.value.id) }
+    content: { id: String(copperInfo.value.id) },
   });
   await eventloop(message);
   panelMode.value = 'minimized';
@@ -101,19 +106,19 @@ async function handleMove() {
 }
 
 async function handleAttack() {
-  console.log('[ActionPanel] 攻击按钮点击', {
+  log('[ActionPanel] 攻击按钮点击', {
     canAttack: copperInfo.value.canAttack,
     copperId: copperInfo.value.id,
-    name: copperInfo.value.name
+    name: copperInfo.value.name,
   });
   if (!copperInfo.value.canAttack) {
-    console.warn('[ActionPanel] 攻击被阻止: 本回合已攻击');
+    log('[ActionPanel] 攻击被阻止: 本回合已攻击');
     return;
   }
-  console.log('[ActionPanel] 请求攻击范围');
+  log('[ActionPanel] 请求攻击范围');
   const message = JSON.stringify({
     type: 'on_attack_start',
-    content: { id: String(copperInfo.value.id) }
+    content: { id: String(copperInfo.value.id) },
   });
   await eventloop(message);
   panelMode.value = 'minimized';
@@ -122,54 +127,58 @@ async function handleAttack() {
 }
 
 function handleInventory() {
-  console.log('[ActionPanel] 打开背包');
+  log('[ActionPanel] 打开背包');
   showInventory.value = true;
 }
 
 async function handlePickup(index) {
-  console.log(`[ActionPanel] 拾取物品: index=${index}`);
+  log(`[ActionPanel] 拾取物品: index=${index}`);
   const message = JSON.stringify({
     type: 'on_copper_pick_up',
-    content: { id: String(copperInfo.value.id), index: String(index) }
+    content: { id: String(copperInfo.value.id), index: String(index) },
   });
   await eventloop(message);
   await refreshCopperState();
 }
 
 async function handleDrop(index) {
-  console.log(`[ActionPanel] 丢弃物品: index=${index}`);
+  log(`[ActionPanel] 丢弃物品: index=${index}`);
   const message = JSON.stringify({
     type: 'on_copper_drop_item',
-    content: { id: String(copperInfo.value.id), index: String(index) }
+    content: { id: String(copperInfo.value.id), index: String(index) },
   });
   await eventloop(message);
   await refreshCopperState();
 }
 
 async function handleCraft() {
-  console.log('[ActionPanel] 合成物品');
+  log('[ActionPanel] 合成物品');
   const message = JSON.stringify({
     type: 'on_copper_craft',
-    content: { id: String(copperInfo.value.id) }
+    content: { id: String(copperInfo.value.id) },
   });
   await eventloop(message);
   await refreshCopperState();
 }
 
 // 处理背包组件的事件
-async function handleInventoryCraft() { await handleCraft(); }
-async function handleInventoryDrop(index) { await handleDrop(index); }
+async function handleInventoryCraft() {
+  await handleCraft();
+}
+async function handleInventoryDrop(index) {
+  await handleDrop(index);
+}
 
 async function refreshCopperState() {
   const message = JSON.stringify({
     type: 'on_click_copper',
-    content: { id: String(copperInfo.value.id) }
+    content: { id: String(copperInfo.value.id) },
   });
   await eventloop(message);
 }
 
 function handleWait() {
-  console.log('[ActionPanel] 等待');
+  log('[ActionPanel] 等待');
   emit('action', { type: 'wait', copperId: copperInfo.value.id });
 }
 
@@ -188,10 +197,16 @@ function restore() {
 
 // 获取资源名称
 function getResourceName(resource) {
-  if (Array.isArray(resource.item_type) && resource.item_type[0] === 'Resource') {
+  if (
+    Array.isArray(resource.item_type) &&
+    resource.item_type[0] === 'Resource'
+  ) {
     const resourceType = resource.item_type[1];
     return RESOURCE_META[resourceType]?.name || resourceType;
-  } else if (Array.isArray(resource.item_type) && resource.item_type[0] === 'Equipment') {
+  } else if (
+    Array.isArray(resource.item_type) &&
+    resource.item_type[0] === 'Equipment'
+  ) {
     return '装备';
   }
   return '未知物品';
@@ -220,69 +235,86 @@ defineExpose({ restore, cancelAction, handleSelectCopper });
 <template>
   <div v-if="copper" class="copper-panel-parent">
     <!-- 菱形属性面板 -->
-    <DiamondPanel 
+    <DiamondPanel
       :copper-info="copperInfo"
       :inventory-items="inventoryItems"
       @inventory-click="handleInventory"
     />
 
     <!-- 血条 -->
-    <HealthBar 
-      :hp="copperInfo?.hp || 0"
-      :max-hp="copperInfo?.maxHp || 100"
-    />
+    <HealthBar :hp="copperInfo?.hp || 0" :max-hp="copperInfo?.maxHp || 100" />
 
-    <div class="copper-panel" :class="{ 'copper-panel--minimized': panelMode === 'minimized' }" @click.stop>
+    <div
+      class="copper-panel"
+      :class="{ 'copper-panel--minimized': panelMode === 'minimized' }"
+      @click.stop
+    >
       <!-- 最小化状态 -->
       <div v-if="panelMode === 'minimized'" class="minimized-content">
-      <div class="minimized-info">
-        <span class="minimized-name">{{ copperInfo.name }}</span>
-        <span class="minimized-action">
-          {{ actionMode === 'moving' ? '🚶 选择移动位置...' : '⚔️ 选择攻击目标...' }}
-        </span>
-      </div>
-      <div class="minimized-actions">
-        <button class="mini-btn mini-btn--restore" @click="restore" title="展开">▲</button>
-        <button class="mini-btn mini-btn--cancel" @click="cancelAction" title="取消">✕</button>
-      </div>
-    </div>
-
-    <!-- 完整显示状态 -->
-    <template v-else>
-      <!-- 关闭按钮 -->
-      <button class="close-btn" @click="close" title="关闭">✕</button>
-
-      
-
-      <div class="panel-content">
-        <!-- 铜偶信息 -->
-        <div class="copper-info">
-          <div class="info-top">
-            <div class="copper-header">
-              <h3 class="copper-name">{{ copperInfo.name }}</h3>
-              <span class="copper-level">Lv.{{ copperInfo.level }}</span>
-            </div>
-          </div>
-      </div>
-
-      <!-- 地面资源（如果有） -->
-      <div v-if="resources && resources.length > 0" class="resources">
-        <div class="resources-header">📦 地面物品</div>
-        <div class="resources-list">
-          <div 
-            v-for="(resource, index) in resources" 
-            :key="index" 
-            class="resource-item"
-            @click="handlePickup(index)"
-            title="点击拾取"
+        <div class="minimized-info">
+          <span class="minimized-name">{{ copperInfo.name }}</span>
+          <span class="minimized-action">
+            {{
+              actionMode === 'moving'
+                ? '🚶 选择移动位置...'
+                : '⚔️ 选择攻击目标...'
+            }}
+          </span>
+        </div>
+        <div class="minimized-actions">
+          <button
+            class="mini-btn mini-btn--restore"
+            @click="restore"
+            title="展开"
           >
-            <span class="resource-name">{{ getResourceName(resource) }}</span>
-            <span class="resource-count">x{{ resource.count || 1 }}</span>
-            <span class="resource-pickup">⬆️</span>
-          </div>
+            ▲
+          </button>
+          <button
+            class="mini-btn mini-btn--cancel"
+            @click="cancelAction"
+            title="取消"
+          >
+            ✕
+          </button>
         </div>
       </div>
-      </div>
+
+      <!-- 完整显示状态 -->
+      <template v-else>
+        <!-- 关闭按钮 -->
+        <button class="close-btn" @click="close" title="关闭">✕</button>
+
+        <div class="panel-content">
+          <!-- 铜偶信息 -->
+          <div class="copper-info">
+            <div class="info-top">
+              <div class="copper-header">
+                <h3 class="copper-name">{{ copperInfo.name }}</h3>
+                <span class="copper-level">Lv.{{ copperInfo.level }}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- 地面资源（如果有） -->
+          <div v-if="resources && resources.length > 0" class="resources">
+            <div class="resources-header">📦 地面物品</div>
+            <div class="resources-list">
+              <div
+                v-for="(resource, index) in resources"
+                :key="index"
+                class="resource-item"
+                @click="handlePickup(index)"
+                title="点击拾取"
+              >
+                <span class="resource-name">{{
+                  getResourceName(resource)
+                }}</span>
+                <span class="resource-count">x{{ resource.count || 1 }}</span>
+                <span class="resource-pickup">⬆️</span>
+              </div>
+            </div>
+          </div>
+        </div>
       </template>
     </div>
 
@@ -300,11 +332,7 @@ defineExpose({ restore, cancelAction, handleSelectCopper });
           <img class="hex-icon" :src="waitIconSrc" alt="移动图标（蘑菇）" />
         </div>
         <!-- 左下：等待 -->
-        <div
-          class="hex left"
-          title="等待"
-          @click="handleWait"
-        >
+        <div class="hex left" title="等待" @click="handleWait">
           <img class="hex-bg" :src="hexSrc" alt="六边形背景" />
           <img class="hex-icon" :src="moveIconSrc" alt="等待图标（靴子）" />
         </div>
@@ -334,7 +362,9 @@ defineExpose({ restore, cancelAction, handleSelectCopper });
 </template>
 
 <style scoped>
-.copper-panel-parent{ position: relative; }
+.copper-panel-parent {
+  position: relative;
+}
 
 .copper-panel {
   position: fixed;
@@ -354,8 +384,9 @@ defineExpose({ restore, cancelAction, handleSelectCopper });
   transition: all 0.3s ease;
 }
 
-
-.panel-content{ padding-right:0; }
+.panel-content {
+  padding-right: 0;
+}
 
 .copper-panel--minimized {
   bottom: 48px;
@@ -402,11 +433,11 @@ defineExpose({ restore, cancelAction, handleSelectCopper });
   margin-bottom: 16px;
 }
 
-.info-top{
-  display:flex;
-  align-items:flex-start;
-  justify-content:space-between;
-  gap:12px;
+.info-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
 }
 
 .copper-header {
@@ -469,25 +500,58 @@ defineExpose({ restore, cancelAction, handleSelectCopper });
   transform: translateY(-1px);
 }
 
-.resource-name { flex: 1; }
-.resource-count { margin: 0 8px; color: rgba(255, 200, 100, 0.9); }
-.resource-pickup { font-size: 14px; opacity: 0.7; }
+.resource-name {
+  flex: 1;
+}
+.resource-count {
+  margin: 0 8px;
+  color: rgba(255, 200, 100, 0.9);
+}
+.resource-pickup {
+  font-size: 14px;
+  opacity: 0.7;
+}
 
 /* ====== Tri icons (migrated from ClockPanel) ====== */
-.tri-panel { position: absolute; right: 29px; bottom: 10px; z-index: 6000; }
-.tri-panel { --gap: 0px; --size: 64px; --overlapY: 16px; --overlapX: 37px; --topDropY: -8px; }
-@media (min-width: 640px) { .tri-panel { --size: 80px; } }
-.tri { display: grid; grid-template-columns: repeat(3, max-content); grid-template-rows: repeat(2, max-content); gap: var(--gap); align-items: center; justify-items: center; }
-.hex { 
+.tri-panel {
+  position: absolute;
+  right: 29px;
+  bottom: 10px;
+  z-index: 6000;
+}
+.tri-panel {
+  --gap: 0px;
+  --size: 64px;
+  --overlapY: 16px;
+  --overlapX: 37px;
+  --topDropY: -8px;
+}
+@media (min-width: 640px) {
+  .tri-panel {
+    --size: 80px;
+  }
+}
+.tri {
+  display: grid;
+  grid-template-columns: repeat(3, max-content);
+  grid-template-rows: repeat(2, max-content);
+  gap: var(--gap);
+  align-items: center;
+  justify-items: center;
+}
+.hex {
   position: relative;
-  width: var(--size); 
-  height: var(--size); 
-  image-rendering: pixelated; 
-  image-rendering: crisp-edges; 
-  user-select: none; 
-  -webkit-user-drag: none; 
-  transition: transform 120ms ease, opacity 120ms ease, filter 120ms ease; 
-  cursor: pointer; 
+  width: var(--size);
+  height: var(--size);
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+  user-select: none;
+  -webkit-user-drag: none;
+  transition:
+    transform 120ms ease,
+    opacity 120ms ease,
+    filter 120ms ease;
+  cursor: pointer;
 }
 .hex-bg {
   position: absolute;
@@ -510,20 +574,85 @@ defineExpose({ restore, cancelAction, handleSelectCopper });
   image-rendering: crisp-edges;
   pointer-events: none;
 }
-.top { grid-column: 2; grid-row: 1; }
-.left { grid-column: 1; grid-row: 2; }
-.right { grid-column: 3; grid-row: 2; }
-.top { transform: translateY(var(--topDropY)); }
-.left { transform: translate(var(--overlapX), calc(-1 * var(--overlapY))); }
-.right { transform: translate(calc(-1 * var(--overlapX)), calc(-1 * var(--overlapY))); }
-.hex:is(.top, .left, .right):hover { filter: brightness(1.08); }
-.is-locked { opacity: 0.5; cursor: not-allowed; filter: grayscale(0.2); }
-.hex.top:hover:not(.is-locked) { animation: float-top 1200ms ease-in-out infinite; }
-.hex.left:hover:not(.is-locked) { animation: float-left 1200ms ease-in-out infinite; }
-.hex.right:hover:not(.is-locked) { animation: float-right 1200ms ease-in-out infinite; }
-@keyframes float-top { 0% { transform: translateY(var(--topDropY)) scale(1.00); } 50% { transform: translateY(calc(var(--topDropY) - 2px)) scale(1.06); } 100% { transform: translateY(var(--topDropY)) scale(1.00); } }
-@keyframes float-left { 0% { transform: translate(var(--overlapX), calc(-1 * var(--overlapY))) scale(1.00); } 50% { transform: translate(calc(var(--overlapX) + 1px), calc(-1 * var(--overlapY) - 2px)) scale(1.06); } 100% { transform: translate(var(--overlapX), calc(-1 * var(--overlapY))) scale(1.00); } }
-@keyframes float-right { 0% { transform: translate(calc(-1 * var(--overlapX)), calc(-1 * var(--overlapY))) scale(1.00); } 50% { transform: translate(calc(-1 * var(--overlapX) - 1px), calc(-1 * var(--overlapY) - 2px)) scale(1.06); } 100% { transform: translate(calc(-1 * var(--overlapX)), calc(-1 * var(--overlapY))) scale(1.00); } }
+.top {
+  grid-column: 2;
+  grid-row: 1;
+}
+.left {
+  grid-column: 1;
+  grid-row: 2;
+}
+.right {
+  grid-column: 3;
+  grid-row: 2;
+}
+.top {
+  transform: translateY(var(--topDropY));
+}
+.left {
+  transform: translate(var(--overlapX), calc(-1 * var(--overlapY)));
+}
+.right {
+  transform: translate(calc(-1 * var(--overlapX)), calc(-1 * var(--overlapY)));
+}
+.hex:is(.top, .left, .right):hover {
+  filter: brightness(1.08);
+}
+.is-locked {
+  opacity: 0.5;
+  cursor: not-allowed;
+  filter: grayscale(0.2);
+}
+.hex.top:hover:not(.is-locked) {
+  animation: float-top 1200ms ease-in-out infinite;
+}
+.hex.left:hover:not(.is-locked) {
+  animation: float-left 1200ms ease-in-out infinite;
+}
+.hex.right:hover:not(.is-locked) {
+  animation: float-right 1200ms ease-in-out infinite;
+}
+@keyframes float-top {
+  0% {
+    transform: translateY(var(--topDropY)) scale(1);
+  }
+  50% {
+    transform: translateY(calc(var(--topDropY) - 2px)) scale(1.06);
+  }
+  100% {
+    transform: translateY(var(--topDropY)) scale(1);
+  }
+}
+@keyframes float-left {
+  0% {
+    transform: translate(var(--overlapX), calc(-1 * var(--overlapY))) scale(1);
+  }
+  50% {
+    transform: translate(
+        calc(var(--overlapX) + 1px),
+        calc(-1 * var(--overlapY) - 2px)
+      )
+      scale(1.06);
+  }
+  100% {
+    transform: translate(var(--overlapX), calc(-1 * var(--overlapY))) scale(1);
+  }
+}
+@keyframes float-right {
+  0% {
+    transform: translate(calc(-1 * var(--overlapX)), calc(-1 * var(--overlapY)))
+      scale(1);
+  }
+  50% {
+    transform: translate(
+        calc(-1 * var(--overlapX) - 1px),
+        calc(-1 * var(--overlapY) - 2px)
+      )
+      scale(1.06);
+  }
+  100% {
+    transform: translate(calc(-1 * var(--overlapX)), calc(-1 * var(--overlapY)))
+      scale(1);
+  }
+}
 </style>
-
-

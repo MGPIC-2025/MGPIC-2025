@@ -4,12 +4,12 @@ import { ref, onMounted } from 'vue';
 const props = defineProps({
   copperInfo: {
     type: Object,
-    required: true
+    required: true,
   },
   inventoryItems: {
     type: Array,
-    default: () => []
-  }
+    default: () => [],
+  },
 });
 
 const emit = defineEmits(['inventory-click']);
@@ -23,7 +23,7 @@ const diamondPanelRef = ref(null);
 // 动态加载边框图片并计算 slice 值
 onMounted(async () => {
   if (!diamondPanelRef.value) return;
-  
+
   function loadImage(src) {
     return new Promise((resolve, reject) => {
       const img = new Image();
@@ -32,25 +32,28 @@ onMounted(async () => {
       img.src = src;
     });
   }
-  
+
   function setCssVar(name, value) {
     if (diamondPanelRef.value) {
       diamondPanelRef.value.style.setProperty(name, String(value));
     }
   }
-  
+
   try {
     const [blueImg, greenImg, orangeRedImg] = await Promise.all([
       loadImage('/assets/border-blue.png'),
       loadImage('/assets/border-green.png'),
-      loadImage('/assets/border-orange-red.png')
+      loadImage('/assets/border-orange-red.png'),
     ]);
-    
+
     // 计算 slice 值（通常取图片高度的 1/4）
     const blueSlice = Math.max(3, Math.round(blueImg.naturalHeight / 4));
     const greenSlice = Math.max(3, Math.round(greenImg.naturalHeight / 4));
-    const orangeRedSlice = Math.max(3, Math.round(orangeRedImg.naturalHeight / 4));
-    
+    const orangeRedSlice = Math.max(
+      3,
+      Math.round(orangeRedImg.naturalHeight / 4)
+    );
+
     setCssVar('--border-blue-slice', blueSlice);
     setCssVar('--border-green-slice', greenSlice);
     setCssVar('--border-orange-red-slice', orangeRedSlice);
@@ -78,7 +81,9 @@ onMounted(async () => {
         <div class="diamond-content">
           <div class="diamond-text">
             <div class="diamond-label">位置</div>
-            <div class="diamond-value">{{ copperInfo.position[0] }},{{ copperInfo.position[1] }}</div>
+            <div class="diamond-value">
+              {{ copperInfo.position[0] }},{{ copperInfo.position[1] }}
+            </div>
           </div>
         </div>
       </div>

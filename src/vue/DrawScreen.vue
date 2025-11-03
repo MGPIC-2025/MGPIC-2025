@@ -1,21 +1,22 @@
 <script setup>
-import { ref, nextTick } from "vue";
-import { getAssetUrl } from "../utils/resourceLoader.js";
-import { gacha, get_resource } from "../glue.js";
+import log from '../log.js';
+import { ref, nextTick } from 'vue';
+import { getAssetUrl } from '../utils/resourceLoader.js';
+import { gacha, get_resource } from '../glue.js';
 
-const emit = defineEmits(["draw"]);
+const emit = defineEmits(['draw']);
 
 const isDrawing = ref(false);
 const canDraw = ref(true);
 const showTempCard = ref(false);
-const tempName = ref("抽卡展示");
-const tempIcon = ref("✨");
-const tempImage = ref("");
+const tempName = ref('抽卡展示');
+const tempIcon = ref('✨');
+const tempImage = ref('');
 const tempRect = ref({ left: 0, top: 0, width: 0, height: 0 });
 function resolveAssetUrl(path) {
-  if (!path) return "";
+  if (!path) return '';
   // 后端多为以 /assets 开头的绝对路径，直接使用即可
-  if (typeof path === "string" && path.startsWith("/")) return path;
+  if (typeof path === 'string' && path.startsWith('/')) return path;
   return getAssetUrl(path);
 }
 
@@ -23,9 +24,9 @@ const infoVisible = ref(false);
 const cardFlipped = ref(false);
 
 const toastVisible = ref(false);
-const toastText = ref("");
+const toastText = ref('');
 function showToast(text) {
-  toastText.value = text || "提示";
+  toastText.value = text || '提示';
   toastVisible.value = true;
   setTimeout(() => {
     toastVisible.value = false;
@@ -57,16 +58,16 @@ function runDrawSequence() {
   // 异步刷新，但此处也基于当前 canDraw 拦截一次
   refreshCanDraw();
   if (!canDraw.value) {
-    showToast("资源不足");
+    showToast('资源不足');
     return;
   }
   isDrawing.value = true;
-  console.log("[DrawScreen] runDrawSequence start");
+  log('[DrawScreen] runDrawSequence start');
 
-  const pack = document.querySelector(".draw-card");
+  const pack = document.querySelector('.draw-card');
   if (pack) {
-    pack.classList.add("is-shaking");
-    setTimeout(() => pack.classList.remove("is-shaking"), 500);
+    pack.classList.add('is-shaking');
+    setTimeout(() => pack.classList.remove('is-shaking'), 500);
     const r = pack.getBoundingClientRect();
     // 将页面坐标转换为相对视口的绝对定位矩形
     tempRect.value = {
@@ -86,15 +87,15 @@ function runDrawSequence() {
       const data = await gacha();
       if (
         data &&
-        data.type === "success" &&
+        data.type === 'success' &&
         data.copper &&
         data.copper.copper_info
       ) {
         const info = data.copper.copper_info;
-        tempName.value = info.name || "新铜偶";
-        tempIcon.value = "";
-        tempImage.value = getAssetUrl(info.icon_url || "");
-        console.log("[DrawScreen] tempImage resolved:", tempImage.value);
+        tempName.value = info.name || '新铜偶';
+        tempIcon.value = '';
+        tempImage.value = getAssetUrl(info.icon_url || '');
+        log('[DrawScreen] tempImage resolved:', tempImage.value);
         await nextTick();
         // 自动从背面翻转到正面并显示结果信息
         setTimeout(() => {
@@ -103,24 +104,24 @@ function runDrawSequence() {
             infoVisible.value = true;
           }, 350);
         }, 450);
-        emit("draw", { name: info.name, image: info.icon_url || "" });
+        emit('draw', { name: info.name, image: info.icon_url || '' });
         // 成功后刷新可抽状态
         refreshCanDraw();
-      } else if (data && data.type === "error") {
+      } else if (data && data.type === 'error') {
         // 使用 Toast 提示，不再在卡面显示错误
         showTempCard.value = false;
         infoVisible.value = false;
         cardFlipped.value = false;
-        showToast(data.content || "资源不足");
-        emit("draw", { error: true });
+        showToast(data.content || '资源不足');
+        emit('draw', { error: true });
         refreshCanDraw();
       }
     } catch (e) {
       showTempCard.value = false;
       infoVisible.value = false;
       cardFlipped.value = false;
-      showToast("抽卡失败");
-      emit("draw", { error: true });
+      showToast('抽卡失败');
+      emit('draw', { error: true });
       refreshCanDraw();
     } finally {
       setTimeout(() => {
@@ -167,7 +168,7 @@ function runDrawSequence() {
                   alt="copper"
                   class="card-front-img"
                 />
-                <div v-else class="card-icon">{{ tempIcon || "🎴" }}</div>
+                <div v-else class="card-icon">{{ tempIcon || '🎴' }}</div>
               </div>
             </div>
             <div
@@ -379,7 +380,9 @@ function runDrawSequence() {
   font-size: 22px;
   opacity: 0;
   transform: translateY(6px);
-  transition: opacity 0.3s ease, transform 0.3s ease;
+  transition:
+    opacity 0.3s ease,
+    transform 0.3s ease;
   text-shadow: 0 2px 6px rgba(0, 0, 0, 0.9);
 }
 .card-name-below.show {
@@ -397,7 +400,9 @@ function runDrawSequence() {
   padding: 8px 14px;
   border-radius: 12px;
   opacity: 0;
-  transition: opacity 0.3s ease, transform 0.3s ease;
+  transition:
+    opacity 0.3s ease,
+    transform 0.3s ease;
   font-weight: 700;
 }
 .result-info.show {

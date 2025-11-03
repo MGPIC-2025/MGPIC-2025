@@ -2,10 +2,10 @@
  * 全局模型缓存管理器
  * 统一管理所有3D模型的加载、缓存和清理
  */
-
-import * as THREE from "three";
-import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
-import { DRACOLoader } from "three/addons/loaders/DRACOLoader.js";
+import log from '../log.js';
+import * as THREE from 'three';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
 
 // 全局缓存实例
 class ModelCacheManager {
@@ -41,16 +41,16 @@ class ModelCacheManager {
   initLoaders() {
     if (!this.gltfLoader) {
       this.gltfLoader = new GLTFLoader();
-      this.gltfLoader.setCrossOrigin("anonymous");
+      this.gltfLoader.setCrossOrigin('anonymous');
 
       this.dracoLoader = new DRACOLoader();
       this.dracoLoader.setDecoderPath(
-        "https://www.gstatic.com/draco/versioned/decoders/1.5.6/"
+        'https://www.gstatic.com/draco/versioned/decoders/1.5.6/'
       );
-      this.dracoLoader.setCrossOrigin("anonymous");
+      this.dracoLoader.setCrossOrigin('anonymous');
 
       this.gltfLoader.setDRACOLoader(this.dracoLoader);
-      console.log("[ModelCache] GLTF和Draco加载器已初始化");
+      log('[ModelCache] GLTF和Draco加载器已初始化');
     }
   }
 
@@ -64,25 +64,25 @@ class ModelCacheManager {
     // 检查模型池
     if (useInstancePool && this.modelPool.has(url)) {
       const poolInstance = this.modelPool.get(url);
-      console.log(`[ModelCache] 从模型池克隆: ${url}`);
+      log(`[ModelCache] 从模型池克隆: ${url}`);
       return poolInstance.clone(true);
     }
 
     // 检查GLTF缓存
     let gltf;
     if (this.gltfCache.has(url)) {
-      console.log(`[ModelCache] 从GLTF缓存加载: ${url}`);
+      log(`[ModelCache] 从GLTF缓存加载: ${url}`);
       gltf = this.gltfCache.get(url);
     } else {
       // 从网络加载
-      console.log(`[ModelCache] 从网络加载: ${url}`);
+      log(`[ModelCache] 从网络加载: ${url}`);
       try {
         gltf = await this.gltfLoader.loadAsync(url);
 
         // 缓存GLTF对象
         this.cacheGLTF(url, gltf);
       } catch (error) {
-        console.error(`[ModelCache] 模型加载失败: ${url}`, error);
+        log(`[ModelCache] 模型加载失败: ${url}`, error);
         throw error;
       }
     }
@@ -107,7 +107,7 @@ class ModelCacheManager {
   async createInstancedMesh(url, maxInstances = 100) {
     // 检查是否已有实例化网格
     if (this.instancedMeshes.has(url)) {
-      console.log(`[ModelCache] 返回现有实例化网格: ${url}`);
+      log(`[ModelCache] 返回现有实例化网格: ${url}`);
       return this.instancedMeshes.get(url);
     }
 
@@ -116,7 +116,7 @@ class ModelCacheManager {
 
     // 提取所有网格
     const meshes = [];
-    model.traverse((child) => {
+    model.traverse(child => {
       if (child.isMesh) {
         meshes.push(child);
       }
@@ -144,9 +144,7 @@ class ModelCacheManager {
 
     // 缓存实例化网格
     this.instancedMeshes.set(url, instancedMesh);
-    console.log(
-      `[ModelCache] 创建实例化网格: ${url}, 最大实例数: ${maxInstances}`
-    );
+    log(`[ModelCache] 创建实例化网格: ${url}, 最大实例数: ${maxInstances}`);
 
     return instancedMesh;
   }
@@ -162,12 +160,12 @@ class ModelCacheManager {
   updateInstancedMeshInstance(url, instanceIndex, position, rotation, scale) {
     const instancedMesh = this.instancedMeshes.get(url);
     if (!instancedMesh) {
-      console.warn(`[ModelCache] 实例化网格不存在: ${url}`);
+      log(`[ModelCache] 实例化网格不存在: ${url}`);
       return;
     }
 
     if (instanceIndex >= instancedMesh.count) {
-      console.warn(
+      log(
         `[ModelCache] 实例索引超出范围: ${instanceIndex}/${instancedMesh.count}`
       );
       return;
@@ -209,11 +207,11 @@ class ModelCacheManager {
       // 删除最旧的缓存项
       const firstKey = this.gltfCache.keys().next().value;
       this.gltfCache.delete(firstKey);
-      console.log(`[ModelCache] 删除旧GLTF缓存: ${firstKey}`);
+      log(`[ModelCache] 删除旧GLTF缓存: ${firstKey}`);
     }
 
     this.gltfCache.set(url, gltf);
-    console.log(`[ModelCache] GLTF已缓存: ${url}`);
+    log(`[ModelCache] GLTF已缓存: ${url}`);
   }
 
   /**
@@ -229,11 +227,11 @@ class ModelCacheManager {
       const oldInstance = this.modelPool.get(firstKey);
       this.disposeModel(oldInstance);
       this.modelPool.delete(firstKey);
-      console.log(`[ModelCache] 删除旧模型池项: ${firstKey}`);
+      log(`[ModelCache] 删除旧模型池项: ${firstKey}`);
     }
 
     this.modelPool.set(url, instance);
-    console.log(`[ModelCache] 模型已添加到池: ${url}`);
+    log(`[ModelCache] 模型已添加到池: ${url}`);
   }
 
   /**
@@ -243,39 +241,39 @@ class ModelCacheManager {
    * @returns {Promise<void>}
    */
   async preloadModels(urls, onProgress = null) {
-    console.log(`[ModelCache] 开始预加载 ${urls.length} 个模型`);
+    log(`[ModelCache] 开始预加载 ${urls.length} 个模型`);
 
     const total = urls.length;
     let loaded = 0;
 
     // 过滤已加载的模型
-    const urlsToLoad = urls.filter((url) => {
+    const urlsToLoad = urls.filter(url => {
       const status = this.preloadStatus.get(url);
-      return !status || status === "failed";
+      return !status || status === 'failed';
     });
 
-    console.log(`[ModelCache] 需要加载 ${urlsToLoad.length} 个新模型`);
+    log(`[ModelCache] 需要加载 ${urlsToLoad.length} 个新模型`);
 
     // 批量加载
     const batchSize = 3; // 每批3个
     for (let i = 0; i < urlsToLoad.length; i += batchSize) {
       const batch = urlsToLoad.slice(i, i + batchSize);
 
-      const promises = batch.map(async (url) => {
+      const promises = batch.map(async url => {
         try {
-          this.preloadStatus.set(url, "loading");
+          this.preloadStatus.set(url, 'loading');
           await this.loadModel(url, true);
-          this.preloadStatus.set(url, "loaded");
+          this.preloadStatus.set(url, 'loaded');
           loaded++;
 
           if (onProgress) {
             onProgress(loaded, total, Math.round((loaded / total) * 100));
           }
 
-          console.log(`[ModelCache] 预加载完成: ${url} (${loaded}/${total})`);
+          log(`[ModelCache] 预加载完成: ${url} (${loaded}/${total})`);
         } catch (error) {
-          console.warn(`[ModelCache] 预加载失败: ${url}`, error);
-          this.preloadStatus.set(url, "failed");
+          log(`[ModelCache] 预加载失败: ${url}`, error);
+          this.preloadStatus.set(url, 'failed');
           loaded++;
 
           if (onProgress) {
@@ -288,11 +286,11 @@ class ModelCacheManager {
 
       // 批次间延迟，避免阻塞
       if (i + batchSize < urlsToLoad.length) {
-        await new Promise((resolve) => setTimeout(resolve, 100));
+        await new Promise(resolve => setTimeout(resolve, 100));
       }
     }
 
-    console.log(`[ModelCache] 预加载完成: ${loaded}/${total} 个模型`);
+    log(`[ModelCache] 预加载完成: ${loaded}/${total} 个模型`);
   }
 
   /**
@@ -302,7 +300,7 @@ class ModelCacheManager {
    */
   isPreloaded(url) {
     const status = this.preloadStatus.get(url);
-    return status === "loaded";
+    return status === 'loaded';
   }
 
   /**
@@ -331,14 +329,14 @@ class ModelCacheManager {
   disposeModel(model) {
     if (!model) return;
 
-    model.traverse((obj) => {
+    model.traverse(obj => {
       if (obj.isMesh) {
         if (obj.geometry) {
           obj.geometry.dispose();
         }
         if (obj.material) {
           if (Array.isArray(obj.material)) {
-            obj.material.forEach((m) => {
+            obj.material.forEach(m => {
               if (m.map) m.map.dispose();
               if (m.dispose) m.dispose();
             });
@@ -355,16 +353,16 @@ class ModelCacheManager {
    * 清理所有缓存
    */
   clearCache() {
-    console.log("[ModelCache] 清理所有缓存...");
+    log('[ModelCache] 清理所有缓存...');
 
     // 清理模型池
-    this.modelPool.forEach((instance) => {
+    this.modelPool.forEach(instance => {
       this.disposeModel(instance);
     });
     this.modelPool.clear();
 
     // 清理实例化网格
-    this.instancedMeshes.forEach((mesh) => {
+    this.instancedMeshes.forEach(mesh => {
       this.disposeModel(mesh);
     });
     this.instancedMeshes.clear();
@@ -375,7 +373,7 @@ class ModelCacheManager {
     // 清理预加载状态
     this.preloadStatus.clear();
 
-    console.log("[ModelCache] 缓存清理完成");
+    log('[ModelCache] 缓存清理完成');
   }
 
   /**
@@ -406,7 +404,7 @@ class ModelCacheManager {
     if (config.maxInstancesPerModel !== undefined) {
       this.maxInstancesPerModel = Math.max(10, config.maxInstancesPerModel);
     }
-    console.log("[ModelCache] 配置已更新:", this.getCacheStatus());
+    log('[ModelCache] 配置已更新:', this.getCacheStatus());
   }
 }
 

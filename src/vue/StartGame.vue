@@ -1,21 +1,18 @@
 <script setup>
-import { ref, onMounted, onBeforeUnmount, computed, watch } from "vue";
-import { get_copper_list, eventloop } from "../glue.js";
-import { getAssetUrl, getCopperModelUrl } from "../utils/resourceLoader.js";
-import modelCache from "../utils/modelCache.js";
-import {
-  getCopperEnglishName,
-  getCopperTypeFolder,
-} from "../utils/copperMapping.js";
-import * as THREE from "three";
-import { OrbitControls } from "three/addons/controls/OrbitControls.js";
-import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
-import { DRACOLoader } from "three/addons/loaders/DRACOLoader.js";
+import log from '../log.js';
+import { ref, onMounted, onBeforeUnmount, computed, watch } from 'vue';
+import { get_copper_list, eventloop } from '../glue.js';
+import { getAssetUrl, getCopperModelUrl } from '../utils/resourceLoader.js';
+import modelCache from '../utils/modelCache.js';
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
 
-const emit = defineEmits(["confirm", "close"]);
+const emit = defineEmits(['confirm', 'close']);
 
 const loading = ref(true);
-const error = ref("");
+const error = ref('');
 const copperList = ref([]);
 const selectedIds = ref(new Set());
 const previewContainer = ref(null);
@@ -27,7 +24,7 @@ const loadedModels = new Map(); // copper id -> model object
 const canConfirm = computed(() => selectedIds.value.size === 3);
 
 const selectedCoppers = computed(() => {
-  return copperList.value.filter((c) => selectedIds.value.has(c.id));
+  return copperList.value.filter(c => selectedIds.value.has(c.id));
 });
 
 function init3DScene() {
@@ -99,7 +96,7 @@ function init3DScene() {
   gltfLoader = new GLTFLoader();
   const dracoLoader = new DRACOLoader();
   dracoLoader.setDecoderPath(
-    "https://www.gstatic.com/draco/versioned/decoders/1.5.6/"
+    'https://www.gstatic.com/draco/versioned/decoders/1.5.6/'
   );
   gltfLoader.setDRACOLoader(dracoLoader);
 
@@ -107,7 +104,7 @@ function init3DScene() {
   animate3D();
 
   // 窗口大小调整
-  window.addEventListener("resize", onWindowResize);
+  window.addEventListener('resize', onWindowResize);
 }
 
 function animate3D() {
@@ -143,12 +140,12 @@ function toggleSelect(id) {
 async function loadCopperModel(copper, index) {
   if (!scene || !gltfLoader) return;
   let modelUrl = copper.modelUrl;
-    console.log(`[StartGame] 使用后端model_url加载: ${copper.name}, URL: ${modelUrl}`);
+  log(`[StartGame] 使用后端model_url加载: ${copper.name}, URL: ${modelUrl}`);
 
   try {
     // 使用全局模型缓存管理器
     const modelInstance = await modelCache.loadModel(modelUrl, true);
-    console.log(`[StartGame] 从缓存加载铜偶模型: ${copper.name}`);
+    log(`[StartGame] 从缓存加载铜偶模型: ${copper.name}`);
 
     // 计算包围盒
     const box = new THREE.Box3().setFromObject(modelInstance);
@@ -163,7 +160,7 @@ async function loadCopperModel(copper, index) {
     const startX = (-(selectedCoppers.value.length - 1) * spacing) / 2;
     group.position.set(startX + index * spacing, 0, 0);
     group.scale.set(1.0, 1.0, 1.0);
-    
+
     // 旋转模型，使其正面朝向相机（+Z方向）
     // 游戏内模型默认朝向侧面，需要旋转90度让正面朝向相机
     group.rotation.y = -Math.PI / 2; // 旋转-90度（逆时针）
@@ -175,9 +172,9 @@ async function loadCopperModel(copper, index) {
     scene.add(group);
     loadedModels.set(copper.id, group);
 
-    console.log(`[StartGame] 模型加载成功: ${copper.name}`);
+    log(`[StartGame] 模型加载成功: ${copper.name}`);
   } catch (e) {
-    console.warn(`[StartGame] 模型加载失败: ${copper.name}`, e);
+    log(`[StartGame] 模型加载失败: ${copper.name}`, e);
     // 创建占位立方体
     createPlaceholderCube(copper, index);
   }
@@ -193,7 +190,7 @@ function createPlaceholderCube(copper, index) {
   const spacing = 2.5;
   const startX = (-(selectedCoppers.value.length - 1) * spacing) / 2;
   cube.position.set(startX + index * spacing, 0.8, 0);
-  
+
   // 旋转占位立方体，保持一致性
   cube.rotation.y = -Math.PI / 2;
 
@@ -205,12 +202,12 @@ function updateModels() {
   if (!scene) return;
 
   // 清除所有现有模型
-  loadedModels.forEach((obj) => {
+  loadedModels.forEach(obj => {
     scene.remove(obj);
     if (obj.geometry) obj.geometry.dispose();
     if (obj.material) {
       if (Array.isArray(obj.material)) {
-        obj.material.forEach((m) => m.dispose());
+        obj.material.forEach(m => m.dispose());
       } else {
         obj.material.dispose();
       }
@@ -226,26 +223,28 @@ function updateModels() {
 
 async function loadCoppers() {
   loading.value = true;
-  error.value = "";
+  error.value = '';
   try {
     const plain = await get_copper_list();
     const arr = Array.isArray(plain?.coppers) ? plain.coppers : [];
     copperList.value = (arr || []).map((c, i) => {
       const modelUrl = c?.copper_info?.model_url;
-      console.log(`[StartGame] Copper ${c?.copper_info?.name || i + 1}: model_url=${modelUrl}`);
+      log(
+        `[StartGame] Copper ${c?.copper_info?.name || i + 1}: model_url=${modelUrl}`
+      );
       return {
         id: Number(c?.id ?? i + 1),
         name: c?.copper_info?.name || `铜偶#${i + 1}`,
-        icon: getAssetUrl(c?.copper_info?.icon_url || ""),
+        icon: getAssetUrl(c?.copper_info?.icon_url || ''),
         level: Number(c?.level ?? 1),
-        copperType: c?.copper_type || "Arcanist",
-        modelName: c?.copper_info?.name?.toLowerCase() || "",
-        modelUrl: modelUrl ? getAssetUrl(modelUrl) : "",
+        copperType: c?.copper_type || 'Arcanist',
+        modelName: c?.copper_info?.name?.toLowerCase() || '',
+        modelUrl: modelUrl ? getAssetUrl(modelUrl) : '',
       };
     });
   } catch (e) {
-    console.warn("[StartGame] 获取铜偶列表失败", e);
-    error.value = "加载失败，请重试";
+    log('[StartGame] 获取铜偶列表失败', e);
+    error.value = '加载失败，请重试';
   } finally {
     loading.value = false;
   }
@@ -253,28 +252,28 @@ async function loadCoppers() {
 
 async function startGame() {
   if (selectedIds.value.size !== 3) return;
-  const ids = Array.from(selectedIds.value).map((id) => String(id));
+  const ids = Array.from(selectedIds.value).map(id => String(id));
   try {
     if (!window.__ACTUAL_COPPER_IDS__) window.__ACTUAL_COPPER_IDS__ = [];
-    const message = JSON.stringify({ type: "on_game_start", content: { ids } });
+    const message = JSON.stringify({ type: 'on_game_start', content: { ids } });
 
     // 不等待eventloop完成，直接发送消息
     // 因为broadcast_room_content会发送大量消息（225个地图块），会阻塞界面
-    eventloop(message).catch((e) => {
-      console.error("[StartGame] eventloop执行失败", e);
+    eventloop(message).catch(e => {
+      log('[StartGame] eventloop执行失败', e);
     });
 
     // 立即关闭界面，让消息队列在后台处理
-    console.log("[StartGame] 游戏开始消息已发送，ID:", ids);
-    emit("confirm", { ids });
+    log('[StartGame] 游戏开始消息已发送，ID:', ids);
+    emit('confirm', { ids });
   } catch (e) {
-    console.error("[StartGame] 发送开始游戏消息失败", e);
-    emit("confirm", { ids });
+    log('[StartGame] 发送开始游戏消息失败', e);
+    emit('confirm', { ids });
   }
 }
 
 function close() {
-  emit("close");
+  emit('close');
 }
 
 // 监听选中铜偶变化，更新3D模型
@@ -295,10 +294,10 @@ onMounted(() => {
 });
 
 onBeforeUnmount(() => {
-  window.removeEventListener("resize", onWindowResize);
+  window.removeEventListener('resize', onWindowResize);
 
   // 清理3D资源
-  loadedModels.forEach((obj) => {
+  loadedModels.forEach(obj => {
     if (scene) scene.remove(obj);
   });
   loadedModels.clear();
@@ -341,7 +340,7 @@ onBeforeUnmount(() => {
                 <div class="item__level">Lv. {{ c.level }}</div>
               </div>
               <div class="item__tick">
-                {{ selectedIds.has(c.id) ? "✓" : "" }}
+                {{ selectedIds.has(c.id) ? '✓' : '' }}
               </div>
             </div>
           </div>
@@ -563,7 +562,9 @@ onBeforeUnmount(() => {
   border-radius: 10px;
   cursor: pointer;
   background: #4b2e1f;
-  transition: transform 0.1s ease, box-shadow 0.1s ease;
+  transition:
+    transform 0.1s ease,
+    box-shadow 0.1s ease;
 }
 
 .item:hover {

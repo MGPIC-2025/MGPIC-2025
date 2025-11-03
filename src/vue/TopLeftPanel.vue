@@ -1,5 +1,5 @@
 <script setup>
-const emit = defineEmits(["back", "open-settings"]);
+const emit = defineEmits(['back', 'open-settings']);
 </script>
 
 <template>

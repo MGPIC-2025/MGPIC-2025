@@ -1,9 +1,9 @@
 // 📦 导入依赖
-import * as THREE from "three";
-import { OrbitControls } from "three/addons/controls/OrbitControls.js";
-import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
-import { DRACOLoader } from "three/addons/loaders/DRACOLoader.js";
-import GUI from "lil-gui";
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
+import GUI from 'lil-gui';
 // 🗺️ 模型配置映射 - 改为使用模型名称作为键
 const modelConfigMap = new Map();
 // 🗺️ URL到名称的映射
@@ -24,7 +24,7 @@ function setModelConfig(name, url, config) {
     initialScale: config.initialScale || 1.0,
     lightIntensity: config.lightIntensity || 1.5,
     lightDistance: config.lightDistance || 100,
-    lightColor: config.lightColor || "#ffffff",
+    lightColor: config.lightColor || '#ffffff',
     lightPosX: config.lightPosX !== undefined ? config.lightPosX : 0.75,
     lightPosY: config.lightPosY !== undefined ? config.lightPosY : 0,
     lightPosZ: config.lightPosZ !== undefined ? config.lightPosZ : 0,
@@ -41,14 +41,14 @@ function setModelConfig(name, url, config) {
 function getModelConfig(name) {
   return (
     modelConfigMap.get(name) || {
-      url: "",
+      url: '',
       initialX: 0,
       initialY: 0,
       initialZ: 0,
       initialScale: 1.0,
       lightIntensity: 1.5,
       lightDistance: 100,
-      lightColor: "#ffffff",
+      lightColor: '#ffffff',
       lightPosX: 0.75,
       lightPosY: 0,
       lightPosZ: 0,
@@ -62,7 +62,7 @@ function getModelConfig(name) {
  * @returns {string} 模型名称
  */
 function getModelNameByUrl(url) {
-  return modelUrlToNameMap.get(url) || "default_model";
+  return modelUrlToNameMap.get(url) || 'default_model';
 }
 
 /**
@@ -79,7 +79,7 @@ function createPointLight(
   modelObject,
   intensity = 1.5,
   distance = 100,
-  color = "#ffffff",
+  color = '#ffffff',
   position = new THREE.Vector3(0.75, 0, 0)
 ) {
   // 创建Three.js的点光源对象
@@ -261,7 +261,7 @@ function loadModel(
   // 开始加载模型
   gltfLoader.load(
     config.url,
-    (gltf) => {
+    gltf => {
       // 获取模型根对象
       const obj = gltf.scene;
 
@@ -516,39 +516,39 @@ function updateLighting(ambientLight, directionalLight, lightingParams, scene) {
  */
 function initGUI(guiContainer, lightingParams, updateLightingCallback) {
   const gui = new GUI({ container: guiContainer });
-  const lightFolder = gui.addFolder("Global Lighting");
+  const lightFolder = gui.addFolder('Global Lighting');
   lightFolder.open();
   lightFolder
-    .add(lightingParams, "ambientIntensity", 0, 2)
-    .name("Ambient Intensity")
+    .add(lightingParams, 'ambientIntensity', 0, 2)
+    .name('Ambient Intensity')
     .onChange(updateLightingCallback);
   lightFolder
-    .addColor(lightingParams, "ambientColor")
-    .name("Ambient Color")
+    .addColor(lightingParams, 'ambientColor')
+    .name('Ambient Color')
     .onChange(updateLightingCallback);
   lightFolder
-    .add(lightingParams, "directionalIntensity", 0, 5)
-    .name("Directional Intensity")
+    .add(lightingParams, 'directionalIntensity', 0, 5)
+    .name('Directional Intensity')
     .onChange(updateLightingCallback);
   lightFolder
-    .addColor(lightingParams, "directionalColor")
-    .name("Directional Color")
+    .addColor(lightingParams, 'directionalColor')
+    .name('Directional Color')
     .onChange(updateLightingCallback);
   lightFolder
-    .add(lightingParams, "dirLightX", -200, 200)
-    .name("Dir Light X")
+    .add(lightingParams, 'dirLightX', -200, 200)
+    .name('Dir Light X')
     .onChange(updateLightingCallback);
   lightFolder
-    .add(lightingParams, "dirLightY", -200, 200)
-    .name("Dir Light Y")
+    .add(lightingParams, 'dirLightY', -200, 200)
+    .name('Dir Light Y')
     .onChange(updateLightingCallback);
   lightFolder
-    .add(lightingParams, "dirLightZ", -200, 200)
-    .name("Dir Light Z")
+    .add(lightingParams, 'dirLightZ', -200, 200)
+    .name('Dir Light Z')
     .onChange(updateLightingCallback);
   lightFolder
-    .addColor(lightingParams, "bgColor")
-    .name("Background Color")
+    .addColor(lightingParams, 'bgColor')
+    .name('Background Color')
     .onChange(updateLightingCallback);
   return gui;
 }
@@ -583,7 +583,7 @@ function initScene(container, floorTextureUrl, floorSize, gridCellSize) {
   }
 
   updateSize();
-  window.addEventListener("resize", updateSize);
+  window.addEventListener('resize', updateSize);
 
   container.appendChild(renderer.domElement);
 
@@ -605,7 +605,7 @@ function initScene(container, floorTextureUrl, floorSize, gridCellSize) {
 
   const dracoLoader = new DRACOLoader();
   dracoLoader.setDecoderPath(
-    "https://www.gstatic.com/draco/versioned/decoders/1.5.7/"
+    'https://www.gstatic.com/draco/versioned/decoders/1.5.7/'
   );
   const gltfLoader = new GLTFLoader();
   gltfLoader.setDRACOLoader(dracoLoader);
@@ -671,11 +671,11 @@ function registerMouseMoveHandler(
   }
 
   // 注册事件监听器
-  window.addEventListener("mousemove", onMouseMove);
+  window.addEventListener('mousemove', onMouseMove);
 
   // 返回清理函数
   return () => {
-    window.removeEventListener("mousemove", onMouseMove);
+    window.removeEventListener('mousemove', onMouseMove);
   };
 }
 
@@ -725,7 +725,7 @@ function registerMouseDownHandler(
     const modelMeshes = [];
     for (let i = 0; i < models.length; i++) {
       if (!models[i].isMoving) {
-        models[i].object.traverse((child) => {
+        models[i].object.traverse(child => {
           if (child.isMesh) modelMeshes.push(child);
         });
       }
@@ -823,15 +823,15 @@ function registerMouseDownHandler(
   }
 
   // 注册事件监听器
-  window.addEventListener("mousedown", onMouseDown);
-  window.addEventListener("mouseup", onMouseUp);
-  window.addEventListener("mouseleave", onMouseUp);
+  window.addEventListener('mousedown', onMouseDown);
+  window.addEventListener('mouseup', onMouseUp);
+  window.addEventListener('mouseleave', onMouseUp);
 
   // 返回清理函数
   return () => {
-    window.removeEventListener("mousedown", onMouseDown);
-    window.removeEventListener("mouseup", onMouseUp);
-    window.removeEventListener("mouseleave", onMouseUp);
+    window.removeEventListener('mousedown', onMouseDown);
+    window.removeEventListener('mouseup', onMouseUp);
+    window.removeEventListener('mouseleave', onMouseUp);
   };
 }
 

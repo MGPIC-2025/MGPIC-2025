@@ -3,6 +3,7 @@
  * 在游戏启动时预加载常用模型，提升游戏体验
  */
 
+import log from '../log.js';
 import modelCache from './modelCache.js';
 import { getModelUrlsByPriority } from './modelPreloadConfig.js';
 
@@ -21,7 +22,7 @@ class ModelPreloadManager {
    */
   async startPreload(priorities = ['high', 'medium'], onProgress = null) {
     if (this.isPreloading) {
-      console.log('[ModelPreloadManager] 预加载已在进行中');
+      log('[ModelPreloadManager] 预加载已在进行中');
       return;
     }
 
@@ -31,7 +32,9 @@ class ModelPreloadManager {
     try {
       // 获取要预加载的模型URL
       const urls = getModelUrlsByPriority(priorities);
-      console.log(`[ModelPreloadManager] 开始预加载 ${urls.length} 个模型 (优先级: ${priorities.join(', ')})`);
+      log(
+        `[ModelPreloadManager] 开始预加载 ${urls.length} 个模型 (优先级: ${priorities.join(', ')})`
+      );
 
       // 注册进度回调
       if (onProgress) {
@@ -44,9 +47,9 @@ class ModelPreloadManager {
         this.notifyProgress(loaded, total, percentage);
       });
 
-      console.log('[ModelPreloadManager] 预加载完成');
+      log('[ModelPreloadManager] 预加载完成');
     } catch (error) {
-      console.error('[ModelPreloadManager] 预加载失败:', error);
+      log('[ModelPreloadManager] 预加载失败:', error);
     } finally {
       this.isPreloading = false;
       this.preloadCallbacks = [];
@@ -64,7 +67,7 @@ class ModelPreloadManager {
       try {
         callback(loaded, total, percentage);
       } catch (error) {
-        console.warn('[ModelPreloadManager] 进度回调错误:', error);
+        log('[ModelPreloadManager] 进度回调错误:', error);
       }
     });
   }
@@ -77,7 +80,7 @@ class ModelPreloadManager {
     return {
       isPreloading: this.isPreloading,
       progress: this.preloadProgress,
-      cacheStatus: modelCache.getCacheStatus()
+      cacheStatus: modelCache.getCacheStatus(),
     };
   }
 
@@ -98,9 +101,9 @@ class ModelPreloadManager {
   async preloadModel(url) {
     try {
       await modelCache.loadModel(url, true);
-      console.log(`[ModelPreloadManager] 按需预加载完成: ${url}`);
+      log(`[ModelPreloadManager] 按需预加载完成: ${url}`);
     } catch (error) {
-      console.warn(`[ModelPreloadManager] 按需预加载失败: ${url}`, error);
+      log(`[ModelPreloadManager] 按需预加载失败: ${url}`, error);
     }
   }
 
@@ -112,7 +115,7 @@ class ModelPreloadManager {
   async preloadModels(urls) {
     const promises = urls.map(url => this.preloadModel(url));
     await Promise.all(promises);
-    console.log(`[ModelPreloadManager] 批量按需预加载完成: ${urls.length} 个模型`);
+    log(`[ModelPreloadManager] 批量按需预加载完成: ${urls.length} 个模型`);
   }
 }
 
@@ -120,10 +123,7 @@ class ModelPreloadManager {
 const modelPreloadManager = new ModelPreloadManager();
 
 // 导出API
-export {
-  modelPreloadManager,
-  ModelPreloadManager
-};
+export { modelPreloadManager, ModelPreloadManager };
 
 // 默认导出
 export default modelPreloadManager;

@@ -1,53 +1,54 @@
 <script setup>
-import { ref, onMounted, defineExpose, nextTick } from "vue";
-import { getAssetUrl } from "../utils/resourceLoader.js";
-import DrawScreen from "./DrawScreen.vue";
-import PuppetModelView from "./PuppetModelView.vue";
+import log from '../log.js';
+import { ref, onMounted, defineExpose, nextTick } from 'vue';
+import { getAssetUrl } from '../utils/resourceLoader.js';
+import DrawScreen from './DrawScreen.vue';
+import PuppetModelView from './PuppetModelView.vue';
 import {
   get_resource,
   get_copper_list,
   upgrade_copper,
   info_subscribe,
-} from "../glue.js";
+} from '../glue.js';
 
 // 统一的资源键顺序与元信息
 const ORDERED_RESOURCE_KEYS = [
-  "SpiritalSpark",
-  "RecallGear",
-  "ResonantCrystal",
-  "RefinedCopper",
-  "HeartCrystalDust",
+  'SpiritalSpark',
+  'RecallGear',
+  'ResonantCrystal',
+  'RefinedCopper',
+  'HeartCrystalDust',
 ];
 
 const RESOURCE_META = {
   SpiritalSpark: {
-    name: "灵性火花",
-    icon: getAssetUrl("resource/spiritual_spark.webp"),
+    name: '灵性火花',
+    icon: getAssetUrl('resource/spiritual_spark.webp'),
   },
   RecallGear: {
-    name: "回响齿轮",
-    icon: getAssetUrl("resource/recall_gear.webp"),
+    name: '回响齿轮',
+    icon: getAssetUrl('resource/recall_gear.webp'),
   },
   ResonantCrystal: {
-    name: "共鸣星晶",
+    name: '共鸣星晶',
     icon: getAssetUrl(
-      "resource/resonant_star_crystal/resonant_star_crystal.webp"
+      'resource/resonant_star_crystal/resonant_star_crystal.webp'
     ),
   },
   RefinedCopper: {
-    name: "精炼铜锭",
+    name: '精炼铜锭',
     icon: getAssetUrl(
-      "resource/refined_copper_ingot/refined_copper_ingot.webp"
+      'resource/refined_copper_ingot/refined_copper_ingot.webp'
     ),
   },
   HeartCrystalDust: {
-    name: "心晶尘",
-    icon: getAssetUrl("resource/heart_crystal_dust.webp"),
+    name: '心晶尘',
+    icon: getAssetUrl('resource/heart_crystal_dust.webp'),
   },
 };
 
 function mapResources(plain) {
-  return ORDERED_RESOURCE_KEYS.map((k) => ({
+  return ORDERED_RESOURCE_KEYS.map(k => ({
     icon: RESOURCE_META[k].icon,
     name: RESOURCE_META[k].name,
     value: Number(plain?.[k] ?? 0),
@@ -56,11 +57,11 @@ function mapResources(plain) {
 
 // 职业映射（统一处）
 const TYPE_MAP = {
-  IronWall: "铁壁",
-  Arcanist: "奥术",
-  CraftsMan: "工匠",
-  Mechanic: "机械",
-  Resonator: "共振",
+  IronWall: '铁壁',
+  Arcanist: '奥术',
+  CraftsMan: '工匠',
+  Mechanic: '机械',
+  Resonator: '共振',
 };
 
 // 升级消耗统一计算
@@ -92,20 +93,22 @@ function mapPuppets(arr) {
       Number(equipAttr1.dodge || 0) + Number(equipAttr2.dodge || 0);
     const typeName = copper?.copper_type;
     const levelNum = copper?.level ?? 1;
-    
-    const modelUrlRaw = info?.model_url || "";
-    const modelUrl = modelUrlRaw ? getAssetUrl(modelUrlRaw) : "";
-    console.log(`[Warehouse] Copper ${info?.name || idx + 1}: model_url=${modelUrlRaw}, processed=${modelUrl}`);
-    
+
+    const modelUrlRaw = info?.model_url || '';
+    const modelUrl = modelUrlRaw ? getAssetUrl(modelUrlRaw) : '';
+    log(
+      `[Warehouse] Copper ${info?.name || idx + 1}: model_url=${modelUrlRaw}, processed=${modelUrl}`
+    );
+
     return {
       id: Number(copper?.id ?? idx + 1),
-      name: info?.name ?? "未知铜偶",
+      name: info?.name ?? '未知铜偶',
       level: levelNum,
       suffix: copper?.suffix ?? 0,
-      image: getAssetUrl(info?.icon_url || ""),
+      image: getAssetUrl(info?.icon_url || ''),
       modelUrl: modelUrl,
       quantity: 1,
-      description: info?.description || "",
+      description: info?.description || '',
       stats: {
         level: `${levelNum}/5`,
         health: Number(attr.health || 0),
@@ -113,33 +116,33 @@ function mapPuppets(arr) {
         attack: { base: Number(attr.attack || 0), bonus: bonusAttack },
         defense: { base: Number(attr.defense || 0), bonus: bonusDefense },
         dodge: { base: Number(attr.dodge || 0), bonus: bonusDodge },
-        class: TYPE_MAP[typeName] || "未知",
+        class: TYPE_MAP[typeName] || '未知',
       },
       equipment: [
         slot1
           ? {
-              name: slot1.equipment_base?.name || "装备",
-              icon: getAssetUrl(slot1.equipment_base?.resource_url || ""),
+              name: slot1.equipment_base?.name || '装备',
+              icon: getAssetUrl(slot1.equipment_base?.resource_url || ''),
               equipped: true,
               locked: false,
             }
-          : { name: "空槽", icon: "＋", equipped: false, locked: false },
+          : { name: '空槽', icon: '＋', equipped: false, locked: false },
         equipmentSlot?.is_slot2_locked
-          ? { name: "未解锁", icon: "🔒", equipped: false, locked: true }
+          ? { name: '未解锁', icon: '🔒', equipped: false, locked: true }
           : slot2
-          ? {
-              name: slot2.equipment_base?.name || "装备",
-              icon: getAssetUrl(slot2.equipment_base?.resource_url || ""),
-              equipped: true,
-              locked: false,
-            }
-          : { name: "空槽", icon: "＋", equipped: false, locked: false },
+            ? {
+                name: slot2.equipment_base?.name || '装备',
+                icon: getAssetUrl(slot2.equipment_base?.resource_url || ''),
+                equipped: true,
+                locked: false,
+              }
+            : { name: '空槽', icon: '＋', equipped: false, locked: false },
       ],
       skill: {
-        name: skill?.name || "——",
-        cooldown: skill?.cool_down != null ? `${skill.cool_down}回合` : "——",
-        effect: skill?.description || "——",
-        icon: getAssetUrl(skill?.resource_url || ""),
+        name: skill?.name || '——',
+        cooldown: skill?.cool_down != null ? `${skill.cool_down}回合` : '——',
+        effect: skill?.description || '——',
+        icon: getAssetUrl(skill?.resource_url || ''),
       },
       upgradeCost: getUpgradeCostByLevel(levelNum),
     };
@@ -147,7 +150,7 @@ function mapPuppets(arr) {
 }
 
 function findKeyPath(root, targetKey, path = []) {
-  if (!root || typeof root !== "object") return null;
+  if (!root || typeof root !== 'object') return null;
   if (Object.prototype.hasOwnProperty.call(root, targetKey))
     return [...path, targetKey];
   if (Array.isArray(root)) {
@@ -182,16 +185,16 @@ onMounted(async () => {
 // 订阅后端广播信息（如升级错误等）
 function handleGlobalInfo(raw) {
   let msg = raw;
-  if (typeof raw === "string") {
+  if (typeof raw === 'string') {
     try {
       msg = JSON.parse(raw);
     } catch (_) {}
   }
   if (msg && msg.type_msg) {
-    if (msg.type_msg === "upgrade_cost_error") {
-      alert(msg.content || "升级等级错误");
+    if (msg.type_msg === 'upgrade_cost_error') {
+      alert(msg.content || '升级等级错误');
     } else {
-      console.log("[GlobalInfo]", msg);
+      log('[GlobalInfo]', msg);
     }
   }
 }
@@ -215,20 +218,20 @@ onMounted(async () => {
         ? plainCopper.coppers
         : [];
     if (!Array.isArray(arr)) {
-      const p = findKeyPath(plainCopper, "coppers");
-      console.log("[Warehouse] copper key path:", p);
+      const p = findKeyPath(plainCopper, 'coppers');
+      log('[Warehouse] copper key path:', p);
       if (p) {
         const found = getByPath(plainCopper, p);
-        console.log("[Warehouse] copper found by path:", found);
+        log('[Warehouse] copper found by path:', found);
         if (Array.isArray(found)) arr = found;
       }
       if (!Array.isArray(arr) && plainCopper && plainCopper.entries) {
-        console.log("[Warehouse] copper entries sample:", plainCopper.entries);
+        log('[Warehouse] copper entries sample:', plainCopper.entries);
       }
     }
-    console.log(
-      "[Warehouse] copper array length:",
-      Array.isArray(arr) ? arr.length : "not array"
+    log(
+      '[Warehouse] copper array length:',
+      Array.isArray(arr) ? arr.length : 'not array'
     );
     puppets.value = mapPuppets(arr);
     if (Array.isArray(puppets.value) && puppets.value.length > 0) {
@@ -258,17 +261,17 @@ async function selectPuppet(puppet, index) {
   selectedPuppet.value = puppet;
   await nextTick();
   const el = puppetItemRefs.value[index];
-  if (el && typeof el.scrollIntoView === "function") {
+  if (el && typeof el.scrollIntoView === 'function') {
     el.scrollIntoView({
-      block: "nearest",
-      inline: "nearest",
-      behavior: "smooth",
+      block: 'nearest',
+      inline: 'nearest',
+      behavior: 'smooth',
     });
   }
   highlightedIndex.value = index;
   if (detailWrap.value) {
     try {
-      detailWrap.value.scrollTo({ top: 0, behavior: "smooth" });
+      detailWrap.value.scrollTo({ top: 0, behavior: 'smooth' });
     } catch (_) {
       detailWrap.value.scrollTop = 0;
     }
@@ -292,7 +295,7 @@ function drawTen() {
   const costIndex = Math.max(0, resources.value.length - 1);
   const store = resources.value;
   if (!store[costIndex] || store[costIndex].value < 10) {
-    alert("资源不足");
+    alert('资源不足');
     return;
   }
   store[costIndex].value -= 10;
@@ -335,13 +338,13 @@ async function onGachaResult(payload) {
 async function upgradeSelected() {
   if (!selectedPuppet.value) return;
   if (Number(selectedPuppet.value.level || 0) >= 5) {
-    alert("已达满级");
+    alert('已达满级');
     return;
   }
   const id = selectedPuppet.value.id;
   const res = await upgrade_copper(id);
-  if (!res || res.type !== "success") {
-    alert(res && res.content ? res.content : "升级失败");
+  if (!res || res.type !== 'success') {
+    alert(res && res.content ? res.content : '升级失败');
     return;
   }
 
@@ -356,7 +359,7 @@ async function upgradeSelected() {
     puppets.value = mapPuppets(arr);
 
     // 维持选中项（按 id 匹配）
-    const updated = puppets.value.find((p) => p.id === id);
+    const updated = puppets.value.find(p => p.id === id);
     if (updated) selectedPuppet.value = updated;
   } catch (_) {}
 }
@@ -392,7 +395,7 @@ async function upgradeSelected() {
               'puppet-card--pulse': highlightedIndex === i,
               'puppet-card--hover': hoveredIndex === i,
             }"
-            :ref="(el) => setPuppetItemRef(el, i)"
+            :ref="el => setPuppetItemRef(el, i)"
             @click="selectPuppet(puppet, i)"
             @mouseenter="hoveredIndex = i"
             @mouseleave="hoveredIndex = null"
@@ -514,7 +517,7 @@ async function upgradeSelected() {
                         class="equipment-icon"
                       />
                       <span v-else class="equipment-icon">{{
-                        item.locked ? "🔒" : item.icon
+                        item.locked ? '🔒' : item.icon
                       }}</span>
                     </div>
                   </div>
@@ -559,8 +562,8 @@ async function upgradeSelected() {
               <div class="upgrade-cost">
                 <span class="cost-amount">{{
                   selectedPuppet.level >= 5
-                    ? "已满级"
-                    : "X " + selectedPuppet.upgradeCost
+                    ? '已满级'
+                    : 'X ' + selectedPuppet.upgradeCost
                 }}</span>
               </div>
               <button
@@ -1091,7 +1094,9 @@ async function upgradeSelected() {
   transform: translateY(0);
 }
 .fade-slide-enter-active {
-  transition: opacity 200ms ease, transform 200ms ease;
+  transition:
+    opacity 200ms ease,
+    transform 200ms ease;
 }
 .fade-slide-leave-from {
   opacity: 1;
@@ -1102,6 +1107,8 @@ async function upgradeSelected() {
   transform: translateY(6px);
 }
 .fade-slide-leave-active {
-  transition: opacity 150ms ease, transform 150ms ease;
+  transition:
+    opacity 150ms ease,
+    transform 150ms ease;
 }
 </style>

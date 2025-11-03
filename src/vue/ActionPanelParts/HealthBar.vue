@@ -4,19 +4,29 @@ import { computed } from 'vue';
 const props = defineProps({
   hp: {
     type: Number,
-    default: 0
+    default: 0,
   },
   maxHp: {
     type: Number,
-    default: 100
-  }
+    default: 100,
+  },
 });
 
 // 血条边框资源
-const bloodBorderLeftSrc = new URL('../../../assets/blood-border-left.png', import.meta.url).href;
-const bloodBorderMiddleSrc = new URL('../../../assets/blood-border-middle.png', import.meta.url).href;
-const bloodBorderRightSrc = new URL('../../../assets/blood-border-right.png', import.meta.url).href;
-const bloodBarSrc = new URL('../../../assets/blood-bar.png', import.meta.url).href;
+const bloodBorderLeftSrc = new URL(
+  '../../../assets/blood-border-left.png',
+  import.meta.url
+).href;
+const bloodBorderMiddleSrc = new URL(
+  '../../../assets/blood-border-middle.png',
+  import.meta.url
+).href;
+const bloodBorderRightSrc = new URL(
+  '../../../assets/blood-border-right.png',
+  import.meta.url
+).href;
+const bloodBarSrc = new URL('../../../assets/blood-bar.png', import.meta.url)
+  .href;
 
 const hpPercentage = computed(() => {
   if (!props.maxHp || props.maxHp === 0) return 0;
@@ -45,8 +55,8 @@ const hpText = computed(() => {
         <img :src="bloodBorderRightSrc" alt="血条右边框" />
       </div>
       <!-- 血条填充 -->
-      <div 
-        class="health-bar__fill" 
+      <div
+        class="health-bar__fill"
         :style="{ width: `calc(${hpPercentage}% + 20px)` }"
       ></div>
       <!-- 血量文字 -->
@@ -137,7 +147,6 @@ const hpText = computed(() => {
   font-weight: bold;
   text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
   white-space: nowrap;
-  font-family: "Press Start 2P", "Courier New", monospace;
+  font-family: 'Press Start 2P', 'Courier New', monospace;
 }
 </style>
-

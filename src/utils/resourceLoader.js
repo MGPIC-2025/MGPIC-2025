@@ -3,11 +3,13 @@
  * 支持R2 CDN，带重试机制和回退策略
  */
 
+import log from '../log.js';
+
 // 重试配置
 const RETRY_CONFIG = {
   maxRetries: 3,
   retryDelay: 1000, // 1秒
-  timeout: 10000,   // 10秒
+  timeout: 10000, // 10秒
 };
 
 // 资源加载状态缓存
@@ -23,7 +25,7 @@ const PRECACHE_CONFIG = {
   cachePrefix: 'mgpic_',
   version: '1.0.0',
   loadInterval: 50, // 每个资源加载间隔ms
-  batchSize: 3 // 每批处理3个资源
+  batchSize: 3, // 每批处理3个资源
 };
 
 // 本地缓存管理
@@ -46,13 +48,13 @@ class LocalCacheManager {
   // 检查资源是否已缓存
   async isCached(url) {
     if (!this.isSupported()) return false;
-    
+
     try {
       const cache = await caches.open(this.getCacheName());
       const response = await cache.match(url);
       return response !== undefined;
     } catch (error) {
-      console.warn('检查缓存失败:', error.message);
+      log('检查缓存失败:', error.message);
       return false;
     }
   }
@@ -60,29 +62,29 @@ class LocalCacheManager {
   // 缓存资源
   async cacheResource(url, response) {
     if (!this.isSupported()) return false;
-    
+
     try {
       const cache = await caches.open(this.getCacheName());
-      
+
       // 检查是否已经缓存
       const existing = await cache.match(url);
       if (existing) {
-        console.log(`资源已存在于缓存，跳过: ${url}`);
+        log(`资源已存在于缓存，跳过: ${url}`);
         return true;
       }
-      
+
       await cache.put(url, response.clone());
-      
+
       // 更新缓存大小统计
       const contentLength = response.headers.get('content-length');
       if (contentLength) {
         this.totalSize += parseInt(contentLength);
       }
-      
-      console.log(`资源已缓存: ${url}`);
+
+      log(`资源已缓存: ${url}`);
       return true;
     } catch (error) {
-      console.warn('缓存资源失败:', error.message);
+      log('缓存资源失败:', error.message);
       return false;
     }
   }
@@ -90,12 +92,12 @@ class LocalCacheManager {
   // 从缓存获取资源
   async getCachedResource(url) {
     if (!this.isSupported()) return null;
-    
+
     try {
       const cache = await caches.open(this.getCacheName());
       return await cache.match(url);
     } catch (error) {
-      console.warn('获取缓存资源失败:', error.message);
+      log('获取缓存资源失败:', error.message);
       return null;
     }
   }
@@ -103,19 +105,22 @@ class LocalCacheManager {
   // 清理过期缓存
   async cleanupCache() {
     if (!this.isSupported()) return;
-    
+
     try {
       const cacheNames = await caches.keys();
       const currentCacheName = this.getCacheName();
-      
+
       for (const cacheName of cacheNames) {
-        if (cacheName.startsWith(PRECACHE_CONFIG.cachePrefix) && cacheName !== currentCacheName) {
+        if (
+          cacheName.startsWith(PRECACHE_CONFIG.cachePrefix) &&
+          cacheName !== currentCacheName
+        ) {
           await caches.delete(cacheName);
-          console.log(`清理过期缓存: ${cacheName}`);
+          log(`清理过期缓存: ${cacheName}`);
         }
       }
     } catch (error) {
-      console.warn('清理缓存失败:', error.message);
+      log('清理缓存失败:', error.message);
     }
   }
 }
@@ -132,19 +137,18 @@ function getResourceBaseUrl() {
   if (cachedBaseUrl) {
     return cachedBaseUrl;
   }
-  
+
   // 统一使用R2，开发和生产环境都使用
   const customDomain = import.meta.env.VITE_R2_CUSTOM_DOMAIN;
   const publicUrl = import.meta.env.VITE_R2_PUBLIC_URL;
-  
+
   if (customDomain) {
-    console.log('使用自定义域名:', customDomain);
+    log('使用自定义域名:', customDomain);
     cachedBaseUrl = customDomain;
     return cachedBaseUrl;
-  } 
- else {
+  } else {
     // 使用默认R2公共访问URL
-    console.log('使用默认R2 URL');
+    log('使用默认R2 URL');
     cachedBaseUrl = 'https://pub-6f9181bda40946ea92b5e87fe84e27d4.r2.dev';
     return cachedBaseUrl;
   }
@@ -161,7 +165,9 @@ export function getAssetUrl(path) {
     clean_path = path.slice(7);
   }
   const baseUrl = getResourceBaseUrl();
-  const cleanPath = clean_path.startsWith('/') ? clean_path.slice(1) : clean_path;
+  const cleanPath = clean_path.startsWith('/')
+    ? clean_path.slice(1)
+    : clean_path;
   const fullUrl = `${baseUrl}/${cleanPath}`;
   return fullUrl;
 }
@@ -173,44 +179,54 @@ export function getAssetUrl(path) {
  * @returns {Promise<Response>} 响应对象
  */
 async function loadResourceWithRetry(url, options = {}) {
-  const { maxRetries = RETRY_CONFIG.maxRetries, retryDelay = RETRY_CONFIG.retryDelay } = options;
-  
+  const {
+    maxRetries = RETRY_CONFIG.maxRetries,
+    retryDelay = RETRY_CONFIG.retryDelay,
+  } = options;
+
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
     try {
-      console.log(`尝试加载资源 (${attempt}/${maxRetries}): ${url}`);
-      
+      log(`尝试加载资源 (${attempt}/${maxRetries}): ${url}`);
+
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), RETRY_CONFIG.timeout);
-      
+      const timeoutId = setTimeout(
+        () => controller.abort(),
+        RETRY_CONFIG.timeout
+      );
+
       const response = await fetch(url, {
         method: 'HEAD',
         mode: 'cors',
         credentials: 'omit',
         cache: 'no-cache', // 防止使用没有CORS头部的缓存响应
         signal: controller.signal,
-        ...options
+        ...options,
       });
-      
+
       clearTimeout(timeoutId);
-      
+
       if (response.ok) {
-        console.log(`资源加载成功: ${url}`);
+        log(`资源加载成功: ${url}`);
         resourceCache.set(url, { success: true, timestamp: Date.now() });
         return response;
       } else {
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
     } catch (error) {
-      console.warn(`资源加载失败 (${attempt}/${maxRetries}): ${url}`, error.message);
-      
+      log(`资源加载失败 (${attempt}/${maxRetries}): ${url}`, error.message);
+
       if (attempt === maxRetries) {
-        console.error(` 资源加载最终失败: ${url}`, error.message);
-        resourceCache.set(url, { success: false, timestamp: Date.now(), error: error.message });
+        log(` 资源加载最终失败: ${url}`, error.message);
+        resourceCache.set(url, {
+          success: false,
+          timestamp: Date.now(),
+          error: error.message,
+        });
         throw error;
       }
-      
+
       // 等待后重试
-      console.log(` 等待 ${retryDelay}ms 后重试...`);
+      log(` 等待 ${retryDelay}ms 后重试...`);
       await new Promise(resolve => setTimeout(resolve, retryDelay * attempt)); // 递增延迟
     }
   }
@@ -227,54 +243,60 @@ export async function loadResourceWithCache(url, options = {}) {
   if (cacheManager.isSupported()) {
     const cachedResponse = await cacheManager.getCachedResource(url);
     if (cachedResponse) {
-      console.log(`从 Cache Storage 加载: ${url}`);
+      log(`从 Cache Storage 加载: ${url}`);
       return cachedResponse;
     }
   }
-  
+
   // 缓存中没有，从网络加载（带重试机制）
-  const { maxRetries = RETRY_CONFIG.maxRetries, retryDelay = RETRY_CONFIG.retryDelay } = options;
-  
+  const {
+    maxRetries = RETRY_CONFIG.maxRetries,
+    retryDelay = RETRY_CONFIG.retryDelay,
+  } = options;
+
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
     try {
-      console.log(`尝试加载资源 (${attempt}/${maxRetries}): ${url}`);
-      
+      log(`尝试加载资源 (${attempt}/${maxRetries}): ${url}`);
+
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), RETRY_CONFIG.timeout);
-      
+      const timeoutId = setTimeout(
+        () => controller.abort(),
+        RETRY_CONFIG.timeout
+      );
+
       const response = await fetch(url, {
         method: 'GET',
         mode: 'cors',
         credentials: 'omit',
         cache: 'no-cache', // 防止使用没有CORS头部的缓存响应
         signal: controller.signal,
-        ...options
+        ...options,
       });
-      
+
       clearTimeout(timeoutId);
-      
+
       if (response.ok) {
         // 缓存到 Cache Storage
         if (cacheManager.isSupported()) {
           await cacheManager.cacheResource(url, response);
         }
-        
-        console.log(`资源加载并缓存成功: ${url}`);
+
+        log(`资源加载并缓存成功: ${url}`);
         return response;
       } else {
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
     } catch (error) {
-      console.warn(`资源加载失败 (${attempt}/${maxRetries}): ${url}`, error.message);
-      
+      log(`资源加载失败 (${attempt}/${maxRetries}): ${url}`, error.message);
+
       if (attempt === maxRetries) {
-        console.error(`资源加载最终失败: ${url}`, error.message);
+        log(`资源加载最终失败: ${url}`, error.message);
         throw error;
       }
-      
+
       // 等待后重试（递增延迟）
       const waitTime = retryDelay * attempt;
-      console.log(`等待 ${waitTime}ms 后重试...`);
+      log(`等待 ${waitTime}ms 后重试...`);
       await new Promise(resolve => setTimeout(resolve, waitTime));
     }
   }
@@ -295,7 +317,7 @@ async function checkResourceAvailability(url) {
       return cached.success;
     }
   }
-  
+
   try {
     await loadResourceWithRetry(url);
     return true;
@@ -310,38 +332,38 @@ async function checkResourceAvailability(url) {
  * @returns {Promise<void>}
  */
 export async function preloadAssets(paths) {
-  console.log(` 开始预加载 ${paths.length} 个资源`);
-  
+  log(` 开始预加载 ${paths.length} 个资源`);
+
   const promises = paths.map(async path => {
     const url = getAssetUrl(path);
-    console.log(` 预加载资源: ${path} -> ${url}`);
-    
+    log(` 预加载资源: ${path} -> ${url}`);
+
     try {
       // 根据文件类型选择预加载方式
       if (path.endsWith('.glb')) {
         // 3D 模型预加载 - 使用重试机制
         await loadResourceWithRetry(url);
-        console.log(` 3D模型预加载成功: ${url}`);
+        log(` 3D模型预加载成功: ${url}`);
       } else if (path.match(/\.(webp|png|jpg|jpeg)$/)) {
         // 图片预加载 - 使用重试机制
         await loadResourceWithRetry(url);
-        console.log(` 图片预加载成功: ${url}`);
+        log(` 图片预加载成功: ${url}`);
       } else {
         // 其他资源 - 使用重试机制
         await loadResourceWithRetry(url);
-        console.log(` 资源预加载成功: ${url}`);
+        log(` 资源预加载成功: ${url}`);
       }
     } catch (error) {
-      console.warn(` 资源预加载失败: ${url}`, error.message);
+      log(` 资源预加载失败: ${url}`, error.message);
       // 预加载失败不影响主要功能，继续处理其他资源
     }
   });
-  
+
   try {
     await Promise.all(promises);
-    console.log(` 资源预加载完成`);
+    log(` 资源预加载完成`);
   } catch (error) {
-    console.warn(' 资源预加载过程中出现错误:', error.message);
+    log(' 资源预加载过程中出现错误:', error.message);
   }
 }
 
@@ -354,35 +376,42 @@ async function loadAssetList(priorities = ['high', 'medium']) {
   try {
     // 检查内存缓存
     if (assetListCache) {
-      console.log('使用内存缓存的资源列表');
-      const resources = extractResourcesFromAssetList(assetListCache, priorities);
-      console.log(`从缓存的资源列表加载 ${resources.length} 个资源 (优先级: ${priorities.join(', ')})`);
+      log('使用内存缓存的资源列表');
+      const resources = extractResourcesFromAssetList(
+        assetListCache,
+        priorities
+      );
+      log(
+        `从缓存的资源列表加载 ${resources.length} 个资源 (优先级: ${priorities.join(', ')})`
+      );
       return resources;
     }
-    
+
     // 尝试从 R2 CDN 加载资源列表（使用缓存机制）
     const assetListUrl = getAssetUrl('asset-list.json');
-    console.log(`从 R2 CDN 加载资源列表: ${assetListUrl}`);
-    
+    log(`从 R2 CDN 加载资源列表: ${assetListUrl}`);
+
     // 使用带缓存和重试的加载方式
     const response = await loadResourceWithCache(assetListUrl);
-    
+
     if (!response.ok) {
       throw new Error(`资源列表加载失败: HTTP ${response.status}`);
     }
-    
+
     const assetList = await response.json();
-    
+
     // 缓存到内存（用于当前会话的快速访问）
     assetListCache = assetList;
-    console.log('资源列表已缓存到内存');
-    
+    log('资源列表已缓存到内存');
+
     const resources = extractResourcesFromAssetList(assetList, priorities);
-    console.log(`从资源列表加载 ${resources.length} 个资源 (优先级: ${priorities.join(', ')})`);
+    log(
+      `从资源列表加载 ${resources.length} 个资源 (优先级: ${priorities.join(', ')})`
+    );
     return resources;
   } catch (error) {
-    console.warn('无法加载自动生成的资源列表，使用备用列表:', error.message);
-    
+    log('无法加载自动生成的资源列表，使用备用列表:', error.message);
+
     // 备用资源列表（如果自动生成失败）
     return [
       'logo.glb',
@@ -390,7 +419,7 @@ async function loadAssetList(priorities = ['high', 'medium']) {
       'frontend_resource/copper_warehouse.webp',
       'frontend_resource/game_wiki.webp',
       'frontend_resource/Tutorial.webp',
-      'frontend_resource/gacha.webp'
+      'frontend_resource/gacha.webp',
     ];
   }
 }
@@ -403,7 +432,7 @@ async function loadAssetList(priorities = ['high', 'medium']) {
  */
 function extractResourcesFromAssetList(assetList, priorities) {
   const resources = [];
-  
+
   // 根据优先级收集资源
   for (const priority of priorities) {
     if (assetList.categories && assetList.categories[priority]) {
@@ -411,7 +440,7 @@ function extractResourcesFromAssetList(assetList, priorities) {
       resources.push(...categoryResources.map(r => r.path));
     }
   }
-  
+
   return resources;
 }
 
@@ -421,112 +450,128 @@ function extractResourcesFromAssetList(assetList, priorities) {
  * @param {Array<string>} priorities - 要加载的优先级 ['high', 'medium', 'low']
  * @returns {Promise<void>}
  */
-export async function precacheAllResources(onProgress = null, priorities = ['high', 'medium']) {
+export async function precacheAllResources(
+  onProgress = null,
+  priorities = ['high', 'medium']
+) {
   if (!PRECACHE_CONFIG.enabled) {
-    console.log('预缓存已禁用');
+    log('预缓存已禁用');
     return;
   }
-  
-  console.log('开始预缓存游戏资源...');
-  
+
+  log('开始预缓存游戏资源...');
+
   // 清理过期缓存
   await cacheManager.cleanupCache();
-  
+
   // 从自动生成的列表加载资源
   const allResources = await loadAssetList(priorities);
-  
+
   // 分批处理资源，避免请求过于频繁
   const batchSize = PRECACHE_CONFIG.batchSize;
   const loadInterval = PRECACHE_CONFIG.loadInterval;
   const totalResources = allResources.length;
   let loadedCount = 0;
-  
+
   // 初始进度回调
   if (onProgress) {
     onProgress(0, totalResources, 0);
   }
-  
+
   for (let i = 0; i < allResources.length; i += batchSize) {
     const batch = allResources.slice(i, i + batchSize);
-    console.log(`处理批次 ${Math.floor(i / batchSize) + 1}/${Math.ceil(allResources.length / batchSize)}: ${batch.length} 个资源`);
-    
+    log(
+      `处理批次 ${Math.floor(i / batchSize) + 1}/${Math.ceil(allResources.length / batchSize)}: ${batch.length} 个资源`
+    );
+
     // 并行处理当前批次
     const batchPromises = batch.map(async (path, index) => {
       const url = getAssetUrl(path);
-      
+
       try {
         // 检查是否已在Cache Storage中缓存
         const isCached = await cacheManager.isCached(url);
         if (isCached) {
-          console.log(`资源已在Cache Storage中，跳过: ${path}`);
+          log(`资源已在Cache Storage中，跳过: ${path}`);
           return { success: true, path, cached: true, source: 'cache' };
         }
-        
+
         // 尝试从网络加载（浏览器可能有HTTP缓存）
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), RETRY_CONFIG.timeout);
-        
+        const timeoutId = setTimeout(
+          () => controller.abort(),
+          RETRY_CONFIG.timeout
+        );
+
         const response = await fetch(url, {
           method: 'GET',
           mode: 'cors',
           credentials: 'omit',
           cache: 'no-cache', // 防止使用没有CORS头部的缓存响应
-          signal: controller.signal
+          signal: controller.signal,
         });
-        
+
         clearTimeout(timeoutId);
-        
+
         if (response.ok) {
           // 检查是否来自缓存
-          const fromCache = response.headers.get('x-cache') || 
-                           response.headers.get('cf-cache-status') ||
-                           (response.type === 'basic' && !response.redirected);
-          
+          const fromCache =
+            response.headers.get('x-cache') ||
+            response.headers.get('cf-cache-status') ||
+            (response.type === 'basic' && !response.redirected);
+
           // 保存到Cache Storage
           if (cacheManager.isSupported()) {
             await cacheManager.cacheResource(url, response);
           }
-          
-          console.log(`资源预缓存成功: ${path}${fromCache ? ' (使用浏览器缓存)' : ''}`);
-          return { success: true, path, cached: false, fromBrowserCache: !!fromCache };
+
+          log(`资源预缓存成功: ${path}${fromCache ? ' (使用浏览器缓存)' : ''}`);
+          return {
+            success: true,
+            path,
+            cached: false,
+            fromBrowserCache: !!fromCache,
+          };
         } else {
           throw new Error(`HTTP ${response.status}: ${response.statusText}`);
         }
       } catch (error) {
-        console.warn(`资源预缓存失败: ${path}`, error.message);
+        log(`资源预缓存失败: ${path}`, error.message);
         return { success: false, path, error: error.message };
       }
     });
-    
+
     // 等待当前批次完成
     const results = await Promise.all(batchPromises);
-    
+
     // 更新已加载计数
     loadedCount += batch.length;
     const percentage = Math.round((loadedCount / totalResources) * 100);
-    
+
     // 进度回调
     if (onProgress) {
       onProgress(loadedCount, totalResources, percentage);
     }
-    
+
     // 统计当前批次结果
     const successCount = results.filter(r => r.success).length;
     const cachedCount = results.filter(r => r.cached).length;
     const browserCacheCount = results.filter(r => r.fromBrowserCache).length;
     const errorCount = results.filter(r => !r.success).length;
-    
-    console.log(`批次完成: 成功 ${successCount}, Cache Storage已有 ${cachedCount}, 浏览器缓存 ${browserCacheCount}, 失败 ${errorCount}`);
-    
+
+    log(
+      `批次完成: 成功 ${successCount}, Cache Storage已有 ${cachedCount}, 浏览器缓存 ${browserCacheCount}, 失败 ${errorCount}`
+    );
+
     // 如果不是最后一批，等待间隔时间
     if (i + batchSize < allResources.length) {
-      console.log(`等待 ${loadInterval}ms 后处理下一批...`);
+      log(`等待 ${loadInterval}ms 后处理下一批...`);
       await new Promise(resolve => setTimeout(resolve, loadInterval));
     }
   }
-  
-  console.log('所有资源预缓存完成');
-  
+
+  log('所有资源预缓存完成');
+
   // 最终进度回调（确保显示100%）
   if (onProgress) {
     onProgress(totalResources, totalResources, 100);
@@ -541,17 +586,17 @@ export async function getCacheStatus() {
   if (!cacheManager.isSupported()) {
     return { supported: false, message: '浏览器不支持缓存API' };
   }
-  
+
   try {
     const cache = await caches.open(cacheManager.getCacheName());
     const keys = await cache.keys();
-    
+
     return {
       supported: true,
       cacheName: cacheManager.getCacheName(),
       resourceCount: keys.length,
       totalSize: cacheManager.totalSize,
-      maxSize: PRECACHE_CONFIG.maxCacheSize
+      maxSize: PRECACHE_CONFIG.maxCacheSize,
     };
   } catch (error) {
     return { supported: true, error: error.message };
@@ -572,8 +617,8 @@ export function updatePrecacheConfig(config) {
   if (config.enabled !== undefined) {
     PRECACHE_CONFIG.enabled = config.enabled;
   }
-  
-  console.log('预缓存配置已更新:', PRECACHE_CONFIG);
+
+  log('预缓存配置已更新:', PRECACHE_CONFIG);
 }
 
 /**
@@ -590,7 +635,7 @@ export function getPrecacheConfig() {
  */
 export function clearAssetListCache() {
   assetListCache = null;
-  console.log('资源列表缓存已清除');
+  log('资源列表缓存已清除');
 }
 
 /**
@@ -600,7 +645,9 @@ export function clearAssetListCache() {
  * @returns {string} 模型 URL
  */
 export function getCopperModelUrl(copperType, copperName) {
-  return getAssetUrl(`copper/${copperType.toLowerCase()}/${copperName}/${copperName}.glb`);
+  return getAssetUrl(
+    `copper/${copperType.toLowerCase()}/${copperName}/${copperName}.glb`
+  );
 }
 
 /**
@@ -610,7 +657,9 @@ export function getCopperModelUrl(copperType, copperName) {
  * @returns {string} 图标 URL
  */
 export function getCopperIconUrl(copperType, copperName) {
-  return getAssetUrl(`copper/${copperType.toLowerCase()}/${copperName}/${copperName}.webp`);
+  return getAssetUrl(
+    `copper/${copperType.toLowerCase()}/${copperName}/${copperName}.webp`
+  );
 }
 
 /**
@@ -656,7 +705,7 @@ export function getEquipmentIconUrl(equipmentName) {
  */
 export async function loadImageWithRetry(path) {
   const url = getAssetUrl(path);
-  
+
   try {
     // 检查资源是否可用
     const isAvailable = await checkResourceAvailability(url);
@@ -666,7 +715,7 @@ export async function loadImageWithRetry(path) {
       throw new Error('Resource not available');
     }
   } catch (error) {
-    console.warn(`图片加载失败，使用原始URL: ${url}`, error.message);
+    log(`图片加载失败，使用原始URL: ${url}`, error.message);
     return url; // 即使检查失败也返回URL，让浏览器处理
   }
 }
@@ -678,7 +727,7 @@ export async function loadImageWithRetry(path) {
  */
 export async function loadModelWithRetry(path) {
   const url = getAssetUrl(path);
-  
+
   try {
     // 检查资源是否可用
     const isAvailable = await checkResourceAvailability(url);
@@ -688,7 +737,7 @@ export async function loadModelWithRetry(path) {
       throw new Error('Resource not available');
     }
   } catch (error) {
-    console.warn(`3D模型加载失败，使用原始URL: ${url}`, error.message);
+    log(`3D模型加载失败，使用原始URL: ${url}`, error.message);
     return url; // 即使检查失败也返回URL，让Three.js处理
   }
 }

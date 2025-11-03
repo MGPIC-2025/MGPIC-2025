@@ -1,16 +1,17 @@
 <script setup>
-import { ref, onMounted, onBeforeUnmount } from "vue";
-import Hall from "./vue/Hall.vue";
-import Warehouse from "./vue/Warehouse.vue";
-import TopLeftPanel from "./vue/TopLeftPanel.vue";
-import StartMenu from "./vue/StartMenu.vue";
-import StartGame from "./vue/StartGame.vue";
-import TestPanel from "./vue/TestPanel.vue";
-import TestScene from "./vue/TestScene.vue";
+import log from './log.js';
+import { ref, onMounted, onBeforeUnmount } from 'vue';
+import Hall from './vue/Hall.vue';
+import Warehouse from './vue/Warehouse.vue';
+import TopLeftPanel from './vue/TopLeftPanel.vue';
+import StartMenu from './vue/StartMenu.vue';
+import StartGame from './vue/StartGame.vue';
+import TestPanel from './vue/TestPanel.vue';
+import TestScene from './vue/TestScene.vue';
 
 // 导入glue.js以触发消息处理器注册
-import "./glue.js";
-import { info_subscribe } from "./glue.js";
+import './glue.js';
+import { info_subscribe } from './glue.js';
 
 const isPaused = ref(false);
 const overlay = ref(null);
@@ -59,12 +60,15 @@ function onStartMenuStarted() {
   if (startMenuDestroyTimer) {
     clearTimeout(startMenuDestroyTimer);
   }
-  startMenuDestroyTimer = setTimeout(() => {
-    if (!showStartMenu.value) {
-      console.log("[App] 销毁StartMenu以释放内存");
-      destroyStartMenu.value = true;
-    }
-  }, 5 * 60 * 1000); // 5分钟
+  startMenuDestroyTimer = setTimeout(
+    () => {
+      if (!showStartMenu.value) {
+        log('[App] 销毁StartMenu以释放内存');
+        destroyStartMenu.value = true;
+      }
+    },
+    5 * 60 * 1000
+  ); // 5分钟
 }
 
 function closeOverlay() {
@@ -75,12 +79,12 @@ function closeOverlay() {
 }
 
 function handleGameStart(params) {
-  console.log('[App] 游戏开始，铜偶ID:', params.ids);
+  log('[App] 游戏开始，铜偶ID:', params.ids);
   closeOverlay();
   // 跳转到游戏场景（游戏模式）
   isInGameMode.value = true;
   showTestScene.value = true;
-  console.log('[App] 已切换到游戏场景（游戏模式）');
+  log('[App] 已切换到游戏场景（游戏模式）');
 }
 
 function openSettings() {
@@ -105,7 +109,7 @@ function goBack() {
   if (overlay.value) {
     // 若为仓库界面，优先让子组件处理返回（先关闭抽卡界面）
     if (
-      overlay.value === "warehouse" &&
+      overlay.value === 'warehouse' &&
       warehouseRef.value &&
       warehouseRef.value.handleBack
     ) {
@@ -131,7 +135,7 @@ function goBack() {
     // 如果StartMenu已被销毁，需要重新创建
     if (destroyStartMenu.value) {
       destroyStartMenu.value = false;
-      console.log("[App] 重新创建StartMenu");
+      log('[App] 重新创建StartMenu');
     }
     showStartMenu.value = true;
     // 恢复开始菜单动画（StartMenu 常驻，使用全局钩子控制）
@@ -166,11 +170,11 @@ function onDownloadSave() {
   try {
     const data = { version: 1, savedAt: Date.now(), payload: {} };
     const blob = new Blob([JSON.stringify(data, null, 2)], {
-      type: "application/json",
+      type: 'application/json',
     });
-    const a = document.createElement("a");
+    const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
-    a.download = "save.json";
+    a.download = 'save.json';
     a.click();
     URL.revokeObjectURL(a.href);
   } catch (_) {}
@@ -187,16 +191,16 @@ function onFileChange(ev) {
     const reader = new FileReader();
     reader.onload = () => {
       try {
-        JSON.parse(String(reader.result || "{}"));
+        JSON.parse(String(reader.result || '{}'));
       } catch (_) {}
-      ev.target.value = "";
+      ev.target.value = '';
     };
     reader.readAsText(file);
   } catch (_) {}
 }
 
 onMounted(() => {
-  info_subscribe((message) => {
+  info_subscribe(message => {
     // Messages are handled by messageQueue
   });
 });
@@ -213,10 +217,10 @@ onBeforeUnmount(() => {
 <template>
   <div class="stage">
     <!-- 3D游戏/测试场景 - 使用v-if完全销毁以节省资源 -->
-    <TestScene 
-      v-if="showTestScene" 
+    <TestScene
+      v-if="showTestScene"
       :isGameMode="isInGameMode"
-      @back="closeTestScene" 
+      @back="closeTestScene"
     />
 
     <!-- 主界面 -->
@@ -233,7 +237,15 @@ onBeforeUnmount(() => {
         @back="goBack"
         @open-settings="openSettings"
       />
-      <TestPanel v-if="!showStartMenu" @enter-scene="() => { isInGameMode = false; showTestScene = true; }" />
+      <TestPanel
+        v-if="!showStartMenu"
+        @enter-scene="
+          () => {
+            isInGameMode = false;
+            showTestScene = true;
+          }
+        "
+      />
       <Hall
         @startGame="openOverlay('start')"
         @openWarehouse="openOverlay('warehouse')"
@@ -251,23 +263,20 @@ onBeforeUnmount(() => {
             <Warehouse ref="warehouseRef" />
           </div>
         </template>
-        <template v-else-if="overlay==='start'">
-          <StartGame 
-            @close="closeOverlay" 
-            @confirm="handleGameStart" 
-          />
+        <template v-else-if="overlay === 'start'">
+          <StartGame @close="closeOverlay" @confirm="handleGameStart" />
         </template>
         <template v-else>
           <div class="modal">
             <h2 class="modal-title">
               {{
-                overlay === "warehouse"
-                  ? "铜偶仓库 · Copper Warehouse"
-                  : overlay === "tutorial"
-                  ? "新手教程 · Tutorial"
-                  : overlay === "encyclopedia"
-                  ? "游戏百科 · Game Encyclopedia"
-                  : "开始游戏 · Start Game"
+                overlay === 'warehouse'
+                  ? '铜偶仓库 · Copper Warehouse'
+                  : overlay === 'tutorial'
+                    ? '新手教程 · Tutorial'
+                    : overlay === 'encyclopedia'
+                      ? '游戏百科 · Game Encyclopedia'
+                      : '开始游戏 · Start Game'
               }}
             </h2>
             <p class="modal-body">占位内容（后续替换为实际功能界面）。</p>
@@ -338,7 +347,7 @@ onBeforeUnmount(() => {
               </svg>
             </span>
             <span class="settings__label">音乐</span>
-            <span class="settings__state">{{ musicOn ? "开" : "关" }}</span>
+            <span class="settings__state">{{ musicOn ? '开' : '关' }}</span>
           </button>
 
           <button class="settings__item" @click="onDownloadSave">

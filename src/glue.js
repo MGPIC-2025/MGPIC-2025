@@ -1,4 +1,5 @@
-import { messageQueue, registerAllHandlers } from "./messageQueue.js";
+import log from './log.js';
+import { messageQueue, registerAllHandlers } from './messageQueue.js';
 
 // 立即注册消息处理器
 registerAllHandlers();
@@ -10,11 +11,11 @@ let mainModulePromise = null;
 // 使用立即执行的异步函数来处理动态导入
 mainModulePromise = (async () => {
   try {
-    mainModule = await import("./main.js");
-    console.log("[Glue] main.js 加载成功");
+    mainModule = await import('./main.js');
+    log('[Glue] main.js 加载成功');
     return mainModule;
   } catch (error) {
-    console.warn("[Glue] main.js 导入失败，使用模拟模式:", error.message);
+    log('[Glue] main.js 导入失败，使用模拟模式:', error.message);
     return null;
   }
 })();
@@ -31,7 +32,7 @@ async function gacha() {
   if (mainModule?.global_gacha) {
     return JSON.parse(mainModule.global_gacha());
   }
-  return { type: "error", content: "后端未加载" };
+  return { type: 'error', content: '后端未加载' };
 }
 
 async function get_resource() {
@@ -61,7 +62,7 @@ async function upgrade_copper(id) {
   if (mainModule?.global_upgrade_copper) {
     return JSON.parse(mainModule.global_upgrade_copper(id));
   }
-  return { type: "error", content: "后端未加载" };
+  return { type: 'error', content: '后端未加载' };
 }
 
 async function info_subscribe(callback) {
@@ -69,15 +70,15 @@ async function info_subscribe(callback) {
   await mainModulePromise;
 
   if (mainModule?.global_info_subscribe) {
-    mainModule.global_info_subscribe((info) => {
+    mainModule.global_info_subscribe(info => {
       const message = JSON.parse(info);
       callback(message);
       // 同时将消息加入队列处理
       messageQueue.enqueue(message);
     });
-    console.log("[Glue] global_info_subscribe 已注册");
+    log('[Glue] global_info_subscribe 已注册');
   } else {
-    console.warn("[Glue] global_info_subscribe 不可用，使用模拟模式");
+    log('[Glue] global_info_subscribe 不可用，使用模拟模式');
   }
 }
 
@@ -88,7 +89,7 @@ async function eventloop(msg) {
   if (mainModule?.eventloop) {
     mainModule.eventloop(msg);
   } else {
-    console.warn("[Glue] eventloop 不可用");
+    log('[Glue] eventloop 不可用');
   }
 }
 

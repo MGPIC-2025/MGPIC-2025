@@ -1,10 +1,11 @@
 <script setup>
-import { ref, watch, onMounted, onBeforeUnmount, nextTick } from "vue";
-import * as THREE from "three";
-import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
-import { DRACOLoader } from "three/examples/jsm/loaders/DRACOLoader.js";
-import { getAssetUrl, loadResourceWithCache } from "../utils/resourceLoader.js";
-import modelCache from "../utils/modelCache.js";
+import log from '../log.js';
+import { ref, watch, onMounted, onBeforeUnmount, nextTick } from 'vue';
+import * as THREE from 'three';
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
+import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js';
+import { getAssetUrl, loadResourceWithCache } from '../utils/resourceLoader.js';
+import modelCache from '../utils/modelCache.js';
 
 const props = defineProps({
   puppet: { type: Object, default: null },
@@ -27,7 +28,7 @@ let isInitialized = false; // 添加初始化状态标记
 // 使用全局缓存，不受组件生命周期影响
 if (!window.__GLTF_MEMORY_CACHE__) {
   window.__GLTF_MEMORY_CACHE__ = new Map();
-  console.log("[PuppetModelView] Initialized global GLTF memory cache");
+  log('[PuppetModelView] Initialized global GLTF memory cache');
 }
 const gltfMemoryCache = window.__GLTF_MEMORY_CACHE__;
 
@@ -36,13 +37,11 @@ function initThreeIfNeeded() {
 
   const container = mountEl.value;
   if (!container) {
-    console.warn(
-      "[PuppetModelView] Container not ready for Three.js initialization"
-    );
+    log('[PuppetModelView] Container not ready for Three.js initialization');
     return; // 不再重试，由调用方控制时机
   }
 
-  console.log("[PuppetModelView] Initializing Three.js...");
+  log('[PuppetModelView] Initializing Three.js...');
 
   scene = new THREE.Scene();
   camera = new THREE.PerspectiveCamera(45, 1, 0.1, 1000);
@@ -55,12 +54,12 @@ function initThreeIfNeeded() {
   // 初始化 Draco 解码器
   dracoLoader = new DRACOLoader();
   dracoLoader.setDecoderPath(
-    "https://www.gstatic.com/draco/versioned/decoders/1.5.6/"
+    'https://www.gstatic.com/draco/versioned/decoders/1.5.6/'
   );
-  dracoLoader.setCrossOrigin("anonymous");
-  console.log("[PuppetModelView] Draco loader initialized:", !!dracoLoader);
+  dracoLoader.setCrossOrigin('anonymous');
+  log('[PuppetModelView] Draco loader initialized:', !!dracoLoader);
 
-  container.innerHTML = "";
+  container.innerHTML = '';
   container.appendChild(renderer.domElement);
 
   const ambient = new THREE.AmbientLight(0xffffff, 1.2);
@@ -117,10 +116,10 @@ function initThreeIfNeeded() {
   animate();
 
   isInitialized = true;
-  console.log(
-    "[PuppetModelView] Three.js initialized successfully, container size:",
+  log(
+    '[PuppetModelView] Three.js initialized successfully, container size:',
     container.clientWidth,
-    "x",
+    'x',
     container.clientHeight
   );
 }
@@ -132,11 +131,11 @@ function clearCurrentModel() {
   }
   if (currentModel) {
     scene.remove(currentModel);
-    currentModel.traverse((obj) => {
+    currentModel.traverse(obj => {
       if (obj.isMesh) {
         if (obj.geometry) obj.geometry.dispose();
         if (Array.isArray(obj.material)) {
-          obj.material.forEach((m) => {
+          obj.material.forEach(m => {
             if (m.map) m.map.dispose();
             if (m) m.dispose && m.dispose();
           });
@@ -184,7 +183,7 @@ function fitCameraToObject(object) {
 
 async function loadPuppetModel(puppet) {
   if (!puppet) return;
-  console.log("[PuppetModelView] Loading puppet:", puppet.name);
+  log('[PuppetModelView] Loading puppet:', puppet.name);
 
   // 设置加载状态
   isLoading.value = true;
@@ -194,44 +193,41 @@ async function loadPuppetModel(puppet) {
   const token = ++loadSequence;
 
   // 使用全局模型缓存管理器
-  console.log("[PuppetModelView] 使用全局模型缓存管理器");
+  log('[PuppetModelView] 使用全局模型缓存管理器');
 
   // 直接使用传入的 modelUrl（已被处理为完整URL）
-  let modelUrl = puppet.modelUrl || "";
-  console.log("[PuppetModelView] Original modelUrl:", modelUrl);
-  console.log("[PuppetModelView] Puppet image:", puppet.image);
-  console.log("[PuppetModelView] Puppet name:", puppet.name);
-  console.log("[PuppetModelView] Puppet data:", puppet);
+  let modelUrl = puppet.modelUrl || '';
+  log('[PuppetModelView] Original modelUrl:', modelUrl);
+  log('[PuppetModelView] Puppet image:', puppet.image);
+  log('[PuppetModelView] Puppet name:', puppet.name);
+  log('[PuppetModelView] Puppet data:', puppet);
 
   // 如果 modelUrl 为空，且没有从 webp 推导的逻辑
   // （StartGame 和 Warehouse 都确保 modelUrl 被正确设置）
-  if (!modelUrl || modelUrl.trim() === "") {
-    console.log("[PuppetModelView] No model URL found");
+  if (!modelUrl || modelUrl.trim() === '') {
+    log('[PuppetModelView] No model URL found');
     return;
   }
-  
-  console.log("[PuppetModelView] Final Model URL:", modelUrl);
+
+  log('[PuppetModelView] Final Model URL:', modelUrl);
 
   try {
-    console.log("[PuppetModelView] Starting to load:", modelUrl);
-    console.log("[PuppetModelView] Cache status:", modelCache.getCacheStatus());
+    log('[PuppetModelView] Starting to load:', modelUrl);
+    log('[PuppetModelView] Cache status:', modelCache.getCacheStatus());
 
     // 使用全局模型缓存管理器加载模型
     const modelInstance = await modelCache.loadModel(modelUrl);
-    console.log("[PuppetModelView] Model loaded from cache manager:", modelInstance);
+    log('[PuppetModelView] Model loaded from cache manager:', modelInstance);
     // 检查是否是最新的加载请求
     if (token !== loadSequence) {
-      console.log(
-        "[PuppetModelView] Ignoring outdated load result for:",
-        puppet.name
-      );
+      log('[PuppetModelView] Ignoring outdated load result for:', puppet.name);
       // 释放临时资源
       if (gltf && gltf.scene) {
-        gltf.scene.traverse((obj) => {
+        gltf.scene.traverse(obj => {
           if (obj.isMesh) {
             if (obj.geometry) obj.geometry.dispose();
             if (Array.isArray(obj.material)) {
-              obj.material.forEach((m) => {
+              obj.material.forEach(m => {
                 if (m.map) m.map.dispose();
                 if (m.dispose) m.dispose();
               });
@@ -245,20 +241,20 @@ async function loadPuppetModel(puppet) {
       return;
     }
 
-    console.log("[PuppetModelView] Applying model for:", puppet.name);
+    log('[PuppetModelView] Applying model for:', puppet.name);
 
     // 确保 Three.js 场景已经初始化
     if (!scene) {
-      console.log("[PuppetModelView] Scene not ready, initializing...");
+      log('[PuppetModelView] Scene not ready, initializing...');
       initThreeIfNeeded();
       // 等待场景初始化
       let waitCount = 0;
       while (!scene && waitCount < 40) {
-        await new Promise((resolve) => setTimeout(resolve, 50));
+        await new Promise(resolve => setTimeout(resolve, 50));
         waitCount++;
       }
       if (!scene) {
-        console.error("[PuppetModelView] Scene initialization timeout");
+        log('[PuppetModelView] Scene initialization timeout');
         return;
       }
     }
@@ -266,33 +262,33 @@ async function loadPuppetModel(puppet) {
     // 应用模型到场景
     currentModel = modelInstance;
     if (!currentModel) {
-      console.error("[PuppetModelView] No model instance received");
+      log('[PuppetModelView] No model instance received');
       return;
     }
     scene.add(currentModel);
     // 注意：全局缓存管理器不保存动画信息，如果需要动画需要重新加载
     fitCameraToObject(currentModel);
-    console.log(
-      "[PuppetModelView] Model loaded successfully:",
+    log(
+      '[PuppetModelView] Model loaded successfully:',
       puppet.name,
-      "Scene children:",
+      'Scene children:',
       scene.children.length
     );
 
     // 加载完成，清除加载状态
     isLoading.value = false;
   } catch (e) {
-    console.error("[PuppetModelView] Load failed:", e);
-    console.error("[PuppetModelView] Failed URL:", modelUrl);
-    console.error("[PuppetModelView] Puppet data:", puppet);
+    log('[PuppetModelView] Load failed:', e);
+    log('[PuppetModelView] Failed URL:', modelUrl);
+    log('[PuppetModelView] Puppet data:', puppet);
 
     // 尝试不使用 Draco 解码器重新加载
-    if (e.message.includes("DRACOLoader")) {
-      console.log("[PuppetModelView] Retrying without Draco decoder...");
+    if (e.message.includes('DRACOLoader')) {
+      log('[PuppetModelView] Retrying without Draco decoder...');
       try {
         // 创建一个临时的fallback loader，不使用Draco
         const fallbackLoader = new GLTFLoader();
-        fallbackLoader.setCrossOrigin("anonymous");
+        fallbackLoader.setCrossOrigin('anonymous');
         // 不设置 Draco 解码器
         const fallbackGltf = await fallbackLoader.loadAsync(modelUrl);
         if (token === loadSequence) {
@@ -301,22 +297,21 @@ async function loadPuppetModel(puppet) {
             scene.add(currentModel);
             if (fallbackGltf.animations && fallbackGltf.animations.length) {
               currentMixer = new THREE.AnimationMixer(currentModel);
-              const action = currentMixer.clipAction(fallbackGltf.animations[0]);
+              const action = currentMixer.clipAction(
+                fallbackGltf.animations[0]
+              );
               action.play();
             }
             fitCameraToObject(currentModel);
-            console.log(
-              "[PuppetModelView] Model loaded successfully without Draco:",
+            log(
+              '[PuppetModelView] Model loaded successfully without Draco:',
               puppet.name
             );
             return;
           }
         }
       } catch (fallbackError) {
-        console.error(
-          "[PuppetModelView] Fallback load also failed:",
-          fallbackError
-        );
+        log('[PuppetModelView] Fallback load also failed:', fallbackError);
       }
     }
 
@@ -336,7 +331,7 @@ async function loadPuppetModel(puppet) {
 
 watch(
   () => props.puppet,
-  async (val) => {
+  async val => {
     // 等待下一个 tick 确保 DOM 已更新
     await nextTick();
     loadPuppetModel(val);
@@ -345,7 +340,7 @@ watch(
 ); // 改为 false，让 onMounted 先执行
 
 onMounted(() => {
-  console.log("[PuppetModelView] Component mounted");
+  log('[PuppetModelView] Component mounted');
   // 立即初始化 Three.js（同步）
   nextTick(() => {
     if (mountEl.value) {
@@ -362,7 +357,7 @@ onMounted(() => {
 });
 
 onBeforeUnmount(() => {
-  console.log("[PuppetModelView] Cleaning up...");
+  log('[PuppetModelView] Cleaning up...');
 
   // 立即停止动画循环
   cancelAnimationFrame(animationId);
@@ -390,16 +385,16 @@ onBeforeUnmount(() => {
 
   // 将耗时的清理操作延迟到空闲时执行，不阻塞 UI
   const deferredCleanup = () => {
-    console.log("[PuppetModelView] Starting deferred cleanup...");
+    log('[PuppetModelView] Starting deferred cleanup...');
 
     // 清理场景资源
     if (sceneToClean) {
-      sceneToClean.traverse((obj) => {
+      sceneToClean.traverse(obj => {
         if (obj.isMesh) {
           try {
             if (obj.geometry) obj.geometry.dispose();
             if (Array.isArray(obj.material)) {
-              obj.material.forEach((m) => {
+              obj.material.forEach(m => {
                 try {
                   if (m.map) m.map.dispose();
                   if (m.dispose) m.dispose();
@@ -424,19 +419,17 @@ onBeforeUnmount(() => {
       } catch (_) {}
     }
 
-    console.log("[PuppetModelView] Deferred cleanup completed");
+    log('[PuppetModelView] Deferred cleanup completed');
   };
 
   // 使用 requestIdleCallback（如果支持），否则使用 setTimeout
-  if (typeof window !== "undefined" && window.requestIdleCallback) {
+  if (typeof window !== 'undefined' && window.requestIdleCallback) {
     window.requestIdleCallback(deferredCleanup, { timeout: 1000 });
   } else {
     setTimeout(deferredCleanup, 100);
   }
 
-  console.log(
-    "[PuppetModelView] Quick cleanup completed, heavy cleanup deferred"
-  );
+  log('[PuppetModelView] Quick cleanup completed, heavy cleanup deferred');
 });
 </script>
 
