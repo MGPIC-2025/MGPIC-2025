@@ -1,5 +1,9 @@
 <script setup>
-import { RESOURCE_META, getItemIcon, getItemName } from '../../utils/resourceMeta.js';
+import {
+  RESOURCE_META,
+  getItemIcon,
+  getItemName,
+} from '../../utils/resourceMeta.js';
 
 const props = defineProps({
   visible: {
@@ -17,7 +21,6 @@ const props = defineProps({
 });
 
 const emit = defineEmits(['close', 'craft', 'drop']);
-
 
 // 合成配方物品类型
 const recipeItems = [

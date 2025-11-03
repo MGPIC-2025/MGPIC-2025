@@ -11,11 +11,15 @@ export const RESOURCE_META = {
   },
   ResonantCrystal: {
     name: '共鸣星晶',
-    icon: getAssetUrl('resource/resonant_star_crystal/resonant_star_crystal.webp'),
+    icon: getAssetUrl(
+      'resource/resonant_star_crystal/resonant_star_crystal.webp'
+    ),
   },
   RefinedCopper: {
     name: '精炼铜锭',
-    icon: getAssetUrl('resource/refined_copper_ingot/refined_copper_ingot.webp'),
+    icon: getAssetUrl(
+      'resource/refined_copper_ingot/refined_copper_ingot.webp'
+    ),
   },
   SpiritalSpark: {
     name: '灵性火花',
@@ -27,7 +31,10 @@ export function getItemName(item) {
   if (Array.isArray(item?.item_type) && item.item_type[0] === 'Resource') {
     const resourceType = item.item_type[1];
     return RESOURCE_META[resourceType]?.name || resourceType;
-  } else if (Array.isArray(item?.item_type) && item.item_type[0] === 'Equipment') {
+  } else if (
+    Array.isArray(item?.item_type) &&
+    item.item_type[0] === 'Equipment'
+  ) {
     return '装备';
   }
   return '未知物品';
@@ -40,4 +47,3 @@ export function getItemIcon(item) {
   }
   return '';
 }
-

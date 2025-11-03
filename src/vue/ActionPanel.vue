@@ -29,7 +29,6 @@ const props = defineProps({
 
 const emit = defineEmits(['close', 'action', 'selectCopper']);
 
-
 // 三角操作面板已独立为组件 TriPanel
 
 // 面板状态：'full' = 完整显示, 'minimized' = 最小化到底部
@@ -200,8 +199,10 @@ defineExpose({ cancelAction, handleSelectCopper });
       class="copper-panel"
       :class="{
         'copper-panel--minimized': panelMode === 'minimized',
-        'copper-panel--min-attack': panelMode === 'minimized' && actionMode === 'attacking',
-        'copper-panel--min-move': panelMode === 'minimized' && actionMode === 'moving'
+        'copper-panel--min-attack':
+          panelMode === 'minimized' && actionMode === 'attacking',
+        'copper-panel--min-move':
+          panelMode === 'minimized' && actionMode === 'moving',
       }"
       @click.stop
     >
@@ -211,9 +212,7 @@ defineExpose({ cancelAction, handleSelectCopper });
           <span class="minimized-name">{{ copperInfo.name }}</span>
           <span class="minimized-action">
             {{
-              actionMode === 'moving'
-                ? '选择移动位置...'
-                : '选择攻击目标...'
+              actionMode === 'moving' ? '选择移动位置...' : '选择攻击目标...'
             }}
           </span>
         </div>
@@ -247,9 +246,7 @@ defineExpose({ cancelAction, handleSelectCopper });
                 @click="handlePickup(index)"
                 title="点击拾取"
               >
-                <span class="resource-name">{{
-                  getItemName(resource)
-                }}</span>
+                <span class="resource-name">{{ getItemName(resource) }}</span>
                 <span class="resource-count">x{{ resource.count || 1 }}</span>
                 <span class="resource-pickup">⬆️</span>
               </div>
@@ -310,7 +307,7 @@ defineExpose({ cancelAction, handleSelectCopper });
 .copper-panel--minimized {
   bottom: 48px;
   /* Use 320px (10x of 32px) to keep pixel-art crisp */
-  width: min(300px,170vw);
+  width: min(300px, 170vw);
   /* Increase height in 32px multiples for pixel-art clarity */
   min-height: 100px; /* 32 * 6 */
   padding: 12px 16px;
@@ -323,9 +320,13 @@ defineExpose({ cancelAction, handleSelectCopper });
   /* Two-layer background: top = sword badge, bottom = red panel */
   background-image: url('/assets/sword.png'), url('/assets/red.png');
   background-repeat: no-repeat, no-repeat;
-  background-position: 8px 8px, center;
+  background-position:
+    8px 8px,
+    center;
   /* keep red panel slightly expanded to compensate asset margins */
-  background-size: 32px 32px, 130% 122%;
+  background-size:
+    32px 32px,
+    130% 122%;
   background-origin: padding-box, border-box;
   background-clip: padding-box, border-box;
   image-rendering: pixelated;
@@ -336,9 +337,13 @@ defineExpose({ cancelAction, handleSelectCopper });
   /* Two-layer background: top = boot badge, bottom = green panel */
   background-image: url('/assets/boot.png'), url('/assets/green.png');
   background-repeat: no-repeat, no-repeat;
-  background-position: 8px 8px, center;
+  background-position:
+    8px 8px,
+    center;
   /* keep green panel slightly expanded to compensate asset margins */
-  background-size: 32px 32px, 130% 122%;
+  background-size:
+    32px 32px,
+    130% 122%;
   background-origin: padding-box, border-box;
   background-clip: padding-box, border-box;
   image-rendering: pixelated;

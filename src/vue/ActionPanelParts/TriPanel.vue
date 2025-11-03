@@ -55,7 +55,6 @@ function onAttack() {
       </div>
     </div>
   </div>
-  
 </template>
 
 <style scoped>
@@ -122,31 +121,85 @@ function onAttack() {
   image-rendering: crisp-edges;
   pointer-events: none;
 }
-.top { grid-column: 2; grid-row: 1; }
-.left { grid-column: 1; grid-row: 2; }
-.right { grid-column: 3; grid-row: 2; }
-.top { transform: translateY(var(--topDropY)); }
-.left { transform: translate(var(--overlapX), calc(-1 * var(--overlapY))); }
-.right { transform: translate(calc(-1 * var(--overlapX)), calc(-1 * var(--overlapY))); }
-.hex:is(.top, .left, .right):hover { filter: brightness(1.08); }
-.is-locked { opacity: 0.5; cursor: not-allowed; filter: grayscale(0.2); }
-.hex.top:hover:not(.is-locked) { animation: float-top 1200ms ease-in-out infinite; }
-.hex.left:hover:not(.is-locked) { animation: float-left 1200ms ease-in-out infinite; }
-.hex.right:hover:not(.is-locked) { animation: float-right 1200ms ease-in-out infinite; }
+.top {
+  grid-column: 2;
+  grid-row: 1;
+}
+.left {
+  grid-column: 1;
+  grid-row: 2;
+}
+.right {
+  grid-column: 3;
+  grid-row: 2;
+}
+.top {
+  transform: translateY(var(--topDropY));
+}
+.left {
+  transform: translate(var(--overlapX), calc(-1 * var(--overlapY)));
+}
+.right {
+  transform: translate(calc(-1 * var(--overlapX)), calc(-1 * var(--overlapY)));
+}
+.hex:is(.top, .left, .right):hover {
+  filter: brightness(1.08);
+}
+.is-locked {
+  opacity: 0.5;
+  cursor: not-allowed;
+  filter: grayscale(0.2);
+}
+.hex.top:hover:not(.is-locked) {
+  animation: float-top 1200ms ease-in-out infinite;
+}
+.hex.left:hover:not(.is-locked) {
+  animation: float-left 1200ms ease-in-out infinite;
+}
+.hex.right:hover:not(.is-locked) {
+  animation: float-right 1200ms ease-in-out infinite;
+}
 @keyframes float-top {
-  0% { transform: translateY(var(--topDropY)) scale(1); }
-  50% { transform: translateY(calc(var(--topDropY) - 2px)) scale(1.06); }
-  100% { transform: translateY(var(--topDropY)) scale(1); }
+  0% {
+    transform: translateY(var(--topDropY)) scale(1);
+  }
+  50% {
+    transform: translateY(calc(var(--topDropY) - 2px)) scale(1.06);
+  }
+  100% {
+    transform: translateY(var(--topDropY)) scale(1);
+  }
 }
 @keyframes float-left {
-  0% { transform: translate(var(--overlapX), calc(-1 * var(--overlapY))) scale(1); }
-  50% { transform: translate(calc(var(--overlapX) + 1px), calc(-1 * var(--overlapY) - 2px)) scale(1.06); }
-  100% { transform: translate(var(--overlapX), calc(-1 * var(--overlapY))) scale(1); }
+  0% {
+    transform: translate(var(--overlapX), calc(-1 * var(--overlapY))) scale(1);
+  }
+  50% {
+    transform: translate(
+        calc(var(--overlapX) + 1px),
+        calc(-1 * var(--overlapY) - 2px)
+      )
+      scale(1.06);
+  }
+  100% {
+    transform: translate(var(--overlapX), calc(-1 * var(--overlapY))) scale(1);
+  }
 }
 @keyframes float-right {
-  0% { transform: translate(calc(-1 * var(--overlapX)), calc(-1 * var(--overlapY))) scale(1); }
-  50% { transform: translate(calc(-1 * var(--overlapX) - 1px), calc(-1 * var(--overlapY) - 2px)) scale(1.06); }
-  100% { transform: translate(calc(-1 * var(--overlapX)), calc(-1 * var(--overlapY))) scale(1); }
+  0% {
+    transform: translate(calc(-1 * var(--overlapX)), calc(-1 * var(--overlapY)))
+      scale(1);
+  }
+  50% {
+    transform: translate(
+        calc(-1 * var(--overlapX) - 1px),
+        calc(-1 * var(--overlapY) - 2px)
+      )
+      scale(1.06);
+  }
+  100% {
+    transform: translate(calc(-1 * var(--overlapX)), calc(-1 * var(--overlapY)))
+      scale(1);
+  }
 }
 </style>
-

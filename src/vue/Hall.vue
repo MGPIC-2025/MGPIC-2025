@@ -41,20 +41,21 @@ onMounted(async () => {
       bgTutorial.value,
     ];
     await Promise.allSettled(
-      imageUrls.map(url =>
-        new Promise(resolve => {
-          const img = new Image();
-          img.crossOrigin = 'anonymous';
-          img.onload = () => {
-            log('背景图片预加载成功:', url);
-            resolve();
-          };
-          img.onerror = () => {
-            log('背景图片预加载失败:', url);
-            resolve();
-          };
-          img.src = url;
-        })
+      imageUrls.map(
+        url =>
+          new Promise(resolve => {
+            const img = new Image();
+            img.crossOrigin = 'anonymous';
+            img.onload = () => {
+              log('背景图片预加载成功:', url);
+              resolve();
+            };
+            img.onerror = () => {
+              log('背景图片预加载失败:', url);
+              resolve();
+            };
+            img.src = url;
+          })
       )
     );
   } catch (error) {

@@ -21,7 +21,6 @@ const ORDERED_RESOURCE_KEYS = [
   'HeartCrystalDust',
 ];
 
-
 function mapResources(plain) {
   return ORDERED_RESOURCE_KEYS.map(k => ({
     icon: RESOURCE_META[k].icon,

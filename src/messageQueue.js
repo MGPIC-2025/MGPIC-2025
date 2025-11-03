@@ -296,12 +296,12 @@ export function registerAllHandlers() {
       if (context.onClearState) {
         context.onClearState(id);
       }
-      
+
       // 清除该单位的血条
       if (context.onRemoveHealthBar) {
         context.onRemoveHealthBar(id);
       }
-      
+
       // 如果是铜偶，从玩家铜偶列表中移除
       if (model.type === 'copper' && context.onRemoveCopper) {
         context.onRemoveCopper(id);
@@ -437,7 +437,7 @@ export function registerAllHandlers() {
   });
 
   // update_health: 更新单位血量显示（同步处理）
-  messageQueue.registerHandler("update_health", (data, context) => {
+  messageQueue.registerHandler('update_health', (data, context) => {
     const { id, now_health, max_health } = data;
     // console.log(`[Handler] update_health id=${id}, hp=${now_health}/${max_health}`);
 
