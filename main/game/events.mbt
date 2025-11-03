@@ -547,10 +547,18 @@ fn handle_game_round_pass() -> Unit {
         if next_position is Some(next_position) {
           println("next_position: " + next_position.to_json().stringify())
           animate_move(enemy.id)
+          // 根据位置改变敌人的朝向
+          change_direction(
+            enemy.id,
+            convert_direction_to_unit_direction(
+              get_direction_by_position(enemy.position, next_position),
+            ),
+          )
           move_to(enemy.id, next_position)
+          let old_position = enemy.position
           enemy.position = next_position
-          map.remove_occupant(enemy.position)
-          map.add_occupant(enemy.position, Occupant::Enemy(enemy))
+          map.remove_occupant(old_position)
+          map.add_occupant(next_position, Occupant::Enemy(enemy))
         }
       }
     }
