@@ -27,6 +27,7 @@ let enemy_list : Array[EnemyBase] = [
         0.05,
       ),
     ],
+    summon_cost: @resource.ResourceCost::new([(@resource.SpiritalSpark, 1)]),
   },
   {
     level: 1,
@@ -55,6 +56,7 @@ let enemy_list : Array[EnemyBase] = [
         0.06,
       ),
     ],
+    summon_cost: @resource.ResourceCost::new([(@resource.SpiritalSpark, 1)]),
   },
   {
     level: 2,
@@ -84,6 +86,7 @@ let enemy_list : Array[EnemyBase] = [
         0.08,
       ),
     ],
+    summon_cost: @resource.ResourceCost::new([(@resource.SpiritalSpark, 1)]),
   },
   {
     level: 3,
@@ -113,6 +116,7 @@ let enemy_list : Array[EnemyBase] = [
         0.10,
       ),
     ],
+    summon_cost: @resource.ResourceCost::new([(@resource.SpiritalSpark, 1)]),
   },
   {
     level: 2,
@@ -141,6 +145,7 @@ let enemy_list : Array[EnemyBase] = [
         0.07,
       ),
     ],
+    summon_cost: @resource.ResourceCost::new([(@resource.SpiritalSpark, 1)]),
   },
   {
     level: 2,
@@ -170,6 +175,7 @@ let enemy_list : Array[EnemyBase] = [
         0.08,
       ),
     ],
+    summon_cost: @resource.ResourceCost::new([(@resource.SpiritalSpark, 1)]),
   },
   {
     level: 5,
@@ -199,6 +205,7 @@ let enemy_list : Array[EnemyBase] = [
         0.12,
       ),
     ],
+    summon_cost: @resource.ResourceCost::new([(@resource.SpiritalSpark, 1)]),
   },
   {
     level: 6,
@@ -228,6 +235,7 @@ let enemy_list : Array[EnemyBase] = [
         0.15,
       ),
     ],
+    summon_cost: @resource.ResourceCost::new([(@resource.SpiritalSpark, 1)]),
   },
   {
     level: 7,
@@ -257,6 +265,7 @@ let enemy_list : Array[EnemyBase] = [
         0.15,
       ),
     ],
+    summon_cost: @resource.ResourceCost::new([(@resource.SpiritalSpark, 1)]),
   },
   {
     level: 8,
@@ -286,6 +295,7 @@ let enemy_list : Array[EnemyBase] = [
         0.18,
       ),
     ],
+    summon_cost: @resource.ResourceCost::new([(@resource.SpiritalSpark, 1)]),
   },
   {
     level: 9,
@@ -316,6 +326,7 @@ let enemy_list : Array[EnemyBase] = [
         0.20,
       ),
     ],
+    summon_cost: @resource.ResourceCost::new([(@resource.SpiritalSpark, 1)]),
   },
   {
     level: 11,
@@ -366,6 +377,7 @@ let enemy_list : Array[EnemyBase] = [
         0.50,
       ),
     ],
+    summon_cost: @resource.ResourceCost::new([(@resource.SpiritalSpark, 1)]),
   },
   {
     level: 11,
@@ -426,6 +438,7 @@ let enemy_list : Array[EnemyBase] = [
         0.40,
       ),
     ],
+    summon_cost: @resource.ResourceCost::new([(@resource.SpiritalSpark, 1)]),
   },
 ]
 

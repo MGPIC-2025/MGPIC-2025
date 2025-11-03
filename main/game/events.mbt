@@ -521,6 +521,7 @@ fn handle_on_transfer_start(id : Int, index : Int, count : Int) -> Unit {
   handle_on_move_end()
   handle_on_attack_end()
   handle_on_transfer_end()
+  handle_on_summon_end()
   transfer_from_id.val = Some(id)
   let battle_copper = get_battle_copper_by_id(id)
   let item_type = battle_copper.inventory.items[index].item_type
@@ -778,10 +779,73 @@ fn handle_game_round_pass() -> Unit {
   animate_reset()
 }
 
+// 共鸣者召唤流程：
+// 1. 玩家点击共鸣者
+// 2. 选择空位召唤敌人
+// 3. 打开敌人召唤菜单
+// 4. 玩家选择敌人
+// 5. 敌人召唤到地图上
+
 ///|
+/// 前端：当玩家获取敌人召唤菜单
+/// 后端：返回敌人召唤菜单
+/// 需要可以选择敌人以及确定资源消耗
+fn handle_on_get_summon_menu() -> Unit {
+  @global_msg.msg_info.broadcast({
+    type_msg: "get_summon_menu",
+    content: ({ "contents": enemy_list.to_json() } : Json).stringify(),
+  })
+}
+
+///|
+/// 前端：当铜偶开始召唤
+/// 后端：放置召唤物占位符
+fn handle_on_summon_start(id : Int) -> Unit {
+  handle_on_move_end()
+  handle_on_attack_end()
+  handle_on_transfer_end()
+  handle_on_summon_end()
+  let battle_copper = get_battle_copper_by_id(id)
+  let map = force_get_current_map()
+  let can_summon = battle_copper.get_can_move(map)
+  for position in can_summon {
+    set_can_summon_blocks(position)
+    setted_can_summon_blocks.add(position)
+  }
+}
+
+///|
+/// 后端：实施召唤
+/// 需要指定召唤的敌人以及消耗的资源，并且召唤敌人到地图上
+fn handle_on_summon_apply(
+  id : Int,
+  position : (Int, Int),
+  map : Map_,
+  name : String,
+) -> Unit {
+  let enemy_idx = enemy_list.search_by(enemy => enemy.name == name).unwrap()
+  let enemy = enemy_list[enemy_idx]
+  let resource_cost = enemy.summon_cost
+  let battle_copper = get_battle_copper_by_id(id)
+  if battle_copper.inventory.check_resource_cost_in_inventory(resource_cost) {
+    battle_copper.inventory.consume_resource_cost(resource_cost)
+    let enemy = Enemy::new(enemy, position, true)
+    enemy_map.set(enemy.id, enemy)
+    map.add_occupant(position, Occupant::Enemy(enemy))
+  } else {
+    @global_msg.msg_info.broadcast({
+      type_msg: "resource_not_enough",
+      content: ({ "message": "资源不足" } : Json).stringify(),
+    })
+  }
+}
+
+///|
+/// 前端：当铜偶结束召唤
+/// 后端：清除可召唤的地块
 fn handle_on_summon_end() -> Unit {
   for position in setted_can_summon_blocks {
-    clear_block(position)
+    check_and_reset_block(position, Summon)
   }
   setted_can_summon_blocks.clear()
 }

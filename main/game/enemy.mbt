@@ -28,6 +28,7 @@ struct EnemyBase {
   asset_url : String
   model_url : String
   drop_items : Array[(Item, Double)]
+  summon_cost : @resource.ResourceCost
 } derive(ToJson)
 
 ///|

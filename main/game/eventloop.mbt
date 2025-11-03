@@ -101,6 +101,25 @@ pub fn eventloop(msg : String) -> Unit {
         (string_to_int(x), string_to_int(y)),
         force_get_current_map(),
       )
+    { "type": "on_get_summon_menu", .. } => handle_on_get_summon_menu()
+    { "type": "on_summon_start", "content": { "id": id, .. }, .. } =>
+      handle_on_summon_start(string_to_int(id))
+    {
+      "type": "on_summon_apply",
+      "content": {
+        "id": id,
+        "position": { "x": x, "y": y, .. },
+        "name": name,
+        ..
+      },
+      ..
+    } =>
+      handle_on_summon_apply(
+        string_to_int(id),
+        (string_to_int(x), string_to_int(y)),
+        force_get_current_map(),
+        name.as_string().unwrap(),
+      )
     { "type": "on_summon_end", .. } => handle_on_summon_end()
     _ => abort("Invalid message")
   }

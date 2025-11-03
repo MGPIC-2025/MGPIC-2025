@@ -107,3 +107,38 @@ pub fn Inventory::craft(inventory : Inventory) -> Bool {
     false
   }
 }
+
+///|
+pub fn find_item_amount(inventory : Inventory, item : ItemType) -> Int {
+  for item_ in inventory.items {
+    if item_.item_type == item {
+      return item_.count
+    }
+  }
+  0
+}
+
+///|
+pub fn Inventory::check_resource_cost_in_inventory(
+  inventory : Inventory,
+  resource_cost : @resource.ResourceCost,
+) -> Bool {
+  for res in resource_cost.cost {
+    let (res_type, amount) = res
+    if find_item_amount(inventory, Resource(res_type)) < amount {
+      return false
+    }
+  }
+  true
+}
+
+///|
+pub fn Inventory::consume_resource_cost(
+  inventory : Inventory,
+  resource_cost : @resource.ResourceCost,
+) -> Unit {
+  for res in resource_cost.cost {
+    let (res_type, amount) = res
+    inventory.add_item(Item::new(Resource(res_type), count=-amount))
+  }
+}

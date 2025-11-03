@@ -30,39 +30,11 @@ fn display_can_attack(Int, Bool) -> Unit
 
 fn display_can_move(Int, Bool) -> Unit
 
+fn display_can_summon(Int, Bool) -> Unit
+
 fn eventloop(String) -> Unit
 
-fn handle_on_attack_apply(Int, (Int, Int), Map_) -> Unit
-
-fn handle_on_attack_end() -> Unit
-
-fn handle_on_attack_start(Map_, Int) -> Unit
-
-fn handle_on_click_copper(Int) -> Unit
-
-fn handle_on_copper_craft(Int) -> Unit
-
-fn handle_on_copper_drop_item(Int, Int) -> Unit
-
-fn handle_on_copper_equip_item(Int, Int) -> Unit
-
-fn handle_on_copper_pick_up(Int, Int) -> Unit
-
-fn handle_on_copper_unequip_item(Int, Int) -> Unit
-
-fn handle_on_game_start(Array[Int]) -> Unit
-
-fn handle_on_move_apply(Int, (Int, Int), Map_) -> Unit
-
-fn handle_on_move_end() -> Unit
-
-fn handle_on_move_start(Map_, Int) -> Unit
-
-fn handle_on_transfer_apply((Int, Int)) -> Unit
-
-fn handle_on_transfer_end() -> Unit
-
-fn handle_on_transfer_start(Int, Int, Int) -> Unit
+fn find_item_amount(Inventory, ItemType) -> Int
 
 fn move_to(Int, (Int, Int)) -> Unit
 
@@ -75,6 +47,8 @@ fn put_room_blocks((Int, Int), Int) -> Unit
 fn remove_unit(Int) -> Unit
 
 fn set_attack_block((Int, Int)) -> Unit
+
+fn set_can_summon_blocks((Int, Int)) -> Unit
 
 fn set_copper(BattleCopper, Int, (Int, Int)) -> Unit
 
@@ -104,6 +78,8 @@ fn test_sequence() -> Unit
 
 fn test_simple_move() -> Unit
 
+fn update_health(Int, Float, Float) -> Unit
+
 // Errors
 
 // Types and methods
@@ -119,6 +95,9 @@ type Direction
 
 pub struct Enemy {
   id : Int
+  owned : Bool
+  mut can_move : Bool
+  mut can_attack : Bool
   mut position : (Int, Int)
   mut now_health : Float
   enemy_base : EnemyBase
@@ -135,7 +114,9 @@ type Game
 type Inventory
 fn Inventory::add_item(Self, Item) -> Unit
 fn Inventory::check_can_add_item(Self, ItemType) -> Bool
+fn Inventory::check_resource_cost_in_inventory(Self, @resource.ResourceCost) -> Bool
 fn Inventory::check_resource_in_inventory(Self, @resource.ResourceType) -> Bool
+fn Inventory::consume_resource_cost(Self, @resource.ResourceCost) -> Unit
 fn Inventory::craft(Self) -> Bool
 fn Inventory::new(Int) -> Self
 fn Inventory::remove_item(Self, Int) -> Item?
