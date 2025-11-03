@@ -143,10 +143,9 @@ export function registerAllHandlers() {
       window.__ACTUAL_COPPER_IDS__.push(copper.id);
     }
 
-    // TODO: 根据copper数据加载3D模型
-    // 这里需要和model.js的loadModel配合
+    // 等待铜偶模型加载完成，确保后续的 change_direction 消息能找到模型
     if (context.onSetCopper) {
-      context.onSetCopper(id, position, copper);
+      await context.onSetCopper(id, position, copper);
     }
   });
 
@@ -310,21 +309,22 @@ export function registerAllHandlers() {
 
     const model = findModelById(context.models || [], id);
     if (model && model.object) {
-      // 模型默认朝向是侧面（+X方向），rotation.y = 0
-      // 根据后端的方向指令旋转到对应角度
+      // 前端模型默认朝向+Z（正面），rotation.y = 0 表示正面朝上
+      // 但后端的方向指令是基于"+X为基准"的假设
+      // 需要转换：后端PositiveY(上) → 前端0度, 后端PositiveX(右) → 前端90度
       let targetRotation = 0;
       switch (direction) {
-        case "PositiveX": // 地图向右 = +X方向（侧面，基准朝向）
+        case "PositiveY": // 后端：向上(+Z) → 前端：0度（正面朝上）
           targetRotation = 0; // 0度
           break;
-        case "PositiveY": // 地图向上 = +Z方向
-          targetRotation = -Math.PI / 2; // -90度（逆时针）
+        case "PositiveX": // 后端：向右(+X) → 前端：90度（侧面朝右）
+          targetRotation = Math.PI / 2; // 90度
           break;
-        case "NegativeX": // 地图向左 = -X方向
+        case "NegativeY": // 后端：向下(-Z) → 前端：180度（背面朝下）
           targetRotation = Math.PI; // 180度
           break;
-        case "NegativeY": // 地图向下 = -Z方向
-          targetRotation = Math.PI / 2; // 90度（顺时针）
+        case "NegativeX": // 后端：向左(-X) → 前端：-90度（侧面朝左）
+          targetRotation = -Math.PI / 2; // -90度
           break;
       }
 

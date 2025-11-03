@@ -298,11 +298,9 @@ pub fn handle_on_game_start(ids : Array[Int]) -> Unit {
   first_room.blocks[0][7].occupant = Occupant::Copper(copper_2)
   first_room.blocks[0][8].occupant = Occupant::Copper(copper_3)
   
-  // 注意：不需要再次广播房间内容，Map_::new 中已经广播过了
-  // 只需要发送铜偶的位置和朝向
-  set_copper(copper_1, copper_1.id, (0, 6))
-  set_copper(copper_2, copper_2.id, (0, 7))
-  set_copper(copper_3, copper_3.id, (0, 8))
+  // 重新广播房间内容（包括地图块、敌人和铜偶）
+  // 前端的"已存在检查"会跳过重复的敌人，只创建新的铜偶
+  broadcast_room_content(first_room)
   
   change_direction(copper_1.id, PositiveY)
   change_direction(copper_2.id, PositiveY)
