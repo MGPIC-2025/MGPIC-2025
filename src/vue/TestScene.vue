@@ -99,22 +99,22 @@ function handleMouseUp() {
 
 function handleMouseMove(event) {
   if (!isMouseDown) return;
-
+  
   const deltaX = event.clientX - lastMouseX;
   const deltaY = event.clientY - lastMouseY;
-
+  
   // 更新旋转角度
   yaw -= deltaX * mouseSensitivity;
   pitch -= deltaY * mouseSensitivity;
-
+  
   // 限制上下旋转角度
   pitch = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, pitch));
-
+  
   // 应用旋转到相机
   camera.rotation.order = "YXZ";
   camera.rotation.y = yaw;
   camera.rotation.x = pitch;
-
+  
   lastMouseX = event.clientX;
   lastMouseY = event.clientY;
 }
@@ -190,7 +190,7 @@ onMounted(async () => {
 onBeforeUnmount(() => {
   window.removeEventListener("resize", onWindowResize);
   window.removeEventListener("click", onSceneClick);
-
+  
   // 移除键盘和鼠标事件监听
   window.removeEventListener("keydown", handleKeyDown);
   window.removeEventListener("keyup", handleKeyUp);
@@ -761,6 +761,27 @@ function setupMessageQueue() {
       // TODO: 可以添加UI提示
       alert(message);
     },
+    // 移除铜偶（死亡时从列表中移除）
+    onRemoveCopper: (id) => {
+      const index = playerCoppers.value.findIndex((c) => c.id === id);
+      if (index > -1) {
+        console.log(`[TestScene] 移除死亡铜偶: ID=${id}`);
+        playerCoppers.value.splice(index, 1);
+
+        // 如果当前选中的是死亡铜偶，清除选中状态
+        if (selectedCopper.value && selectedCopper.value.id === id) {
+          selectedCopper.value = null;
+        }
+
+        // 调整当前铜偶索引
+        if (
+          currentCopperIndex.value >= playerCoppers.value.length &&
+          playerCoppers.value.length > 0
+        ) {
+          currentCopperIndex.value = 0;
+        }
+      }
+    },
     // 攻击完成后的回调
     onAttackComplete: (id) => {
       if (!props.isGameMode) return;
@@ -929,12 +950,14 @@ function setupMessageQueue() {
       );
     },
     onSetEnemy: async (id, position, enemy) => {
-      console.log(`[TestScene] 创建敌人模型: id=${enemy.id}, pos=${position}`);
+      // 使用后端传递的实际 enemy.id
+      const actualId = enemy.id;
+      console.log(`[TestScene] 创建敌人模型: id=${actualId}, pos=${position}`);
 
       // 检查是否已存在
-      const existing = models.find((m) => m.id === enemy.id);
+      const existing = models.find((m) => m.id === actualId);
       if (existing) {
-        console.log(`[TestScene] 敌人ID=${enemy.id}已存在，跳过`);
+        console.log(`[TestScene] 敌人ID=${actualId}已存在，跳过`);
         return;
       }
 
@@ -970,18 +993,18 @@ function setupMessageQueue() {
         obj.position.set((position[0] - 7) * 1.0, 0.4, (position[1] - 7) * 1.0);
       }
 
-      obj.userData.modelId = enemy.id; // 设置ID以便点击检测
+      obj.userData.modelId = actualId; // 设置ID以便点击检测
       scene.add(obj);
 
       models.push({
-        id: enemy.id,
+        id: actualId,
         object: obj,
-        name: enemy.enemy_base?.enemy_type || `Enemy_${enemy.id}`,
+        name: enemy.enemy_base?.enemy_type || `Enemy_${actualId}`,
         type: "enemy",
       });
 
       console.log(
-        `[TestScene] 敌人创建成功: ${enemy.enemy_base?.enemy_type || enemy.id}`
+        `[TestScene] 敌人创建成功: ${enemy.enemy_base?.enemy_type || actualId}`
       );
     },
     onSetMaterial: async (id, position, material) => {
@@ -1351,23 +1374,23 @@ function animate() {
   // 第一人称移动控制
   if (keys.w || keys.a || keys.s || keys.d || keys.shift || keys.space) {
     const velocity = new THREE.Vector3();
-
+    
     // 根据相机朝向计算移动方向
     if (keys.w) velocity.z -= 1; // 向前
     if (keys.s) velocity.z += 1; // 向后
     if (keys.a) velocity.x -= 1; // 向左
     if (keys.d) velocity.x += 1; // 向右
-
+    
     // 垂直移动
     if (keys.shift) velocity.y -= 1; // 向下
     if (keys.space) velocity.y += 1; // 向上
-
+    
     // 应用相机旋转到水平移动
     velocity.applyQuaternion(camera.quaternion);
-
+    
     // 重置Y轴，只保留水平移动
     velocity.y = keys.shift ? -1 : keys.space ? 1 : 0;
-
+    
     // 移动相机位置
     camera.position.add(velocity.multiplyScalar(moveSpeed));
   }

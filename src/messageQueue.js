@@ -291,6 +291,16 @@ export function registerAllHandlers() {
           context.models.splice(index, 1);
         }
       }
+      
+      // 清除该单位的状态指示器（绿圈/红圈）
+      if (context.onClearState) {
+        context.onClearState(id);
+      }
+      
+      // 如果是铜偶，从玩家铜偶列表中移除
+      if (model.type === 'copper' && context.onRemoveCopper) {
+        context.onRemoveCopper(id);
+      }
     }
   });
 

@@ -47,6 +47,11 @@ fn check_and_reset_block(
 /// 后端：返回铜偶信息以供渲染信息栏
 /// 注意：这里的资源是地图块上的资源，不是铜偶背包里的资源
 pub fn handle_on_click_copper(id : Int) -> Unit {
+  // 清除所有范围显示（切换铜偶时）
+  handle_on_move_end()
+  handle_on_attack_end()
+  handle_on_transfer_end()
+  
   let battle_copper = get_battle_copper_by_id(id)
   let position = battle_copper.position
   let map = force_get_current_map()
@@ -72,6 +77,10 @@ pub fn handle_on_click_copper(id : Int) -> Unit {
 /// 前端：当铜偶开始攻击
 /// 搜索敌人并且设置可攻击状态地块
 pub fn handle_on_attack_start(map : Map_, id : Int) -> Unit {
+  // 先清除之前的移动范围和攻击范围
+  handle_on_move_end()
+  handle_on_attack_end()
+  
   let battle_copper = get_battle_copper_by_id(id)
   let attack_target = battle_copper.get_can_attack(map)
   for target in attack_target {
@@ -154,6 +163,10 @@ pub fn handle_on_attack_apply(
 /// 前端：当玩家开始移动
 /// 后端：设置可移动的地块
 pub fn handle_on_move_start(map : Map_, id : Int) -> Unit {
+  // 先清除之前的移动范围和攻击范围
+  handle_on_move_end()
+  handle_on_attack_end()
+  
   let battle_copper = get_battle_copper_by_id(id)
   let can_move = battle_copper.get_can_move(map)
   for position in can_move {
@@ -300,6 +313,11 @@ pub fn handle_on_game_start(ids : Array[Int]) -> Unit {
 /// 后端：设置可转移的地块
 /// index 是物品在铜偶背包中的索引，从 0 开始
 pub fn handle_on_transfer_start(id : Int, index : Int, count : Int) -> Unit {
+  // 先清除之前的移动范围和攻击范围
+  handle_on_move_end()
+  handle_on_attack_end()
+  handle_on_transfer_end()
+  
   transfer_from_id.val = Some(id)
   let battle_copper = get_battle_copper_by_id(id)
   let item_type = battle_copper.inventory.items[index].item_type
