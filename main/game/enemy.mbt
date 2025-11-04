@@ -2,7 +2,7 @@
 let enemy_map : Map[Int, Enemy] = {}
 
 ///|
-pub struct Enemy {
+struct Enemy {
   id : Int
   owned : Bool
   // 是否可以移动/攻击（仅用于 owned 为 true 的敌人）
@@ -14,7 +14,7 @@ pub struct Enemy {
 } derive(ToJson)
 
 ///|
-struct EnemyBase {
+priv struct EnemyBase {
   level : Int
   health : Float
   attack : Float
@@ -105,10 +105,7 @@ fn Enemy::get_attack_targets(
 /// 又想了一下，如果第一个目标无法攻击选择第二个目标是有必要的，如果玩家通过某种方式把自己围起来
 /// 那么第一个目标就无法攻击，但是第二个目标可以攻击（比如更远的一道墙），这时候就应该选择第二个目标
 /// 但是我觉得这个可以作为玩家减少游戏难度的一个特性
-fn Enemy::find_nearest_attack_target(
-  enemy : Enemy,
-  map : Map_,
-) -> CanAttackTarget? {
+fn Enemy::find_nearest_attack_target(enemy : Enemy) -> CanAttackTarget? {
   let position_list = []
   let (self_x, self_y) = enemy.position
   let copper_list = get_battle_copper_list()

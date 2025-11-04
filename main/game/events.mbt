@@ -748,7 +748,7 @@ fn handle_game_round_pass() -> Unit {
         }
       }
     } else {
-      let target = enemy.find_nearest_attack_target(map)
+      let target = enemy.find_nearest_attack_target()
       if target is Some(target) {
         let target_position = target.get_position_from_can_attack_target()
         let path_finder_map = PathFinderMap::new(map)

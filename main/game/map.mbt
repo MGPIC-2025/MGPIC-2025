@@ -1,8 +1,8 @@
 ///|
-/// Todo: 掉落物的 Occupant 还没写，这个我感觉可以单独搞一套逻辑，到时候再说吧
-enum Occupant {
+priv enum Occupant {
   Enemy(Enemy)
   Copper(BattleCopper)
+  Material(Material)
   Structure(@structure.Structure)
   ChargingCoil
   Empty
@@ -20,7 +20,7 @@ pub fn MapBlock::new() -> MapBlock {
 }
 
 ///|
-struct Map_ {
+priv struct Map_ {
   rooms : Array[Room]
 }
 
@@ -112,7 +112,7 @@ fn Map_::global_position_to_room_position(
 }
 
 ///|
-pub fn broadcast_room_content(room : Room) -> Unit {
+fn broadcast_room_content(room : Room) -> Unit {
   let (room_x, room_y) = room.index_position
 
   // 优化：批量发送地图块，避免256条单独消息造成卡顿

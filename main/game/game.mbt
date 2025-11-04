@@ -2,7 +2,7 @@
 let current_game : Ref[Game?] = Ref::new(None)
 
 ///|
-struct Game {
+priv struct Game {
   map : Map_
 }
 

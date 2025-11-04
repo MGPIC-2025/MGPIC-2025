@@ -1,5 +1,5 @@
 ///|
-struct PathFinderMap {
+priv struct PathFinderMap {
   map : Map[(Int, Int), Bool]
 }
 
@@ -61,12 +61,11 @@ fn PathFinderMap::get_walkable_neighbors(
 }
 
 ///|
-struct PathNode {
+priv struct PathNode {
   position : (Int, Int)
   mut g_cost : Int
   h_cost : Int
   mut f_cost : Int
-  mut parent : (Int, Int)?
 }
 
 ///|
@@ -93,7 +92,6 @@ fn PathFinderMap::get_next_step(
       g_cost: 0,
       h_cost: manhattan_distance(start, end),
       f_cost: manhattan_distance(start, end),
-      parent: None,
     },
   ]
   let closed_list = {}
@@ -149,14 +147,12 @@ fn PathFinderMap::get_next_step(
           g_cost: tentative_g_cost,
           h_cost,
           f_cost,
-          parent: Some(current.position),
         })
         came_from.set(neighbor, current.position)
       } else if tentative_g_cost < open_list[open_index].g_cost {
         open_list[open_index].g_cost = tentative_g_cost
         open_list[open_index].f_cost = tentative_g_cost +
           open_list[open_index].h_cost
-        open_list[open_index].parent = Some(current.position)
         came_from.set(neighbor, current.position)
       }
     }

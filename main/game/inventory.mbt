@@ -1,5 +1,5 @@
 ///|
-enum ItemType {
+priv enum ItemType {
   Resource(@resource.ResourceType)
   Equipment(@equipment.Equipment)
 } derive(Eq, ToJson)
@@ -11,23 +11,23 @@ struct Item {
 } derive(Eq, ToJson)
 
 ///|
-struct Inventory {
+priv struct Inventory {
   capacity : Int
   items : Array[Item]
 } derive(ToJson)
 
 ///|
-pub fn Item::new(item_type : ItemType, count? : Int = 1) -> Item {
+fn Item::new(item_type : ItemType, count? : Int = 1) -> Item {
   { item_type, count }
 }
 
 ///|
-pub fn Inventory::new(capacity : Int) -> Inventory {
+fn Inventory::new(capacity : Int) -> Inventory {
   { capacity, items: [] }
 }
 
 ///|
-pub fn Inventory::check_resource_in_inventory(
+fn Inventory::check_resource_in_inventory(
   inventory : Inventory,
   resource : @resource.ResourceType,
 ) -> Bool {
@@ -37,7 +37,7 @@ pub fn Inventory::check_resource_in_inventory(
 }
 
 ///|
-pub fn Inventory::check_can_add_item(
+fn Inventory::check_can_add_item(
   inventory : Inventory,
   item : ItemType,
 ) -> Bool {
@@ -53,7 +53,7 @@ pub fn Inventory::check_can_add_item(
 }
 
 ///|
-pub fn Inventory::add_item(inventory : Inventory, item : Item) -> Unit {
+fn Inventory::add_item(inventory : Inventory, item : Item) -> Unit {
   match item.item_type {
     Resource(resource) => {
       for i in 0..<inventory.items.length() {
@@ -71,7 +71,7 @@ pub fn Inventory::add_item(inventory : Inventory, item : Item) -> Unit {
 }
 
 ///|
-pub fn Inventory::remove_item(inventory : Inventory, index : Int) -> Item? {
+fn Inventory::remove_item(inventory : Inventory, index : Int) -> Item? {
   if inventory.items.length() <= index {
     return None
   }
@@ -79,7 +79,7 @@ pub fn Inventory::remove_item(inventory : Inventory, index : Int) -> Item? {
 }
 
 ///|
-pub fn Inventory::craft(inventory : Inventory) -> Bool {
+fn Inventory::craft(inventory : Inventory) -> Bool {
   let heart_crystal_dust = inventory.check_resource_in_inventory(
     @resource.HeartCrystalDust,
   )
@@ -109,7 +109,7 @@ pub fn Inventory::craft(inventory : Inventory) -> Bool {
 }
 
 ///|
-pub fn find_item_amount(inventory : Inventory, item : ItemType) -> Int {
+fn find_item_amount(inventory : Inventory, item : ItemType) -> Int {
   for item_ in inventory.items {
     if item_.item_type == item {
       return item_.count
@@ -119,7 +119,7 @@ pub fn find_item_amount(inventory : Inventory, item : ItemType) -> Int {
 }
 
 ///|
-pub fn Inventory::check_resource_cost_in_inventory(
+fn Inventory::check_resource_cost_in_inventory(
   inventory : Inventory,
   resource_cost : @resource.ResourceCost,
 ) -> Bool {
@@ -133,7 +133,7 @@ pub fn Inventory::check_resource_cost_in_inventory(
 }
 
 ///|
-pub fn Inventory::consume_resource_cost(
+fn Inventory::consume_resource_cost(
   inventory : Inventory,
   resource_cost : @resource.ResourceCost,
 ) -> Unit {

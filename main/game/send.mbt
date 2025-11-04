@@ -3,11 +3,7 @@ using @structure {type Structure}
 
 ///|
 /// 在指定地点放下一个铜偶
-pub fn set_copper(
-  copper : BattleCopper,
-  id : Int,
-  position : (Int, Int),
-) -> Unit {
+fn set_copper(copper : BattleCopper, id : Int, position : (Int, Int)) -> Unit {
   @global_msg.msg_info.broadcast({
     type_msg: "set_copper",
     content: (
@@ -17,7 +13,7 @@ pub fn set_copper(
 
 ///|
 /// 在指定地点放下一个敌人
-pub fn set_enemy(enemy : Enemy, id : Int, position : (Int, Int)) -> Unit {
+fn set_enemy(enemy : Enemy, id : Int, position : (Int, Int)) -> Unit {
   @global_msg.msg_info.broadcast({
     type_msg: "set_enemy",
     content: (
@@ -26,7 +22,7 @@ pub fn set_enemy(enemy : Enemy, id : Int, position : (Int, Int)) -> Unit {
 }
 
 ///|
-pub fn set_structure(
+fn set_structure(
   structure : Structure,
   id : Int,
   position : (Int, Int),
@@ -40,11 +36,7 @@ pub fn set_structure(
 }
 
 ///|
-pub fn set_material(
-  material : Material,
-  id : Int,
-  position : (Int, Int),
-) -> Unit {
+fn set_material(material : Material, id : Int, position : (Int, Int)) -> Unit {
   @global_msg.msg_info.broadcast({
     type_msg: "set_material",
     content: (
@@ -54,7 +46,7 @@ pub fn set_material(
 
 ///|
 /// 删除一个单位，我希望有一个删除动画，然后删除单位（比如缓缓消失）
-pub fn remove_unit(id : Int) -> Unit {
+fn remove_unit(id : Int) -> Unit {
   @global_msg.msg_info.broadcast({
     type_msg: "remove_unit",
     content: ({ "id": id } : Json).stringify(),
@@ -71,7 +63,7 @@ enum UnitDirection {
 
 ///|
 /// 改变一个单位的朝向
-pub fn change_direction(id : Int, direction : UnitDirection) -> Unit {
+fn change_direction(id : Int, direction : UnitDirection) -> Unit {
   @global_msg.msg_info.broadcast({
     type_msg: "change_direction",
     content: ({ "id": id, "direction": direction.to_string() } : Json).stringify(),
@@ -80,7 +72,7 @@ pub fn change_direction(id : Int, direction : UnitDirection) -> Unit {
 
 ///|
 /// 移动一个单位到指定地点
-pub fn move_to(id : Int, position : (Int, Int)) -> Unit {
+fn move_to(id : Int, position : (Int, Int)) -> Unit {
   @global_msg.msg_info.broadcast({
     type_msg: "move_to",
     content: ({ "id": id, "to": position } : Json).stringify(),
@@ -91,7 +83,7 @@ pub fn move_to(id : Int, position : (Int, Int)) -> Unit {
 /// 显示一个单位的可移动状态，true 表示可移动，false 表示不可移动
 /// 可以移动的时候我希望可以在单位脚下显示一个绿色圈圈，然后不可以移动的时候清除就好
 /// 他和 display_can_attack 的圈圈最好可以叠加显示
-pub fn display_can_move(id : Int, can_move : Bool) -> Unit {
+fn display_can_move(id : Int, can_move : Bool) -> Unit {
   @global_msg.msg_info.broadcast({
     type_msg: "display_can_move",
     content: ({ "id": id, "can_move": can_move.to_string() } : Json).stringify(),
@@ -102,7 +94,7 @@ pub fn display_can_move(id : Int, can_move : Bool) -> Unit {
 /// 显示一个单位的可攻击状态，true 表示可攻击，false 表示不可攻击
 /// 可以攻击的时候我希望可以在单位脚下显示一个红色圈圈，然后不可以攻击的时候清除就好
 /// 他和 display_can_move 的圈圈最好可以叠加显示
-pub fn display_can_attack(id : Int, can_attack : Bool) -> Unit {
+fn display_can_attack(id : Int, can_attack : Bool) -> Unit {
   @global_msg.msg_info.broadcast({
     type_msg: "display_can_attack",
     content: ({ "id": id, "can_attack": can_attack.to_string() } : Json).stringify(),
@@ -113,7 +105,7 @@ pub fn display_can_attack(id : Int, can_attack : Bool) -> Unit {
 /// 显示一个单位的可召唤状态，true 表示可召唤，false 表示不可召唤
 /// 可以召唤的时候我希望可以在单位脚下显示一个黄色圈圈，然后不可以召唤的时候清除就好
 /// 他和 display_can_move 和 display_can_attack 的圈圈最好可以叠加显示
-pub fn display_can_summon(id : Int, can_summon : Bool) -> Unit {
+fn display_can_summon(id : Int, can_summon : Bool) -> Unit {
   @global_msg.msg_info.broadcast({
     type_msg: "display_can_summon",
     content: ({ "id": id, "can_summon": can_summon.to_string() } : Json).stringify(),
@@ -122,7 +114,7 @@ pub fn display_can_summon(id : Int, can_summon : Bool) -> Unit {
 
 ///|
 /// 清除一个单位的任何状态（包括可移动状态和可攻击状态）
-pub fn clear_state(id : Int) -> Unit {
+fn clear_state(id : Int) -> Unit {
   @global_msg.msg_info.broadcast({
     type_msg: "clear_state",
     content: ({ "id": id } : Json).stringify(),
@@ -131,7 +123,7 @@ pub fn clear_state(id : Int) -> Unit {
 
 ///|
 /// 把视角转移到一个单位身上
-pub fn animate_move(id : Int) -> Unit {
+fn animate_move(id : Int) -> Unit {
   @global_msg.msg_info.broadcast({
     type_msg: "animate_move",
     content: ({ "id": id } : Json).stringify(),
@@ -140,7 +132,7 @@ pub fn animate_move(id : Int) -> Unit {
 
 ///|
 /// 把视角复位
-pub fn animate_reset() -> Unit {
+fn animate_reset() -> Unit {
   @global_msg.msg_info.broadcast({
     type_msg: "animate_reset",
     content: ({} : Json).stringify(),
@@ -149,7 +141,7 @@ pub fn animate_reset() -> Unit {
 
 ///|
 /// 在指定地点放下一个地图块，地图块可以先设计为灰色的，只是代表铜偶可以在这上面移动就好
-pub fn put_map_block(position : (Int, Int)) -> Unit {
+fn put_map_block(position : (Int, Int)) -> Unit {
   @global_msg.msg_info.broadcast({
     type_msg: "put_map_block",
     content: ({ "position": position } : Json).stringify(),
@@ -158,7 +150,7 @@ pub fn put_map_block(position : (Int, Int)) -> Unit {
 
 ///|
 /// 批量放置地图块（优化性能，一次性创建整个房间的地板）
-pub fn put_room_blocks(room_position : (Int, Int), size : Int) -> Unit {
+fn put_room_blocks(room_position : (Int, Int), size : Int) -> Unit {
   @global_msg.msg_info.broadcast({
     type_msg: "put_room_blocks",
     content: ({ "room_position": room_position, "size": size } : Json).stringify(),
@@ -167,7 +159,7 @@ pub fn put_room_blocks(room_position : (Int, Int), size : Int) -> Unit {
 
 ///|
 /// 在地图块上放置资源标记（显示该格子有可拾取资源）
-pub fn put_resource_marker(position : (Int, Int)) -> Unit {
+fn put_resource_marker(position : (Int, Int)) -> Unit {
   @global_msg.msg_info.broadcast({
     type_msg: "put_resource_marker",
     content: ({ "position": position } : Json).stringify(),
@@ -176,7 +168,7 @@ pub fn put_resource_marker(position : (Int, Int)) -> Unit {
 
 ///|
 /// 清除地图块上的资源标记
-pub fn clear_resource_marker(position : (Int, Int)) -> Unit {
+fn clear_resource_marker(position : (Int, Int)) -> Unit {
   @global_msg.msg_info.broadcast({
     type_msg: "clear_resource_marker",
     content: ({ "position": position } : Json).stringify(),
@@ -185,7 +177,7 @@ pub fn clear_resource_marker(position : (Int, Int)) -> Unit {
 
 ///|
 /// 设置一个地图块为可移动状态，就是把它直接渲染为绿色就可以了
-pub fn set_move_block(position : (Int, Int)) -> Unit {
+fn set_move_block(position : (Int, Int)) -> Unit {
   @global_msg.msg_info.broadcast({
     type_msg: "set_move_block",
     content: ({ "position": position } : Json).stringify(),
@@ -194,7 +186,7 @@ pub fn set_move_block(position : (Int, Int)) -> Unit {
 
 ///|
 /// 设置一个地图块为可攻击状态，就是把它直接渲染为红色就可以了
-pub fn set_attack_block(position : (Int, Int)) -> Unit {
+fn set_attack_block(position : (Int, Int)) -> Unit {
   @global_msg.msg_info.broadcast({
     type_msg: "set_attack_block",
     content: ({ "position": position } : Json).stringify(),
@@ -203,7 +195,7 @@ pub fn set_attack_block(position : (Int, Int)) -> Unit {
 
 ///|
 /// 设置一个地图块为可召唤状态，就是把它直接渲染为黄色就可以了
-pub fn set_can_summon_blocks(position : (Int, Int)) -> Unit {
+fn set_can_summon_blocks(position : (Int, Int)) -> Unit {
   @global_msg.msg_info.broadcast({
     type_msg: "set_can_summon_blocks",
     content: ({ "position": position } : Json).stringify(),
@@ -212,7 +204,7 @@ pub fn set_can_summon_blocks(position : (Int, Int)) -> Unit {
 
 ///|
 /// 清除一个地图块的任何状态
-pub fn clear_block(position : (Int, Int)) -> Unit {
+fn clear_block(position : (Int, Int)) -> Unit {
   @global_msg.msg_info.broadcast({
     type_msg: "clear_block",
     content: ({ "position": position } : Json).stringify(),
@@ -221,7 +213,7 @@ pub fn clear_block(position : (Int, Int)) -> Unit {
 
 ///|
 /// 攻击完成
-pub fn attack_complete(id : Int) -> Unit {
+fn attack_complete(id : Int) -> Unit {
   @global_msg.msg_info.broadcast({
     type_msg: "attack_complete",
     content: ({ "id": id } : Json).stringify(),
@@ -230,7 +222,7 @@ pub fn attack_complete(id : Int) -> Unit {
 
 ///|
 /// 更新单位血量（用于显示血条）
-pub fn update_health(id : Int, now_health : Float, max_health : Float) -> Unit {
+fn update_health(id : Int, now_health : Float, max_health : Float) -> Unit {
   @global_msg.msg_info.broadcast({
     type_msg: "update_health",
     content: (

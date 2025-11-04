@@ -1,8 +1,8 @@
 ///|
-enum CanAttackTarget {
+priv enum CanAttackTarget {
   Enemy(Enemy)
   Copper(BattleCopper)
-} derive(ToJson)
+}
 
 ///|
 fn CanAttackTarget::get_position_from_can_attack_target(
