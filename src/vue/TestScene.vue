@@ -142,12 +142,15 @@ const selectedCopper = ref(null);
 const selectedCopperResources = ref([]);
 const copperActionPanelRef = ref(null);
 const hasAttackTargets = ref(false); // 是否有可攻击的目标
+// 传递目标列表（收集传递位置对应的铜偶）
+const transferTargetPositions = ref([]); // 存储传递位置
+const transferTargets = ref([]); // 存储可传递的铜偶列表
 
 // 回合系统
 const currentRound = ref(1);
 const playerCoppers = ref([]); // 玩家的铜偶列表
 const currentCopperIndex = ref(0);
-const currentActionMode = ref(null); // 'moving' | 'attacking' | null
+const currentActionMode = ref(null); // 'moving' | 'attacking' | 'transferring' | null
 
 const currentCopperId = computed(() => {
   if (playerCoppers.value.length === 0) return null;
@@ -823,7 +826,7 @@ function setupMessageQueue() {
       // 重置状态
       currentActionMode.value = null;
       if (copperActionPanelRef.value) {
-        copperActionPanelRef.value.restore();
+        copperActionPanelRef.value.cancelAction();
       }
 
       // 重新获取铜偶最新状态，然后判断是否切换
@@ -833,6 +836,11 @@ function setupMessageQueue() {
 
         // 等待状态更新后再判断是否切换
         setTimeout(() => {
+          // 如果有地面物品，不自动跳转（让玩家拾取）
+          if (selectedCopperResources.value && selectedCopperResources.value.length > 0) {
+            log('[TestScene] 检测到地面物品，不自动跳转');
+            return;
+          }
           tryNextCopper();
         }, 100);
       }, 300);
@@ -881,7 +889,7 @@ function setupMessageQueue() {
       // 重置状态
       currentActionMode.value = null;
       if (copperActionPanelRef.value) {
-        copperActionPanelRef.value.restore();
+        copperActionPanelRef.value.cancelAction();
       }
 
       // 重新获取铜偶最新状态，然后判断是否切换
@@ -891,6 +899,11 @@ function setupMessageQueue() {
 
         // 等待状态更新后再判断是否切换
         setTimeout(() => {
+          // 如果有地面物品，不自动跳转（让玩家拾取）
+          if (selectedCopperResources.value && selectedCopperResources.value.length > 0) {
+            log('[TestScene] 检测到地面物品，不自动跳转');
+            return;
+          }
           tryNextCopper();
         }, 100);
       }, 300);
@@ -901,9 +914,42 @@ function setupMessageQueue() {
       log(`[TestScene] 显示移动范围: 坐标=${position}, key=${key}`);
     },
     onSetAttackBlock: position => {
-      createOrUpdateFloorBlock(position, 0xff4444, 'attack');
-      hasAttackTargets.value = true; // 有攻击范围说明有目标
-      log(`[TestScene] 显示攻击范围: ${position}`);
+      // 检查是否是传递模式（通过 currentActionMode 判断）
+      if (currentActionMode.value === 'transferring') {
+        // 收集传递目标位置
+        transferTargetPositions.value.push(position);
+        // 查找该位置的铜偶
+        const targetCopper = models.find(m => {
+          if (m.type === 'copper' && m.object) {
+            const pos = m.object.position;
+            // 检查位置是否匹配（允许小误差）
+            return Math.abs(pos.x - position[0]) < 0.1 && 
+                   Math.abs(pos.z - position[1]) < 0.1;
+          }
+          return false;
+        });
+        if (targetCopper) {
+          // 从 playerCoppers 中查找详细信息
+          const copperInfo = playerCoppers.value.find(c => c.id === targetCopper.id);
+          // 检查是否已存在
+          const existing = transferTargets.value.find(t => t.id === targetCopper.id);
+          if (!existing) {
+            transferTargets.value.push({
+              id: targetCopper.id,
+              name: targetCopper.name || (copperInfo ? copperInfo.name : `铜偶 #${targetCopper.id}`) || `铜偶 #${targetCopper.id}`,
+              position: position,
+            });
+            log(`[TestScene] 找到传递目标: ${targetCopper.name || targetCopper.id} (ID=${targetCopper.id}), 总目标数=${transferTargets.value.length}`);
+          }
+        } else {
+          log(`[TestScene] 传递位置 ${position} 未找到对应铜偶`);
+        }
+      } else {
+        // 攻击模式
+        createOrUpdateFloorBlock(position, 0xff4444, 'attack');
+        hasAttackTargets.value = true; // 有攻击范围说明有目标
+        log(`[TestScene] 显示攻击范围: ${position}`);
+      }
     },
     onClearBlock: position => {
       clearFloorBlock(position);
@@ -1525,7 +1571,8 @@ function onSceneClick(event) {
   // 如果在移动/攻击模式，检测地板点击
   if (
     currentActionMode.value === 'moving' ||
-    currentActionMode.value === 'attacking'
+    currentActionMode.value === 'attacking' ||
+    currentActionMode.value === 'transferring'
   ) {
     handleFloorClick(mouse);
     return;
@@ -1646,7 +1693,31 @@ function handleCopperAction(action) {
     currentActionMode.value = 'moving';
   } else if (action.type === 'attackStart') {
     currentActionMode.value = 'attacking';
+  } else if (
+    action.type === 'transferring' ||
+    action.type === 'transferStart'
+  ) {
+    currentActionMode.value = 'transferring';
+    // 清空之前的传递目标
+    transferTargetPositions.value = [];
+    transferTargets.value = [];
+  } else if (action.type === 'transferComplete') {
+    // 传递完成，清除传递模式和目标
+    currentActionMode.value = null;
+    transferTargetPositions.value = [];
+    transferTargets.value = [];
   } else if (action.type === 'cancel') {
+    // 根据当前模式调用对应的 end 函数清除范围显示
+    const mode = currentActionMode.value;
+    if (mode === 'transferring') {
+      const message = JSON.stringify({ type: 'on_transfer_end' });
+      eventloop(message).catch(e => {
+        log('[TestScene] 清除传递范围失败', e);
+      });
+      // 清空传递目标
+      transferTargetPositions.value = [];
+      transferTargets.value = [];
+    }
     currentActionMode.value = null;
   } else if (action.type === 'wait') {
     log('[TestScene] 铜偶选择等待，跳转到下一个');
@@ -1807,6 +1878,7 @@ function endRound() {
       :copper="selectedCopper"
       :resources="selectedCopperResources"
       :hasAttackTargets="hasAttackTargets"
+      :transferTargets="transferTargets"
       :onSelectCopper="handleClickCopper"
       @close="closeCopperPanel"
       @action="handleCopperAction"

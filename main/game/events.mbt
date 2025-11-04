@@ -196,6 +196,10 @@ fn handle_on_attack_apply(id : Int, position : (Int, Int), map : Map_) -> Unit {
         for drop_item in drop_items {
           map.add_resource(enemy.position, drop_item)
         }
+        // 如果有掉落物，显示资源标记
+        if drop_items.length() > 0 {
+          put_resource_marker(enemy.position)
+        }
         enemy_map.remove(enemy.id)
         remove_unit(enemy.id)
         map.remove_occupant(position)

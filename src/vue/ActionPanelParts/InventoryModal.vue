@@ -18,9 +18,17 @@ const props = defineProps({
     type: Array,
     default: () => [],
   },
+  transferTargets: {
+    type: Array,
+    default: () => [],
+  },
+  transferringItemIndex: {
+    type: Number,
+    default: null,
+  },
 });
 
-const emit = defineEmits(['close', 'craft', 'drop']);
+const emit = defineEmits(['close', 'craft', 'drop', 'transfer', 'transferTo']);
 
 // 合成配方物品类型
 const recipeItems = [
@@ -44,7 +52,20 @@ function handleDrop(index) {
   emit('drop', index);
 }
 
-// 名称与图标工具改为使用共享方法
+function handleTransfer(index) {
+  // 验证物品数量
+  if (!props.inventoryItems[index] || (props.inventoryItems[index].count || 1) <= 0) {
+    console.log(`[InventoryModal] 物品数量不足，无法传递: index=${index}`);
+    return;
+  }
+  console.log(`[InventoryModal] 传递物品: index=${index}`);
+  emit('transfer', index);
+}
+
+function handleTransferTo(target) {
+  console.log(`[InventoryModal] 传递到目标: ${target.name} (位置: ${target.position})`);
+  emit('transferTo', target.position);
+}
 </script>
 
 <template>
@@ -105,16 +126,55 @@ function handleDrop(index) {
                   :src="getItemIcon(inventoryItems[index])"
                   class="slot-icon"
                 />
-                <div class="slot-count" v-if="inventoryItems[index].count > 1">
-                  {{ inventoryItems[index].count }}
+                <div class="slot-count" :style="{ color: '#4488ff' }">
+                  {{ inventoryItems[index].count || 1 }}
                 </div>
-                <div class="slot-tooltip">
+                <!-- 传递模式下显示独立的目标选择区域 -->
+                <div 
+                  v-if="transferringItemIndex === index && transferTargets && transferTargets.length > 0"
+                  class="transfer-targets-panel"
+                >
+                  <div class="transfer-title">传递到：</div>
+                  <div
+                    v-for="target in transferTargets"
+                    :key="target.id"
+                    class="transfer-target-item"
+                    @click.stop="handleTransferTo(target)"
+                  >
+                    {{ target.name }}
+                  </div>
+                </div>
+                <!-- 普通tooltip（非传递模式） -->
+                <div 
+                  v-else
+                  class="slot-tooltip"
+                >
                   <div class="tooltip-name">
                     {{ getItemName(inventoryItems[index]) }}
                   </div>
-                  <button class="tooltip-drop" @click.stop="handleDrop(index)">
-                    丢弃
-                  </button>
+                  <!-- 如果正在传递但没有目标，显示提示 -->
+                  <template v-if="transferringItemIndex === index && transferTargets && transferTargets.length === 0">
+                    <div class="transfer-targets">
+                      <div class="transfer-title" style="color: #ff4444;">无可传递目标</div>
+                    </div>
+                  </template>
+                  <!-- 否则显示操作按钮 -->
+                  <template v-else>
+                    <div class="tooltip-buttons">
+                      <button
+                        class="tooltip-transfer"
+                        @click.stop="handleTransfer(index)"
+                      >
+                        传递
+                      </button>
+                      <button
+                        class="tooltip-drop"
+                        @click.stop="handleDrop(index)"
+                      >
+                        丢弃
+                      </button>
+                    </div>
+                  </template>
                 </div>
               </template>
             </div>
@@ -123,10 +183,10 @@ function handleDrop(index) {
       </div>
 
       <!-- 底部快捷栏 -->
-      <div class="hotbar-section">
+      <div class="hotbar-section" v-if="inventoryItems.length > 0">
         <div class="hotbar-grid">
           <div
-            v-for="(item, index) in Math.min(9, inventoryItems.length)"
+            v-for="(item, index) in inventoryItems.slice(0, 9)"
             :key="index"
             class="hotbar-slot"
           >
@@ -135,7 +195,8 @@ function handleDrop(index) {
               :src="getItemIcon(item)"
               class="slot-icon"
             />
-            <div class="slot-count" v-if="item.count > 1">{{ item.count }}</div>
+            <div class="slot-count" :style="{ color: '#4488ff' }">{{ item.count || 1 }}</div>
+            <div class="hotbar-name">{{ getItemName(item) }}</div>
           </div>
         </div>
       </div>
@@ -367,7 +428,7 @@ function handleDrop(index) {
   font-size: 10px;
   font-weight: 900;
   letter-spacing: 1px;
-  color: #6a4931;
+  color: #4488ff;
   pointer-events: none;
 }
 
@@ -390,12 +451,35 @@ function handleDrop(index) {
   opacity: 1;
 }
 
+
 .tooltip-name {
   font-size: 12px;
   color: #6a4931;
   margin-bottom: 4px;
   font-weight: 900;
   letter-spacing: 1px;
+}
+
+.tooltip-buttons {
+  display: flex;
+  gap: 4px;
+}
+
+.tooltip-transfer {
+  background: #148b8b;
+  border: 1px solid #666;
+  color: #fef7f5;
+  padding: 4px 8px;
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 1px;
+  cursor: pointer;
+  flex: 1;
+  pointer-events: auto;
+}
+
+.tooltip-transfer:hover {
+  background: #1aa4a4;
 }
 
 .tooltip-drop {
@@ -407,11 +491,68 @@ function handleDrop(index) {
   font-weight: 900;
   letter-spacing: 1px;
   cursor: pointer;
-  width: 100%;
+  flex: 1;
+  pointer-events: auto;
 }
 
 .tooltip-drop:hover {
   background: #a41a1a;
+}
+
+.transfer-targets {
+  margin-top: 8px;
+}
+
+/* 传递目标选择面板（独立显示，不依赖hover） */
+.transfer-targets-panel {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: #100010;
+  border: 2px solid #555;
+  padding: 12px 16px;
+  white-space: nowrap;
+  z-index: 20;
+  pointer-events: auto;
+  min-width: 150px;
+}
+
+.transfer-title {
+  font-size: 11px;
+  color: #6a4931;
+  margin-bottom: 8px;
+  font-weight: 700;
+}
+
+.transfer-target-item {
+  background: #148b8b;
+  border: 1px solid #666;
+  color: #fef7f5;
+  padding: 8px 12px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  cursor: pointer;
+  margin-top: 6px;
+  border-radius: 4px;
+  transition: all 0.2s;
+  pointer-events: auto;
+  text-align: center;
+}
+
+.transfer-target-item:first-child {
+  margin-top: 0;
+}
+
+.transfer-target-item:hover {
+  background: #1aa4a4;
+  transform: translateX(2px);
+}
+
+/* 确保传递目标列表可以被点击 */
+.transfer-targets {
+  pointer-events: auto;
 }
 
 /* 快捷栏 */
@@ -436,11 +577,36 @@ function handleDrop(index) {
   border-bottom-color: #a0896b;
   position: relative;
   cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
 }
 
 .hotbar-slot:hover {
   background: #9d8771;
   transform: scale(1.1);
+}
+
+.hotbar-name {
+  position: absolute;
+  bottom: -22px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 9px;
+  color: #fef7f5;
+  white-space: nowrap;
+  background: rgba(0, 0, 0, 0.7);
+  padding: 2px 4px;
+  border-radius: 2px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s;
+  z-index: 10;
+}
+
+.hotbar-slot:hover .hotbar-name {
+  opacity: 1;
 }
 
 @keyframes fadeIn {

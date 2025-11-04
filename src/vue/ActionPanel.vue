@@ -25,6 +25,10 @@ const props = defineProps({
     type: Function,
     default: null,
   },
+  transferTargets: {
+    type: Array,
+    default: () => [],
+  },
 });
 
 const emit = defineEmits(['close', 'action', 'selectCopper']);
@@ -37,6 +41,8 @@ const actionMode = ref(null); // 'moving' = 等待选择移动位置, 'attacking
 
 // 背包弹窗状态
 const showInventory = ref(false);
+// 当前传递的物品索引
+const transferringItemIndex = ref(null);
 
 // 铜偶背包物品
 const inventoryItems = computed(() => {
@@ -137,6 +143,59 @@ async function handleInventoryCraft() {
 async function handleInventoryDrop(index) {
   await handleDrop(index);
 }
+async function handleInventoryTransfer(index) {
+  if (!copperInfo.value || !inventoryItems.value[index]) return;
+  
+  const item = inventoryItems.value[index];
+  const count = item.count || 1;
+  
+  // 验证物品数量，防止传递数量为0或负数的物品
+  if (count <= 0) {
+    log(`[ActionPanel] 物品数量不足，无法传递: index=${index}, count=${count}`);
+    return;
+  }
+  
+  log(`[ActionPanel] 请求传递物品: index=${index}, count=${count}`);
+  
+  // 保存当前传递的物品索引（确保背包保持打开）
+  transferringItemIndex.value = index;
+  actionMode.value = 'transferring';
+  // 确保背包保持打开状态
+  if (!showInventory.value) {
+    showInventory.value = true;
+  }
+  
+  // 先通知父组件开始传递，让其设置传递模式（这样 onSetAttackBlock 才能正确识别）
+  emit('action', { 
+    type: 'transferStart', 
+    copperId: copperInfo.value.id,
+    itemIndex: index 
+  });
+  
+  // 等待一小段时间让父组件设置传递模式
+  await new Promise(resolve => setTimeout(resolve, 50));
+  
+  // 调用后端获取可传递位置
+  const message = JSON.stringify({
+    type: 'on_transfer_start',
+    content: {
+      id: String(copperInfo.value.id),
+      index: String(index),
+      count: String(count),
+    },
+  });
+  await eventloop(message);
+  
+  // 等待后端发送 set_attack_block 消息并收集目标
+  await new Promise(resolve => setTimeout(resolve, 200));
+  
+  log(`[ActionPanel] 传递目标数量: ${props.transferTargets?.length || 0}, transferringItemIndex=${transferringItemIndex.value}`);
+  
+  // 更新视图
+  if (props.transferTargets && props.transferTargets.length > 0) {
+    log(`[ActionPanel] 传递目标列表:`, props.transferTargets.map(t => t.name));
+  }
+}
 
 async function refreshCopperState() {
   const message = JSON.stringify({
@@ -156,6 +215,50 @@ function close() {
   actionMode.value = null;
   showInventory.value = false;
   emit('close');
+}
+
+function handleCloseInventory() {
+  // 关闭背包时，如果正在传递，取消传递
+  if (actionMode.value === 'transferring') {
+    transferringItemIndex.value = null;
+    actionMode.value = null;
+    emit('action', { type: 'cancel', copperId: copperInfo.value.id });
+  }
+  showInventory.value = false;
+}
+
+async function handleTransferTo(targetPosition) {
+  if (transferringItemIndex.value !== null && transferringItemIndex.value !== undefined) {
+    log(`[ActionPanel] 传递到位置: ${targetPosition}`);
+    
+    const message = JSON.stringify({
+      type: 'on_transfer_apply',
+      content: {
+        position: { x: String(targetPosition[0]), y: String(targetPosition[1]) },
+      },
+    });
+    await eventloop(message);
+    
+    // 发送传递结束消息，清除范围显示
+    const endMessage = JSON.stringify({ type: 'on_transfer_end' });
+    await eventloop(endMessage);
+    
+    // 重置传递状态
+    transferringItemIndex.value = null;
+    actionMode.value = null;
+    
+    // 通知父组件传递完成，清除传递目标
+    emit('action', { type: 'transferComplete', copperId: copperInfo.value.id });
+    
+    // 等待一小段时间确保消息处理完成
+    await new Promise(resolve => setTimeout(resolve, 100));
+    
+    // 静默刷新铜偶状态（更新背包数量）
+    await refreshCopperState();
+    
+    // 保持背包打开，让用户可以继续传递或手动关闭
+    log('[ActionPanel] 传递完成，背包保持打开');
+  }
 }
 
 // 恢复完整显示逻辑已移除
@@ -195,12 +298,13 @@ defineExpose({ cancelAction, handleSelectCopper });
     <HealthBar :hp="copperInfo?.hp || 0" :max-hp="copperInfo?.maxHp || 100" />
 
     <div
-      v-if="panelMode === 'minimized' || (resources && resources.length > 0)"
+      v-if="panelMode === 'minimized' || (resources && resources.length > 0 && panelMode === 'full')"
       class="copper-panel"
       :class="{
         'copper-panel--minimized': panelMode === 'minimized',
         'copper-panel--min-attack':
-          panelMode === 'minimized' && actionMode === 'attacking',
+          panelMode === 'minimized' &&
+          (actionMode === 'attacking' || actionMode === 'transferring'),
         'copper-panel--min-move':
           panelMode === 'minimized' && actionMode === 'moving',
       }"
@@ -212,7 +316,13 @@ defineExpose({ cancelAction, handleSelectCopper });
           <span class="minimized-name">{{ copperInfo.name }}</span>
           <span class="minimized-action">
             {{
-              actionMode === 'moving' ? '选择移动位置...' : '选择攻击目标...'
+              actionMode === 'moving'
+                ? '选择移动位置...'
+                : actionMode === 'attacking'
+                  ? '选择攻击目标...'
+                  : actionMode === 'transferring'
+                    ? '选择传递目标...'
+                    : ''
             }}
           </span>
         </div>
@@ -271,9 +381,13 @@ defineExpose({ cancelAction, handleSelectCopper });
     :visible="showInventory"
     :copper-name="copperInfo?.name || '未知铜偶'"
     :inventory-items="inventoryItems"
-    @close="showInventory = false"
+    :transfer-targets="props.transferTargets || []"
+    :transferring-item-index="transferringItemIndex"
+    @close="handleCloseInventory"
     @craft="handleInventoryCraft"
     @drop="handleInventoryDrop"
+    @transfer="handleInventoryTransfer"
+    @transfer-to="handleTransferTo"
   />
 </template>
 
