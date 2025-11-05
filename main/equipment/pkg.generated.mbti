@@ -17,11 +17,7 @@ pub struct Equipment {
   equipment_base : EquipmentBase
   id : Int
 }
-fn Equipment::equal(Self, Self) -> Bool // from trait `Eq`
 fn Equipment::new(EquipmentBase) -> Self
-#deprecated
-fn Equipment::op_equal(Self, Self) -> Bool // from trait `Eq`
-fn Equipment::to_json(Self) -> Json // from trait `ToJson`
 impl Eq for Equipment
 impl ToJson for Equipment
 
@@ -31,10 +27,6 @@ pub struct EquipmentBase {
   resource_url : String
   attribute : @attribute.Attribute
 }
-fn EquipmentBase::equal(Self, Self) -> Bool // from trait `Eq`
-#deprecated
-fn EquipmentBase::op_equal(Self, Self) -> Bool // from trait `Eq`
-fn EquipmentBase::to_json(Self) -> Json // from trait `ToJson`
 impl Eq for EquipmentBase
 impl ToJson for EquipmentBase
 

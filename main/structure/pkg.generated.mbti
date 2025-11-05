@@ -10,11 +10,9 @@ let structure_map : Map[String, StructureBase]
 type Structure
 fn Structure::id(Self) -> Int
 fn Structure::new(StructureBase) -> Self
-fn Structure::to_json(Self) -> Json // from trait `ToJson`
 impl ToJson for Structure
 
 type StructureBase
-fn StructureBase::to_json(Self) -> Json // from trait `ToJson`
 impl ToJson for StructureBase
 
 // Type aliases

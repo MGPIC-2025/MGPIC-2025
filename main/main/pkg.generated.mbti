@@ -2,8 +2,6 @@
 package "Lampese/MGPIC_2025/main"
 
 // Values
-fn change_direction_str(Int, String) -> Unit
-
 fn eventloop(String) -> Unit
 
 fn global_gacha() -> String
@@ -15,30 +13,6 @@ fn global_get_resource() -> String
 fn global_info_subscribe((String) -> Unit) -> Unit
 
 fn global_upgrade_copper(Int) -> String
-
-fn move_to(Int, (Int, Int)) -> Unit
-
-fn move_to_xy(Int, Int, Int) -> Unit
-
-fn remove_unit(Int) -> Unit
-
-fn test_blocks() -> Unit
-
-fn test_camera_control() -> Unit
-
-fn test_camera_reset() -> Unit
-
-fn test_clear_states() -> Unit
-
-fn test_display_states() -> Unit
-
-fn test_game_round_pass() -> Unit
-
-fn test_remove() -> Unit
-
-fn test_sequence() -> Unit
-
-fn test_simple_move() -> Unit
 
 // Errors
 

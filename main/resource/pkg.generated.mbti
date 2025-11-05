@@ -10,7 +10,6 @@ pub struct ResourceCost {
   cost : Array[(ResourceType, Int)]
 }
 fn ResourceCost::new(Array[(ResourceType, Int)]) -> Self
-fn ResourceCost::to_json(Self) -> Json // from trait `ToJson`
 impl ToJson for ResourceCost
 
 pub(all) enum ResourceType {
@@ -20,14 +19,6 @@ pub(all) enum ResourceType {
   RefinedCopper
   ResonantCrystal
 }
-fn ResourceType::equal(Self, Self) -> Bool // from trait `Eq`
-fn ResourceType::hash(Self) -> Int // from trait `Hash`
-fn ResourceType::hash_combine(Self, Hasher) -> Unit // from trait `Hash`
-#deprecated
-fn ResourceType::op_equal(Self, Self) -> Bool // from trait `Eq`
-fn ResourceType::output(Self, &Logger) -> Unit // from trait `Show`
-fn ResourceType::to_json(Self) -> Json // from trait `ToJson`
-fn ResourceType::to_string(Self) -> String // from trait `Show`
 impl Eq for ResourceType
 impl Hash for ResourceType
 impl Show for ResourceType

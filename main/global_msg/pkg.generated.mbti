@@ -16,7 +16,6 @@ pub(all) struct InformationBase {
   type_msg : String
   content : String
 }
-fn InformationBase::to_json(Self) -> Json // from trait `ToJson`
 impl ToJson for InformationBase
 
 // Type aliases

@@ -12,12 +12,8 @@ pub struct Attribute {
   defense : Float
   dodge : Float
 }
-fn Attribute::equal(Self, Self) -> Bool // from trait `Eq`
 fn Attribute::merge(Self, Self) -> Self
 fn Attribute::new(health~ : Float, attack~ : Float, defense~ : Float, dodge~ : Float) -> Self
-#deprecated
-fn Attribute::op_equal(Self, Self) -> Bool // from trait `Eq`
-fn Attribute::to_json(Self) -> Json // from trait `ToJson`
 impl Eq for Attribute
 impl ToJson for Attribute
 
