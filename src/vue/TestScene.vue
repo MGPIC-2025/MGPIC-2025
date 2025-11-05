@@ -22,6 +22,7 @@ import { getStructureEnglishName } from '../utils/structureMapping.js';
 import TestPanel from './TestPanel.vue';
 import ActionPanel from './ActionPanel.vue';
 import TurnSystem from './ActionPanelParts/TurnSystem.vue';
+import SummonModal from './ActionPanelParts/SummonModal.vue';
 
 const props = defineProps({
   isGameMode: {
@@ -146,11 +147,16 @@ const hasAttackTargets = ref(false); // 是否有可攻击的目标
 const transferTargetPositions = ref([]); // 存储传递位置
 const transferTargets = ref([]); // 存储可传递的铜偶列表
 
+// 召唤系统相关
+const showSummonModal = ref(false); // 是否显示召唤菜单
+const summonPosition = ref(null); // 召唤位置
+const enemyList = ref([]); // 可召唤的敌人列表
+
 // 回合系统
 const currentRound = ref(1);
 const playerCoppers = ref([]); // 玩家的铜偶列表
 const currentCopperIndex = ref(0);
-const currentActionMode = ref(null); // 'moving' | 'attacking' | 'transferring' | null
+const currentActionMode = ref(null); // 'moving' | 'attacking' | 'transferring' | 'summoning' | null
 
 const currentCopperId = computed(() => {
   if (playerCoppers.value.length === 0) return null;
@@ -373,6 +379,45 @@ async function loadGLTFModel(copperType, copperName, position, scale = 1.0) {
 }
 
 // 辅助函数：加载敌人模型（使用全局缓存）
+async function loadModelFromUrl(modelUrl, position, scale = 1.0, name = 'model') {
+  try {
+    // 使用全局模型缓存管理器
+    const cachedModel = await modelCache.loadModel(modelUrl, true);
+    log(`[TestScene] 从缓存加载模型: ${name}, url=${modelUrl}`);
+
+    // 深度克隆模型实例，避免多个单位共享同一个模型对象和材质
+    const modelInstance = cachedModel.clone(true);
+
+    // 确保所有材质都是独立的副本
+    modelInstance.traverse(child => {
+      if (child.material) {
+        if (Array.isArray(child.material)) {
+          child.material = child.material.map(mat => mat.clone());
+        } else {
+          child.material = child.material.clone();
+        }
+      }
+    });
+
+    // 计算包围盒
+    const box = new THREE.Box3().setFromObject(modelInstance);
+    const size = box.getSize(new THREE.Vector3());
+
+    // 创建一个容器组
+    const group = new THREE.Group();
+    group.add(modelInstance);
+
+    // 设置容器位置和缩放
+    group.position.set(position[0], 0, position[1]);
+    group.scale.set(scale, scale, scale);
+
+    return group;
+  } catch (error) {
+    log(`[TestScene] 加载模型失败: ${name}, url=${modelUrl}, error=${error}`);
+    return null;
+  }
+}
+
 async function loadEnemyModel(enemyName, position, scale = 1.0) {
   const modelUrl = getEnemyModelUrl(enemyName);
 
@@ -441,8 +486,21 @@ function setupMessageQueue() {
     const model = models.find(m => m.id === unitId);
     if (!model || !model.object) return;
 
-    const color = type === 'move' ? 0x00ff00 : 0xff0000; // 绿色/红色
-    const radius = type === 'move' ? 0.8 : 1.0;
+    // 根据类型设置颜色：绿色(移动) / 红色(攻击) / 黄色(召唤)
+    let color, radius;
+    if (type === 'move') {
+      color = 0x00ff00; // 绿色
+      radius = 0.8;
+    } else if (type === 'attack') {
+      color = 0xff0000; // 红色
+      radius = 1.0;
+    } else if (type === 'summon') {
+      color = 0xffff00; // 黄色
+      radius = 1.2;
+    } else {
+      color = 0xffffff; // 默认白色
+      radius = 1.0;
+    }
 
     // 获取或创建指示器容器
     if (!stateIndicators.has(unitId)) {
@@ -455,7 +513,7 @@ function setupMessageQueue() {
       scene.remove(indicators[type]);
       indicators[type].geometry.dispose();
       indicators[type].material.dispose();
-      indicators[type] = null;
+      delete indicators[type];  // 使用 delete 而不是 = null
     }
 
     // 创建新指示器
@@ -851,6 +909,27 @@ function setupMessageQueue() {
       // TODO: 可以添加UI提示
       alert(message);
     },
+    // 资源不足回调
+    onResourceNotEnough: (message) => {
+      log(`[TestScene] 资源不足: ${message}`);
+      alert(`❌ ${message}\n\n召唤需要消耗 1 个心源火花 (SpiritalSpark)`);
+      // 清除召唤模式
+      currentActionMode.value = null;
+    },
+    // 召唤失败回调
+    onSummonFailed: (message) => {
+      log(`[TestScene] 召唤失败: ${message}`);
+      alert(`❌ ${message}`);
+      // 清除召唤模式
+      currentActionMode.value = null;
+      showSummonModal.value = false;
+      summonPosition.value = null;
+    },
+    // 显示召唤菜单回调
+    onShowSummonMenu: (contents) => {
+      log(`[TestScene] 收到敌人列表:`, contents);
+      enemyList.value = contents || [];
+    },
     // 移除铜偶（死亡时从列表中移除）
     onRemoveCopper: id => {
       const index = playerCoppers.value.findIndex(c => c.id === id);
@@ -951,6 +1030,12 @@ function setupMessageQueue() {
         log(`[TestScene] 显示攻击范围: ${position}`);
       }
     },
+    onSetCanSummonBlock: position => {
+      // 显示召唤范围（黄色）
+      const key = `${position[0]},${position[1]}`;
+      createOrUpdateFloorBlock(position, 0xffff00, 'summon');
+      log(`[TestScene] 显示召唤范围: 坐标=${position}, key=${key}`);
+    },
     onClearBlock: position => {
       clearFloorBlock(position);
     },
@@ -990,16 +1075,7 @@ function setupMessageQueue() {
       // 获取铜偶信息
       const copperType = copper.copper.copper_type || 'Arcanist';
       const copperChineseName = copper.copper.copper_info?.name || 'default';
-
-      // 将中文名转换为英文文件夹名
-      const copperName = getCopperEnglishName(copperChineseName);
-
-      // 将类型名转换为文件夹名
-      const typeFolder = getCopperTypeFolder(copperType);
-
-      log(
-        `[TestScene] 铜偶信息: 中文名=${copperChineseName}, 英文名=${copperName}, type=${copperType}, typeFolder=${typeFolder}`
-      );
+      const modelUrl = copper.copper.copper_info?.model_url;
 
       // 根据铜偶类型调整缩放
       let modelScale = 1.0;
@@ -1023,17 +1099,51 @@ function setupMessageQueue() {
           modelScale = 1.0;
       }
 
-      // 尝试加载GLTF模型（传入文件夹名称和模型名称）
-      let obj = await loadGLTFModel(
-        typeFolder,
-        copperName,
-        position,
-        modelScale
-      );
+      let obj;
+
+      // 如果有直接的模型URL且是召唤物（model_url 包含 '/enemy/'），直接加载
+      if (modelUrl && modelUrl.includes('/enemy/')) {
+        // 转换为R2 CDN URL
+        const cdnModelUrl = getAssetUrl(modelUrl);
+        log(`[TestScene] 召唤物：使用敌人模型URL加载: ${modelUrl} -> ${cdnModelUrl}`);
+        obj = await loadModelFromUrl(cdnModelUrl, position, modelScale, copperChineseName);
+        
+        // 为召唤物添加特殊处理（光源）
+        if (obj) {
+          // 计算包围盒
+          const box = new THREE.Box3().setFromObject(obj);
+          const size = box.getSize(new THREE.Vector3());
+          
+          // 调整Y位置使模型底部对齐地面
+          const scaledBox = new THREE.Box3().setFromObject(obj);
+          obj.position.y = -scaledBox.min.y;
+          
+          // 添加蓝色点光源（区分友方召唤物）
+          const pointLight = new THREE.PointLight(0x4444ff, 2.5, 12);
+          pointLight.position.set(0, size.y * modelScale * 0.8, 0);
+          obj.add(pointLight);
+        }
+      } else {
+        // 否则使用传统的铜偶模型加载方式
+        const copperName = getCopperEnglishName(copperChineseName);
+        const typeFolder = getCopperTypeFolder(copperType);
+
+        log(
+          `[TestScene] 铜偶信息: 中文名=${copperChineseName}, 英文名=${copperName}, type=${copperType}, typeFolder=${typeFolder}`
+        );
+
+        // 尝试加载GLTF模型（传入文件夹名称和模型名称）
+        obj = await loadGLTFModel(
+          typeFolder,
+          copperName,
+          position,
+          modelScale
+        );
+      }
 
       // 如果模型加载失败，创建备用立方体
       if (!obj) {
-        log(`[TestScene] 使用备用立方体代替模型: ${copperName}`);
+        log(`[TestScene] 使用备用立方体代替模型: ${copperChineseName}`);
         const geometry = new THREE.BoxGeometry(0.8, 0.8, 0.8);
         let color = 0x4488ff;
 
@@ -1342,6 +1452,19 @@ function setupMessageQueue() {
         log(`[TestScene] 同步更新selectedCopper.can_attack=${canAttack}`);
       }
     },
+    onDisplayCanSummon: (unitId, canSummon) => {
+      log(`[TestScene] 显示可召唤状态: id=${unitId}, show=${canSummon}`);
+      createIndicator(unitId, 'summon', canSummon);
+
+      // 如果是当前选中的铜偶，同步更新状态（创建新对象触发响应式）
+      if (selectedCopper.value && selectedCopper.value.id === unitId) {
+        selectedCopper.value = {
+          ...selectedCopper.value,
+          can_summon: canSummon,
+        };
+        log(`[TestScene] 同步更新selectedCopper.can_summon=${canSummon}`);
+      }
+    },
     onClearState: unitId => {
       log(`[TestScene] 清除状态: id=${unitId}`);
       // 清除该单位的所有指示器
@@ -1351,13 +1474,19 @@ function setupMessageQueue() {
           scene.remove(indicators.move);
           indicators.move.geometry.dispose();
           indicators.move.material.dispose();
-          indicators.move = null;
+          delete indicators.move;
         }
         if (indicators.attack) {
           scene.remove(indicators.attack);
           indicators.attack.geometry.dispose();
           indicators.attack.material.dispose();
-          indicators.attack = null;
+          delete indicators.attack;
+        }
+        if (indicators.summon) {
+          scene.remove(indicators.summon);
+          indicators.summon.geometry.dispose();
+          indicators.summon.material.dispose();
+          delete indicators.summon;
         }
         stateIndicators.delete(unitId);
       }
@@ -1568,10 +1697,11 @@ function onSceneClick(event) {
   // 更新射线
   raycaster.setFromCamera(mouse, camera);
 
-  // 如果在移动/攻击模式，检测地板点击
+  // 如果在移动/攻击/召唤模式，检测地板点击
   if (
     currentActionMode.value === 'moving' ||
     currentActionMode.value === 'attacking' ||
+    currentActionMode.value === 'summoning' ||
     currentActionMode.value === 'transferring'
   ) {
     handleFloorClick(mouse);
@@ -1625,6 +1755,8 @@ async function handleFloorClick(mousePos) {
       await handleMoveApply(gridX, gridZ);
     } else if (currentActionMode.value === 'attacking') {
       await handleAttackApply(gridX, gridZ);
+    } else if (currentActionMode.value === 'summoning') {
+      await handleSummonApply(gridX, gridZ);
     }
   }
 }
@@ -1663,6 +1795,84 @@ async function handleAttackApply(x, z) {
   // 不在这里切换铜偶，等待后端攻击完成后再处理
 }
 
+// 执行召唤（点击地面时）
+async function handleSummonApply(x, z) {
+  if (!selectedCopper.value) return;
+
+  log(`[TestScene] 选择召唤位置: (${x}, ${z})`);
+  
+  // 保存召唤位置
+  summonPosition.value = [x, z];
+  
+  // 获取可召唤的敌人列表
+  const message = JSON.stringify({
+    type: 'on_get_summon_menu',
+  });
+  await eventloop(message);
+  
+  // 短暂延迟等待敌人列表加载
+  await new Promise(resolve => setTimeout(resolve, 100));
+  
+  // 显示召唤菜单
+  showSummonModal.value = true;
+}
+
+// 确认召唤（从菜单选择敌人后）
+async function handleSummonConfirm(enemyName) {
+  if (!selectedCopper.value || !summonPosition.value) return;
+
+  const [x, z] = summonPosition.value;
+  log(`[TestScene] 确认召唤 ${enemyName} 到位置: (${x}, ${z})`);
+  
+  try {
+    const message = JSON.stringify({
+      type: 'on_summon_apply',
+      content: {
+        id: String(selectedCopper.value.id),
+        position: { x: String(x), y: String(z) },
+        name: enemyName,
+      },
+    });
+    await eventloop(message);
+  } catch (error) {
+    log('[TestScene] 召唤失败:', error);
+  } finally {
+    // 无论成功还是失败，都清理UI
+    // 关闭召唤菜单
+    showSummonModal.value = false;
+    
+    // 召唤完成后清除召唤模式
+    currentActionMode.value = null;
+    summonPosition.value = null;
+    
+    // 清理 ActionPanel 的状态
+    if (copperActionPanelRef.value) {
+      copperActionPanelRef.value.cancelAction();
+    }
+    
+    // 发送召唤结束消息
+    try {
+      const endMessage = JSON.stringify({ type: 'on_summon_end' });
+      await eventloop(endMessage);
+    } catch (error) {
+      log('[TestScene] 清除召唤范围失败:', error);
+    }
+  }
+}
+
+// 关闭召唤菜单
+function handleCloseSummonModal() {
+  showSummonModal.value = false;
+  summonPosition.value = null;
+  // 清除召唤模式
+  currentActionMode.value = null;
+  // 发送召唤结束消息，清除黄色方块
+  const endMessage = JSON.stringify({ type: 'on_summon_end' });
+  eventloop(endMessage).catch(e => {
+    log('[TestScene] 清除召唤范围失败', e);
+  });
+}
+
 // 处理点击铜偶
 async function handleClickCopper(copperId) {
   // 更新当前铜偶索引，以便 TurnSystem 正确显示名称
@@ -1693,6 +1903,8 @@ function handleCopperAction(action) {
     currentActionMode.value = 'moving';
   } else if (action.type === 'attackStart') {
     currentActionMode.value = 'attacking';
+  } else if (action.type === 'summonStart') {
+    currentActionMode.value = 'summoning';
   } else if (
     action.type === 'transferring' ||
     action.type === 'transferStart'
@@ -1717,6 +1929,14 @@ function handleCopperAction(action) {
       // 清空传递目标
       transferTargetPositions.value = [];
       transferTargets.value = [];
+    } else if (mode === 'summoning') {
+      const message = JSON.stringify({ type: 'on_summon_end' });
+      eventloop(message).catch(e => {
+        log('[TestScene] 清除召唤范围失败', e);
+      });
+      // 关闭召唤菜单
+      showSummonModal.value = false;
+      summonPosition.value = null;
     }
     currentActionMode.value = null;
   } else if (action.type === 'wait') {
@@ -1734,15 +1954,17 @@ function tryNextCopper() {
   if (selectedCopper.value) {
     const canMove = selectedCopper.value.can_move;
     const canAttack = selectedCopper.value.can_attack;
+    const canSummon = selectedCopper.value.can_summon;
 
     log(
-      `[TestScene] 检查铜偶状态: ID=${selectedCopper.value.id}, can_move=${canMove}, can_attack=${canAttack}, hasAttackTargets=${hasAttackTargets.value}`
+      `[TestScene] 检查铜偶状态: ID=${selectedCopper.value.id}, can_move=${canMove}, can_attack=${canAttack}, can_summon=${canSummon}, hasAttackTargets=${hasAttackTargets.value}`
     );
 
     // 实际可执行的操作：
     // 1. 可以移动
     // 2. 可以攻击 且 有攻击目标
-    const hasValidActions = canMove || (canAttack && hasAttackTargets.value);
+    // 3. 可以召唤
+    const hasValidActions = canMove || (canAttack && hasAttackTargets.value) || canSummon;
 
     if (hasValidActions) {
       log('[TestScene] 当前铜偶还能操作，不切换');
@@ -1795,12 +2017,14 @@ async function nextCopper() {
     // 实际可执行的操作：
     // 1. 可以移动
     // 2. 可以攻击 且 有攻击目标
+    // 3. 可以召唤
     const canMove = selectedCopper.value?.can_move || false;
     const canAttack = selectedCopper.value?.can_attack || false;
-    const hasValidActions = canMove || (canAttack && hasAttackTargets.value);
+    const canSummon = selectedCopper.value?.can_summon || false;
+    const hasValidActions = canMove || (canAttack && hasAttackTargets.value) || canSummon;
 
     log(
-      `[TestScene] 铜偶 ${nextCopper.name}: can_move=${canMove}, can_attack=${canAttack}, hasTargets=${hasAttackTargets.value}, valid=${hasValidActions}`
+      `[TestScene] 铜偶 ${nextCopper.name}: can_move=${canMove}, can_attack=${canAttack}, can_summon=${canSummon}, hasTargets=${hasAttackTargets.value}, valid=${hasValidActions}`
     );
 
     if (selectedCopper.value && hasValidActions) {
@@ -1882,6 +2106,17 @@ function endRound() {
       :onSelectCopper="handleClickCopper"
       @close="closeCopperPanel"
       @action="handleCopperAction"
+    />
+
+    <!-- 召唤菜单（仅游戏模式显示） -->
+    <SummonModal
+      v-if="isGameMode"
+      :visible="showSummonModal"
+      :copper-name="selectedCopper?.copper?.copper_info?.name || '共鸣者'"
+      :enemy-list="enemyList"
+      :position="summonPosition"
+      @close="handleCloseSummonModal"
+      @summon="handleSummonConfirm"
     />
 
     <!-- 提示信息（仅测试模式显示） -->
