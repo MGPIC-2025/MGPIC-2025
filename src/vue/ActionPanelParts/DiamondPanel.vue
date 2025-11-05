@@ -10,11 +10,19 @@ const props = defineProps({
     type: Array,
     default: () => [],
   },
+  inventoryCapacity: {
+    type: Number,
+    default: 5,
+  },
 });
 
 const emit = defineEmits(['inventory-click']);
 
 function handleInventoryClick() {
+  // 如果背包容量为0，不发射事件（不可点击）
+  if (props.inventoryCapacity === 0) {
+    return;
+  }
   emit('inventory-click');
 }
 
@@ -69,11 +77,16 @@ onMounted(async () => {
 <template>
   <div ref="diamondPanelRef" class="diamond-panel">
     <div class="diamond-row diamond-row--top">
-      <div class="diamond border-blue" @click="handleInventoryClick">
+      <div 
+        class="diamond border-blue" 
+        :class="{ 'diamond--disabled': inventoryCapacity === 0 }"
+        @click="handleInventoryClick"
+        :title="inventoryCapacity === 0 ? '此单位没有背包' : '打开背包'"
+      >
         <div class="diamond-content">
           <div class="diamond-text">
             <div class="diamond-label">背包</div>
-            <div class="diamond-value">{{ inventoryItems.length }}/5</div>
+            <div class="diamond-value">{{ inventoryItems.length }}/{{ inventoryCapacity }}</div>
           </div>
         </div>
       </div>
@@ -188,6 +201,16 @@ onMounted(async () => {
 .diamond:hover {
   background: #3a3a3c;
   transform: rotate(45deg) scale(1.05);
+}
+
+.diamond--disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.diamond--disabled:hover {
+  background: #2a2a2c;
+  transform: rotate(45deg);
 }
 
 .diamond-content {

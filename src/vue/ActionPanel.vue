@@ -63,7 +63,9 @@ const copperInfo = computed(() => {
     speed: props.copper.copper?.attribute?.speed || 0,
     canMove: props.copper.can_move,
     canAttack: props.copper.can_attack,
+    canSummon: props.copper.can_summon,
     position: props.copper.position,
+    inventoryCapacity: props.copper.inventory?.capacity || 0,
   };
 });
 
@@ -101,7 +103,33 @@ async function handleAttack() {
   emit('action', { type: 'attackStart', copperId: copperInfo.value.id });
 }
 
+async function handleSummon() {
+  log('[ActionPanel] 召唤按钮点击', {
+    canSummon: copperInfo.value.canSummon,
+    copperId: copperInfo.value.id,
+    name: copperInfo.value.name,
+  });
+  if (!copperInfo.value.canSummon) {
+    log('[ActionPanel] 召唤被阻止: 本回合已召唤');
+    return;
+  }
+  log('[ActionPanel] 请求召唤范围');
+  const message = JSON.stringify({
+    type: 'on_summon_start',
+    content: { id: String(copperInfo.value.id) },
+  });
+  await eventloop(message);
+  panelMode.value = 'minimized';
+  actionMode.value = 'summoning';
+  emit('action', { type: 'summonStart', copperId: copperInfo.value.id });
+}
+
 function handleInventory() {
+  // 检查背包容量，如果为0则不允许打开
+  if (copperInfo.value.inventoryCapacity === 0) {
+    log('[ActionPanel] 背包容量为0，无法打开');
+    return;
+  }
   log('[ActionPanel] 打开背包');
   showInventory.value = true;
 }
@@ -291,6 +319,7 @@ defineExpose({ cancelAction, handleSelectCopper });
     <DiamondPanel
       :copper-info="copperInfo"
       :inventory-items="inventoryItems"
+      :inventory-capacity="copperInfo?.inventoryCapacity || 0"
       @inventory-click="handleInventory"
     />
 
@@ -320,9 +349,11 @@ defineExpose({ cancelAction, handleSelectCopper });
                 ? '选择移动位置...'
                 : actionMode === 'attacking'
                   ? '选择攻击目标...'
-                  : actionMode === 'transferring'
-                    ? '选择传递目标...'
-                    : ''
+                  : actionMode === 'summoning'
+                    ? '选择召唤位置...'
+                    : actionMode === 'transferring'
+                      ? '选择传递目标...'
+                      : ''
             }}
           </span>
         </div>
@@ -370,9 +401,11 @@ defineExpose({ cancelAction, handleSelectCopper });
     <TriPanel
       :can-move="copperInfo?.canMove !== false"
       :can-attack="copperInfo?.canAttack !== false"
+      :can-summon="copperInfo?.canSummon !== false"
       @move="handleMove"
       @wait="handleWait"
       @attack="handleAttack"
+      @summon="handleSummon"
     />
   </div>
 

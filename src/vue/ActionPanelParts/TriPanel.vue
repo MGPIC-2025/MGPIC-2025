@@ -2,14 +2,16 @@
 const props = defineProps({
   canMove: { type: Boolean, default: true },
   canAttack: { type: Boolean, default: true },
+  canSummon: { type: Boolean, default: false },
 });
 
-const emit = defineEmits(['move', 'wait', 'attack']);
+const emit = defineEmits(['move', 'wait', 'attack', 'summon']);
 
 const hexSrc = '/assets/your-image.png';
 const moveIconSrc = '/assets/boot.png';
 const waitIconSrc = '/assets/mushroom.png';
 const attackIconSrc = '/assets/sword.png';
+const summonIconSrc = '/assets/currentcupper.png'; // 使用现有资源作为召唤图标
 
 function onMove() {
   if (!props.canMove) return;
@@ -23,6 +25,11 @@ function onWait() {
 function onAttack() {
   if (!props.canAttack) return;
   emit('attack');
+}
+
+function onSummon() {
+  if (!props.canSummon) return;
+  emit('summon');
 }
 </script>
 
@@ -44,7 +51,19 @@ function onAttack() {
         <img class="hex-icon" :src="moveIconSrc" alt="等待图标（靴子）" />
       </div>
 
+      <!-- 根据是否能召唤显示不同的按钮 -->
       <div
+        v-if="canSummon"
+        class="hex right"
+        :title="canSummon ? '召唤' : '本回合已召唤'"
+        :class="{ 'is-locked': canSummon === false }"
+        @click="onSummon"
+      >
+        <img class="hex-bg" :src="hexSrc" alt="六边形背景" />
+        <img class="hex-icon" :src="summonIconSrc" alt="召唤图标" />
+      </div>
+      <div
+        v-else
         class="hex right"
         :title="canAttack ? '攻击' : '本回合已攻击'"
         :class="{ 'is-locked': canAttack === false }"

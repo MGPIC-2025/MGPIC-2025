@@ -436,6 +436,18 @@ export function registerAllHandlers() {
     }
   });
 
+  // display_can_summon: 显示可召唤状态（黄色圈圈）（同步处理）
+  messageQueue.registerHandler('display_can_summon', (data, context) => {
+    const { id, can_summon } = data;
+    const canSummon = can_summon === 'true' || can_summon === true;
+    log(`[Handler] display_can_summon id=${id}, can_summon=${canSummon}`);
+
+    // 在模型脚下添加/移除黄色圈圈指示器
+    if (context.onDisplayCanSummon) {
+      context.onDisplayCanSummon(id, canSummon);
+    }
+  });
+
   // update_health: 更新单位血量显示（同步处理）
   messageQueue.registerHandler('update_health', (data, context) => {
     const { id, now_health, max_health } = data;
@@ -589,6 +601,7 @@ export function registerAllHandlers() {
   // 计数器：跟踪范围块数量
   let moveBlockCount = 0;
   let attackBlockCount = 0;
+  let summonBlockCount = 0;
 
   // set_move_block: 设置地图块为可移动（绿色）（同步处理）
   messageQueue.registerHandler('set_move_block', (data, context) => {
@@ -615,6 +628,21 @@ export function registerAllHandlers() {
     // 只在第一个或每10个时输出日志
     if (attackBlockCount === 1 || attackBlockCount % 10 === 0) {
       log(`[Handler] 攻击范围已显示 ${attackBlockCount} 个地块`);
+    }
+  });
+
+  // set_can_summon_blocks: 设置地图块为可召唤（黄色）（同步处理）
+  messageQueue.registerHandler('set_can_summon_blocks', (data, context) => {
+    const { position } = data;
+    summonBlockCount++;
+
+    if (context.onSetCanSummonBlock) {
+      context.onSetCanSummonBlock(position);
+    }
+
+    // 只在第一个或每10个时输出日志
+    if (summonBlockCount === 1 || summonBlockCount % 10 === 0) {
+      log(`[Handler] 召唤范围已显示 ${summonBlockCount} 个地块`);
     }
   });
 
@@ -648,6 +676,10 @@ export function registerAllHandlers() {
       if (attackBlockCount > 0) {
         log(`[Handler] 攻击范围已清除（共 ${attackBlockCount} 个）`);
         attackBlockCount = 0;
+      }
+      if (summonBlockCount > 0) {
+        log(`[Handler] 召唤范围已清除（共 ${summonBlockCount} 个）`);
+        summonBlockCount = 0;
       }
     }
     lastClearTime = now;
@@ -699,6 +731,40 @@ export function registerAllHandlers() {
   // inventory_full: 背包已满
   messageQueue.registerHandler('inventory_full', (data, context) => {
     log('[Handler] 背包已满:', data.message || data);
+  });
+
+  // resource_not_enough: 资源不足
+  messageQueue.registerHandler('resource_not_enough', (data, context) => {
+    log('[Handler] 资源不足:', data.message || data);
+    // TODO: 显示资源不足提示给玩家
+    if (context.onResourceNotEnough) {
+      context.onResourceNotEnough(data.message || '资源不足');
+    }
+  });
+
+  // summon_failed: 召唤失败
+  messageQueue.registerHandler('summon_failed', (data, context) => {
+    log('[Handler] 召唤失败:', data.message || data);
+    if (context.onSummonFailed) {
+      context.onSummonFailed(data.message || '召唤失败');
+    }
+  });
+
+  // summon_expired: 召唤物生命周期结束（同步处理）
+  messageQueue.registerHandler('summon_expired', (data, context) => {
+    const { id, message } = data;
+    log(`[Handler] 召唤物消失: ID=${id}, ${message}`);
+    // remove_unit 会自动处理模型移除，这里只是显示日志
+  });
+
+  // get_summon_menu: 获取召唤菜单（返回可召唤的敌人列表）
+  messageQueue.registerHandler('get_summon_menu', (data, context) => {
+    const { contents } = data;
+    log('[Handler] 收到召唤菜单:', contents);
+    // TODO: 显示敌人选择菜单
+    if (context.onShowSummonMenu) {
+      context.onShowSummonMenu(contents);
+    }
   });
 
   // Message handlers registered
