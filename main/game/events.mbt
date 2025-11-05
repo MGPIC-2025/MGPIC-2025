@@ -87,6 +87,8 @@ fn handle_on_click_copper(id : Int) -> Unit {
         "has_attack_targets": has_attack_targets,
       } : Json).stringify(),
   })
+  // 显示铜偶的状态圈圈（绿色/红色/黄色）
+  battle_copper.update_move_and_attack_and_summon_status()
 }
 
 ///|
@@ -710,6 +712,35 @@ fn handle_game_round_pass() -> Unit {
     clear_block(summon_block)
   }
   setted_can_summon_blocks.clear()
+  
+  // 检查召唤物生命周期（在恢复状态前）
+  let map = force_get_current_map()
+  let coppers_to_remove : Array[(Int, (Int, Int))] = []  // (id, position)
+  for battle_copper in battle_copper_map.values() {
+    // 只对召唤物减少生命周期（live_left < 5 表示是召唤物）
+    // todo 后续用其他特征表示召唤物，而非 live_left
+    if battle_copper.copper.live_left < 5 {
+      battle_copper.copper.live_left = battle_copper.copper.live_left - 1
+      
+      // 如果生命周期结束，标记为移除
+      if battle_copper.copper.live_left <= 0 {
+        coppers_to_remove.push((battle_copper.id, battle_copper.position))
+      }
+    }
+  }
+  
+  // 移除生命周期结束的召唤物
+  for item in coppers_to_remove {
+    let (copper_id, copper_position) = item
+    battle_copper_map.remove(copper_id)
+    map.remove_occupant(copper_position)
+    remove_unit(copper_id)  // 通知前端移除
+    @global_msg.msg_info.broadcast({
+      type_msg: "summon_expired",
+      content: ({ "id": copper_id, "message": "召唤物生命周期结束" } : Json).stringify(),
+    })
+  }
+  
   // 恢复铜偶状态
   for battle_copper in battle_copper_map.values() {
     battle_copper.can_move = true
@@ -725,7 +756,6 @@ fn handle_game_round_pass() -> Unit {
     battle_copper.update_move_and_attack_and_summon_status()
   }
   // 敌人开始寻找攻击目标
-  let map = force_get_current_map()
   let enemys = enemy_map.values()
   for enemy in enemys {
     let attack_targets = enemy.get_attack_targets(map)
@@ -820,7 +850,7 @@ fn handle_on_summon_start(id : Int) -> Unit {
 
 ///|
 /// 后端：实施召唤
-/// 需要指定召唤的敌人以及消耗的资源，并且召唤敌人到地图上
+/// 需要指定召唤的敌人以及消耗的资源，并且召唤铜偶（使用敌人外观）到地图上
 fn handle_on_summon_apply(
   id : Int,
   position : (Int, Int),
@@ -828,14 +858,70 @@ fn handle_on_summon_apply(
   name : String,
 ) -> Unit {
   let enemy_idx = enemy_list.search_by(enemy => enemy.name == name).unwrap()
-  let enemy = enemy_list[enemy_idx]
-  let resource_cost = enemy.summon_cost
+  let enemy_base = enemy_list[enemy_idx]
+  let resource_cost = enemy_base.summon_cost
   let battle_copper = get_battle_copper_by_id(id)
+  
+  // 检查召唤位置是否有效（在地图范围内且未被占据）
+  if map.is_occupy(position) {
+    @global_msg.msg_info.broadcast({
+      type_msg: "summon_failed",
+      content: ({ "message": "召唤位置已被占据" } : Json).stringify(),
+    })
+    return
+  }
+  
+  // 检查位置是否在有效房间内
+  guard map.global_position_to_room_position(position) is Some(_)
+  else {
+    @global_msg.msg_info.broadcast({
+      type_msg: "summon_failed",
+      content: ({ "message": "召唤位置无效" } : Json).stringify(),
+    })
+    return
+  }
+  
   if battle_copper.inventory.check_resource_cost_in_inventory(resource_cost) {
     battle_copper.inventory.consume_resource_cost(resource_cost)
-    let enemy = Enemy::new(enemy, position, true)
-    enemy_map.set(enemy.id, enemy)
-    map.add_occupant(position, Occupant::Enemy(enemy))
+    
+    // 创建召唤铜偶（使用敌人的外观和属性，但作为铜偶逻辑）
+    let summoned_copper = @coppers.create_summoned_copper_from_enemy(
+      enemy_base.name,
+      enemy_base.enemy_type,
+      enemy_base.description,
+      enemy_base.model_url,
+      enemy_base.asset_url,
+      enemy_base.health,
+      enemy_base.attack,
+      enemy_base.defense,
+      enemy_base.dodge,
+      enemy_base.attack_range,
+    )
+    
+    // 创建战斗铜偶（注意：召唤物没有背包，不需要初始资源）
+    let summoned_battle_copper = BattleCopper::new_without_inventory(
+      summoned_copper,
+      summoned_copper.id,
+      position,
+    )
+    
+    // 添加到地图
+    map.add_occupant(position, Occupant::Copper(summoned_battle_copper))
+    
+    // 通知前端创建铜偶模型
+    set_copper(summoned_battle_copper, summoned_battle_copper.id, position)
+    // 显示铜偶血条
+    update_health(
+      summoned_battle_copper.id,
+      summoned_battle_copper.now_health,
+      summoned_battle_copper.copper.attribute.health,
+    )
+    // 显示铜偶状态（绿圈/红圈）
+    summoned_battle_copper.update_move_and_attack_and_summon_status()
+    
+    // 召唤完成，设置召唤者的召唤状态为 false
+    battle_copper.can_summon = false
+    battle_copper.update_move_and_attack_and_summon_status()
   } else {
     @global_msg.msg_info.broadcast({
       type_msg: "resource_not_enough",
@@ -849,6 +935,7 @@ fn handle_on_summon_apply(
 /// 后端：清除可召唤的地块
 fn handle_on_summon_end() -> Unit {
   for position in setted_can_summon_blocks {
+    clear_block(position)
     check_and_reset_block(position, Summon)
   }
   setted_can_summon_blocks.clear()

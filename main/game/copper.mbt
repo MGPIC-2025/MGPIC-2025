@@ -31,6 +31,10 @@ fn BattleCopper::new(
     CraftsMan | Resonator => false
     _ => true
   }
+  let inventory = Inventory::new(5)
+  // 给铜偶初始背包添加一些心源火花用于召唤
+  inventory.add_item(Item::new(Resource(@resource.SpiritalSpark), count=5))
+  
   let battle_copper = BattleCopper::{
     id: @id.id_pool.get_id(),
     copper,
@@ -41,7 +45,32 @@ fn BattleCopper::new(
     position,
     now_health: copper.attribute.health,
     attribute: copper.attribute,
-    inventory: Inventory::new(5),
+    inventory,
+  }
+  battle_copper_map.set(battle_copper.id, battle_copper)
+  battle_copper
+}
+
+///|
+/// 创建战斗铜偶（没有背包，用于召唤物）
+fn BattleCopper::new_without_inventory(
+  copper : @coppers.Copper,
+  original_id : Int,
+  position : (Int, Int),
+) -> BattleCopper {
+  let inventory = Inventory::new(0) // 召唤物没有背包（0容量）
+  
+  let battle_copper = BattleCopper::{
+    id: @id.id_pool.get_id(),
+    copper,
+    original_id,
+    can_move: false, // 召唤物在当前回合不能移动
+    can_attack: false, // 召唤物在当前回合不能攻击
+    can_summon: false, // 召唤物不能召唤
+    position,
+    now_health: copper.attribute.health,
+    attribute: copper.attribute,
+    inventory,
   }
   battle_copper_map.set(battle_copper.id, battle_copper)
   battle_copper
@@ -78,11 +107,15 @@ fn BattleCopper::apply_mechanic_heal(
 
 ///|
 fn BattleCopper::get_attack_range(battle_copper : BattleCopper) -> Int {
-  match battle_copper.copper.copper_type {
-    IronWall => 1
-    Arcanist => 3
-    Mechanic => 1
-    Resonator | CraftsMan => 0 // 无攻击能力的单位返回0（会生成空攻击范围）
+  // 优先使用 copper_info 中的自定义攻击范围（用于召唤物）
+  match battle_copper.copper.copper_info.attack_range {
+    Some(range) => range
+    None => match battle_copper.copper.copper_type {
+      IronWall => 1
+      Arcanist => 3
+      Mechanic => 1
+      Resonator | CraftsMan => 0 // 无攻击能力的单位返回0（会生成空攻击范围）
+    }
   }
 }
 
