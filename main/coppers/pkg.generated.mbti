@@ -12,6 +12,8 @@ let copper_info_list : FixedArray[CopperInfo]
 
 let copper_info_map : Map[String, CopperInfo]
 
+fn create_summoned_copper_from_enemy(String, String, String, String, String, Float, Float, Float, Float, Int) -> Copper
+
 fn get_default_attribute(CopperType) -> @attribute.Attribute
 
 fn get_upgrade_cost(Int) -> @resource.ResourceCost
@@ -34,7 +36,6 @@ pub(all) struct Copper {
   copper_info : CopperInfo
 }
 fn Copper::apply_upgrade(Self) -> Self
-fn Copper::to_json(Self) -> Json // from trait `ToJson`
 impl ToJson for Copper
 
 pub struct CopperInfo {
@@ -44,8 +45,8 @@ pub struct CopperInfo {
   icon_url : String
   model_url : String
   skill : Skill?
+  attack_range : Int?
 }
-fn CopperInfo::to_json(Self) -> Json // from trait `ToJson`
 impl ToJson for CopperInfo
 
 pub enum CopperType {
@@ -55,7 +56,6 @@ pub enum CopperType {
   Mechanic
   Resonator
 }
-fn CopperType::to_json(Self) -> Json // from trait `ToJson`
 impl ToJson for CopperType
 
 pub struct EquipmentSlot {
@@ -65,13 +65,11 @@ pub struct EquipmentSlot {
 }
 fn EquipmentSlot::equip(Self, @equipment.Equipment) -> (Self, Bool)
 fn EquipmentSlot::new() -> Self
-fn EquipmentSlot::to_json(Self) -> Json // from trait `ToJson`
 fn EquipmentSlot::unequip(Self, Int) -> Self
 fn EquipmentSlot::unlock_slot2(Self) -> Self
 impl ToJson for EquipmentSlot
 
 type Skill
-fn Skill::to_json(Self) -> Json // from trait `ToJson`
 impl ToJson for Skill
 
 // Type aliases

@@ -12,6 +12,7 @@ pub let copper_info_list : FixedArray[CopperInfo] = [
       resource_url: "/assets/copper/iron_wall/rocky/rocky_skill.webp",
       cool_down: Some(10),
     }),
+    attack_range: None,
   },
   {
     name: "卫斯理",
@@ -25,6 +26,7 @@ pub let copper_info_list : FixedArray[CopperInfo] = [
       resource_url: "/assets/copper/iron_wall/wesley/wesley_skill.webp",
       cool_down: Some(10),
     }),
+    attack_range: None,
   },
   {
     name: "大贝尔",
@@ -38,6 +40,7 @@ pub let copper_info_list : FixedArray[CopperInfo] = [
       resource_url: "/assets/copper/iron_wall/bell/bell_skill.webp",
       cool_down: None,
     }),
+    attack_range: None,
   },
   {
     name: "团团",
@@ -51,6 +54,7 @@ pub let copper_info_list : FixedArray[CopperInfo] = [
       resource_url: "/assets/copper/iron_wall/tumble/tumble_skill.webp",
       cool_down: None,
     }),
+    attack_range: None,
   },
   {
     name: "铿铿",
@@ -64,6 +68,7 @@ pub let copper_info_list : FixedArray[CopperInfo] = [
       resource_url: "/assets/copper/iron_wall/chief/chief_skill.webp",
       cool_down: None,
     }),
+    attack_range: None,
   },
   {
     name: "咝咝",
@@ -77,6 +82,7 @@ pub let copper_info_list : FixedArray[CopperInfo] = [
       resource_url: "/assets/copper/arcanist/spark/spark_skill.webp",
       cool_down: Some(20),
     }),
+    attack_range: None,
   },
   {
     name: "拉斐尔",
@@ -90,6 +96,7 @@ pub let copper_info_list : FixedArray[CopperInfo] = [
       resource_url: "/assets/copper/arcanist/syrup/syrup_skill.webp",
       cool_down: None,
     }),
+    attack_range: None,
   },
   {
     name: "波普尔",
@@ -103,6 +110,7 @@ pub let copper_info_list : FixedArray[CopperInfo] = [
       resource_url: "/assets/copper/arcanist/bubble/bubble_skill.webp",
       cool_down: Some(10),
     }),
+    attack_range: None,
   },
   {
     name: "菲尼",
@@ -116,6 +124,7 @@ pub let copper_info_list : FixedArray[CopperInfo] = [
       resource_url: "/assets/copper/arcanist/glimmer/glimmer_skill.webp",
       cool_down: None,
     }),
+    attack_range: None,
   },
   {
     name: "卷卷",
@@ -129,6 +138,7 @@ pub let copper_info_list : FixedArray[CopperInfo] = [
       resource_url: "/assets/copper/arcanist/turner/turner_skill.webp",
       cool_down: Some(5),
     }),
+    attack_range: None,
   },
   {
     name: "絮絮",
@@ -142,6 +152,7 @@ pub let copper_info_list : FixedArray[CopperInfo] = [
       resource_url: "/assets/copper/resonator/murmur/murmur_skill.webp",
       cool_down: None,
     }),
+    attack_range: None,
   },
   {
     name: "啾啾",
@@ -155,6 +166,7 @@ pub let copper_info_list : FixedArray[CopperInfo] = [
       resource_url: "/assets/copper/resonator/melody/melody_skill.webp",
       cool_down: None,
     }),
+    attack_range: None,
   },
   {
     name: "库克",
@@ -168,6 +180,7 @@ pub let copper_info_list : FixedArray[CopperInfo] = [
       resource_url: "/assets/copper/resonator/clawsteak/clawster_skill.webp",
       cool_down: None,
     }),
+    attack_range: None,
   },
   {
     name: "鼹鼠的地洞",
@@ -181,6 +194,7 @@ pub let copper_info_list : FixedArray[CopperInfo] = [
       resource_url: "/assets/copper/resonator/diggs/diggs_skill.webp",
       cool_down: None,
     }),
+    attack_range: None,
   },
   {
     name: "蜜拉",
@@ -194,6 +208,7 @@ pub let copper_info_list : FixedArray[CopperInfo] = [
       resource_url: "/assets/copper/resonator/hive/hive_skill.webp",
       cool_down: None,
     }),
+    attack_range: None,
   },
   {
     name: "米洛",
@@ -207,6 +222,7 @@ pub let copper_info_list : FixedArray[CopperInfo] = [
       resource_url: "/assets/copper/mechanic/gyro/gyro_skill.webp",
       cool_down: Some(10),
     }),
+    attack_range: None,
   },
   {
     name: "杰克",
@@ -220,6 +236,7 @@ pub let copper_info_list : FixedArray[CopperInfo] = [
       resource_url: "/assets/copper/mechanic/tricky/tricky_skill.webp",
       cool_down: Some(10),
     }),
+    attack_range: None,
   },
   {
     name: "格洛克",
@@ -233,6 +250,7 @@ pub let copper_info_list : FixedArray[CopperInfo] = [
       resource_url: "/assets/copper/mechanic/pendulum/pendulum_skill.webp",
       cool_down: Some(5),
     }),
+    attack_range: None,
   },
   {
     name: "溜溜",
@@ -246,6 +264,7 @@ pub let copper_info_list : FixedArray[CopperInfo] = [
       resource_url: "/assets/copper/mechanic/yoyo/yoyo_skill.webp",
       cool_down: Some(3),
     }),
+    attack_range: None,
   },
   {
     name: "卡琳",
@@ -259,6 +278,7 @@ pub let copper_info_list : FixedArray[CopperInfo] = [
       resource_url: "/assets/copper/mechanic/karin/karin_skill.webp",
       cool_down: None,
     }),
+    attack_range: None,
   },
   {
     name: "波波",
@@ -267,6 +287,7 @@ pub let copper_info_list : FixedArray[CopperInfo] = [
     icon_url: "/assets/copper/craftsman/wrench/wrench.webp",
     model_url: "/assets/copper/craftsman/wrench/wrench.glb",
     skill: None,
+    attack_range: None,
   },
   {
     name: "特斯拉",
@@ -275,6 +296,7 @@ pub let copper_info_list : FixedArray[CopperInfo] = [
     icon_url: "/assets/copper/craftsman/coil/coil.webp",
     model_url: "/assets/copper/craftsman/coil/coil.glb",
     skill: None,
+    attack_range: None,
   },
   {
     name: "公输",
@@ -283,6 +305,7 @@ pub let copper_info_list : FixedArray[CopperInfo] = [
     icon_url: "/assets/copper/craftsman/artifex/artifex.webp",
     model_url: "/assets/copper/craftsman/artifex/artifex.glb",
     skill: None,
+    attack_range: None,
   },
   {
     name: "丁格",
@@ -291,6 +314,7 @@ pub let copper_info_list : FixedArray[CopperInfo] = [
     icon_url: "/assets/copper/craftsman/drillbit/drillbit.webp",
     model_url: "/assets/copper/craftsman/drillbit/drillbit.glb",
     skill: None,
+    attack_range: None,
   },
   {
     name: "小卯",
@@ -299,6 +323,7 @@ pub let copper_info_list : FixedArray[CopperInfo] = [
     icon_url: "/assets/copper/craftsman/quickhand/quickhand.webp",
     model_url: "/assets/copper/craftsman/quickhand/quickhand.glb",
     skill: None,
+    attack_range: None,
   },
 ]
 
