@@ -256,12 +256,16 @@ fn handle_on_enemy_attack_apply(
   let target = map.get_occupant(position)
   match target {
     Enemy(target_enemy) => {
-      let result = enemy.apply_attack(enemy.enemy_base.attack)
+      let result = target_enemy.apply_attack(enemy.enemy_base.attack)
       // 单位被击杀
       if result {
         let drop_items = target_enemy.get_drop_items()
         for drop_item in drop_items {
           map.add_resource(target_enemy.position, drop_item)
+        }
+        // 如果有掉落物，显示资源标记
+        if drop_items.length() > 0 {
+          put_resource_marker(target_enemy.position)
         }
         enemy_map.remove(target_enemy.id)
         remove_unit(target_enemy.id)
@@ -580,6 +584,16 @@ fn handle_on_transfer_apply(position : (Int, Int)) -> Unit {
 /// 这个 event 开始的时候，前端应该已经开始尝试拾取资源了（资源在 click 的时候就已经给前端了）
 /// 前端只需要在 event 执行完毕后刷新资源栏即可（比如再发送一次 click 事件来获取）
 fn handle_on_copper_pick_up(id : Int, index : Int) -> Unit {
+  // 检查是否是友方召唤物（敌人实体）
+  if enemy_map.contains(id) {
+    // 友方召唤物没有背包，直接提示无法拾取
+    @global_msg.msg_info.broadcast({
+      type_msg: "cannot_pick_up_item",
+      content: ({ "message": "无法拾取该物品" } : Json).stringify(),
+    })
+    return
+  }
+  
   let battle_copper = get_battle_copper_by_id(id)
   let map = force_get_current_map()
   let map_block = map.global_position_to_room_position(battle_copper.position)
@@ -713,32 +727,35 @@ fn handle_game_round_pass() -> Unit {
   }
   setted_can_summon_blocks.clear()
   
-  // 检查召唤物生命周期（在恢复状态前）
+  // 清理死亡单位和检查召唤物生命周期（在恢复状态前）
   let map = force_get_current_map()
-  let coppers_to_remove : Array[(Int, (Int, Int))] = []  // (id, position)
-  for battle_copper in battle_copper_map.values() {
-    // 只对召唤物减少生命周期（live_left < 5 表示是召唤物）
-    // todo 后续用其他特征表示召唤物，而非 live_left
-    if battle_copper.copper.live_left < 5 {
-      battle_copper.copper.live_left = battle_copper.copper.live_left - 1
+  let enemies_to_remove : Array[(Int, (Int, Int))] = []  // (id, position)
+  
+  // 检查所有敌人（包括召唤物）是否死亡
+  for enemy in enemy_map.values() {
+    // 死亡检查：血量<=0
+    if enemy.now_health <= 0.0 {
+      enemies_to_remove.push((enemy.id, enemy.position))
+      continue
+    }
+    
+    // 只对友方召唤物减少回合数（owned=true && summon_rounds_left>0）
+    if enemy.owned && enemy.summon_rounds_left > 0 {
+      enemy.summon_rounds_left = enemy.summon_rounds_left - 1
       
-      // 如果生命周期结束，标记为移除
-      if battle_copper.copper.live_left <= 0 {
-        coppers_to_remove.push((battle_copper.id, battle_copper.position))
+      // 如果回合数用尽，标记为移除
+      if enemy.summon_rounds_left <= 0 {
+        enemies_to_remove.push((enemy.id, enemy.position))
       }
     }
   }
   
-  // 移除生命周期结束的召唤物
-  for item in coppers_to_remove {
-    let (copper_id, copper_position) = item
-    battle_copper_map.remove(copper_id)
-    map.remove_occupant(copper_position)
-    remove_unit(copper_id)  // 通知前端移除
-    @global_msg.msg_info.broadcast({
-      type_msg: "summon_expired",
-      content: ({ "id": copper_id, "message": "召唤物生命周期结束" } : Json).stringify(),
-    })
+  // 移除死亡单位和生命周期结束的召唤物
+  for item in enemies_to_remove {
+    let (enemy_id, enemy_position) = item
+    enemy_map.remove(enemy_id)
+    map.remove_occupant(enemy_position)
+    remove_unit(enemy_id)  // 通知前端移除
   }
   
   // 恢复铜偶状态
@@ -755,16 +772,46 @@ fn handle_game_round_pass() -> Unit {
     }
     battle_copper.update_move_and_attack_and_summon_status()
   }
-  // 敌人开始寻找攻击目标
+  
+  // 恢复友方召唤物状态
+  for enemy in enemy_map.values() {
+    if enemy.owned {
+      enemy.can_move = true
+      enemy.can_attack = true
+      enemy.update_move_and_attack_and_summon_status()
+    }
+  }
+  
+  // 野生敌人AI：寻找攻击目标和移动（友方召唤物由玩家控制，不执行AI）
   let enemys = enemy_map.values()
   for enemy in enemys {
+    // 跳过友方召唤物（由玩家控制）
+    if enemy.owned {
+      continue
+    }
+    
     let attack_targets = enemy.get_attack_targets(map)
     // 如果攻击范围内有可以攻击的目标，则直接开始攻击
     if attack_targets.length() > 0 {
       let attack_target = attack_targets[0]
       animate_move(enemy.id)
       match attack_target {
-        Enemy(_) => () // TODO：敌人攻击己方召唤的敌人
+        Enemy(target_enemy) => {
+          // 野生敌人攻击友方召唤物
+          let result = target_enemy.apply_attack(enemy.enemy_base.attack)
+          if result {
+            enemy_map.remove(target_enemy.id)
+            remove_unit(target_enemy.id)
+            map.remove_occupant(target_enemy.position)
+          } else {
+            // 更新友方召唤物血量显示
+            update_health(
+              target_enemy.id,
+              target_enemy.now_health,
+              target_enemy.enemy_base.health,
+            )
+          }
+        }
         Copper(copper) => {
           let result = copper.apply_attack(enemy.enemy_base.attack)
           if result {
@@ -884,44 +931,32 @@ fn handle_on_summon_apply(
   if battle_copper.inventory.check_resource_cost_in_inventory(resource_cost) {
     battle_copper.inventory.consume_resource_cost(resource_cost)
     
-    // 创建召唤铜偶（使用敌人的外观和属性，但作为铜偶逻辑）
-    let summoned_copper = @coppers.create_summoned_copper_from_enemy(
-      enemy_base.name,
-      enemy_base.enemy_type,
-      enemy_base.description,
-      enemy_base.model_url,
-      enemy_base.asset_url,
-      enemy_base.health,
-      enemy_base.attack,
-      enemy_base.defense,
-      enemy_base.dodge,
-      enemy_base.attack_range,
-    )
-    
-    // 创建战斗铜偶（注意：召唤物没有背包，不需要初始资源）
-    let summoned_battle_copper = BattleCopper::new_without_inventory(
-      summoned_copper,
-      summoned_copper.id,
+    // 创建友方召唤物（owned=true 的 Enemy）
+    let summoned_enemy = Enemy::new(
+      enemy_base,
       position,
+      true,  // owned=true 友方召唤物
     )
     
-    // 添加到地图
-    map.add_occupant(position, Occupant::Copper(summoned_battle_copper))
+    // 添加到地图（作为Enemy）
+    map.add_occupant(position, Occupant::Enemy(summoned_enemy))
     
-    // 通知前端创建铜偶模型
-    set_copper(summoned_battle_copper, summoned_battle_copper.id, position)
-    // 显示铜偶血条
-    update_health(
-      summoned_battle_copper.id,
-      summoned_battle_copper.now_health,
-      summoned_battle_copper.copper.attribute.health,
-    )
-    // 显示铜偶状态（绿圈/红圈）
-    summoned_battle_copper.update_move_and_attack_and_summon_status()
+    // 通知前端创建敌人模型（前端会根据model_url加载）
+    // 注意：set_enemy 会在内部完成后自动调用 update_health 显示血条
+    set_enemy(summoned_enemy, summoned_enemy.id, position)
+    // 显示召唤物状态（绿圈/红圈）
+    summoned_enemy.update_move_and_attack_and_summon_status()
     
     // 召唤完成，设置召唤者的召唤状态为 false
     battle_copper.can_summon = false
     battle_copper.update_move_and_attack_and_summon_status()
+    
+    // 清除召唤范围地板块
+    for summon_position in setted_can_summon_blocks {
+      clear_block(summon_position)
+      check_and_reset_block(summon_position, Summon)
+    }
+    setted_can_summon_blocks.clear()
   } else {
     @global_msg.msg_info.broadcast({
       type_msg: "resource_not_enough",

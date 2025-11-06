@@ -52,29 +52,7 @@ fn BattleCopper::new(
 }
 
 ///|
-/// 创建战斗铜偶（没有背包，用于召唤物）
-fn BattleCopper::new_without_inventory(
-  copper : @coppers.Copper,
-  original_id : Int,
-  position : (Int, Int),
-) -> BattleCopper {
-  let inventory = Inventory::new(0) // 召唤物没有背包（0容量）
-  
-  let battle_copper = BattleCopper::{
-    id: @id.id_pool.get_id(),
-    copper,
-    original_id,
-    can_move: false, // 召唤物在当前回合不能移动
-    can_attack: false, // 召唤物在当前回合不能攻击
-    can_summon: false, // 召唤物不能召唤
-    position,
-    now_health: copper.attribute.health,
-    attribute: copper.attribute,
-    inventory,
-  }
-  battle_copper_map.set(battle_copper.id, battle_copper)
-  battle_copper
-}
+// 召唤物现在使用 Enemy 实体而非 BattleCopper
 
 ///|
 fn BattleCopper::apply_attack(
@@ -135,7 +113,10 @@ fn BattleCopper::get_can_attack(
     if map.is_occupy(position) {
       let occupant = map.get_occupant(position)
       if occupant is Enemy(enemy) {
-        can_attack.push(CanAttackTarget::Enemy(enemy))
+        // 铜偶只攻击野生敌人（owned=false），不攻击友方召唤物
+        if enemy.owned == false {
+          can_attack.push(CanAttackTarget::Enemy(enemy))
+        }
       } else if battle_copper.copper.copper_type is Mechanic &&
         occupant is Copper(copper) {
         can_attack.push(CanAttackTarget::Copper(copper))
@@ -207,15 +188,10 @@ fn BattleCopper::update_move_and_attack_and_summon_status(
   copper : BattleCopper,
 ) -> Unit {
   clear_state(copper.id)
-  if copper.can_move {
-    display_can_move(copper.id, true)
-  }
-  if copper.can_attack {
-    display_can_attack(copper.id, true)
-  }
-  if copper.can_summon {
-    display_can_summon(copper.id, true)
-  }
+  // 始终发送状态消息，无论是 true 还是 false,用于修复前端状态显示问题
+  display_can_move(copper.id, copper.can_move)
+  display_can_attack(copper.id, copper.can_attack)
+  display_can_summon(copper.id, copper.can_summon)
 }
 
 ///|
