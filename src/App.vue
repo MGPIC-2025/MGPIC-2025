@@ -1,6 +1,6 @@
 <script setup>
 import log from './log.js';
-import { ref, onMounted, onBeforeUnmount } from 'vue';
+import { ref, onMounted, onBeforeUnmount, nextTick } from 'vue';
 import Hall from './vue/Hall.vue';
 import Warehouse from './vue/Warehouse.vue';
 import TopLeftPanel from './vue/TopLeftPanel.vue';
@@ -163,8 +163,19 @@ function goBack() {
 // 设置：音乐/存档交互占位
 const musicOn = ref(true);
 const fileInput = ref(null);
+const audioRef = ref(null);
+
 function onToggleMusic() {
   musicOn.value = !musicOn.value;
+  if (audioRef.value) {
+    if (musicOn.value) {
+      audioRef.value.play().catch(err => {
+        console.log('播放音乐失败:', err);
+      });
+    } else {
+      audioRef.value.pause();
+    }
+  }
 }
 function onDownloadSave() {
   try {
@@ -203,6 +214,16 @@ onMounted(() => {
   info_subscribe(message => {
     // Messages are handled by messageQueue
   });
+  // 首次启动默认开启音乐，尝试自动播放
+  nextTick(() => {
+    if (musicOn.value && audioRef.value) {
+      audioRef.value.play().catch(err => {
+        // 浏览器可能阻止自动播放，需要用户交互后才能播放
+        // 这会在用户首次点击时自动播放
+        console.log('自动播放音乐失败（需要用户交互）:', err);
+      });
+    }
+  });
 });
 
 // 清理定时器
@@ -210,6 +231,11 @@ onBeforeUnmount(() => {
   if (startMenuDestroyTimer) {
     clearTimeout(startMenuDestroyTimer);
     startMenuDestroyTimer = null;
+  }
+  // 清理音频
+  if (audioRef.value) {
+    audioRef.value.pause();
+    audioRef.value = null;
   }
 });
 </script>
@@ -414,6 +440,15 @@ onBeforeUnmount(() => {
         </div>
       </div>
     </div>
+    <audio
+      ref="audioRef"
+      src="/assets/铜偶的探险.mp3"
+      loop
+      preload="auto"
+      @play="musicOn = true"
+      @pause="musicOn = false"
+      @ended="musicOn = false"
+    ></audio>
   </div>
 </template>
 

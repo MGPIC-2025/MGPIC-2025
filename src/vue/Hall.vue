@@ -27,6 +27,8 @@ const bgStart = ref(getAssetUrl('frontend_resource/start_game.webp'));
 const bgWarehouse = ref(getAssetUrl('frontend_resource/copper_warehouse.webp'));
 const bgWiki = ref(getAssetUrl('frontend_resource/game_wiki.webp'));
 const bgTutorial = ref(getAssetUrl('frontend_resource/Tutorial.webp'));
+// 使用 Vite 的静态资源导入方式
+const bgHall = ref(new URL('../../assets/Gemini_Generated_Image_gtrehogtrehogtre (1).png', import.meta.url).href);
 
 onMounted(async () => {
   try {
@@ -39,6 +41,7 @@ onMounted(async () => {
       bgWarehouse.value,
       bgWiki.value,
       bgTutorial.value,
+      bgHall.value,
     ];
     await Promise.allSettled(
       imageUrls.map(
@@ -65,7 +68,9 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="menu">
+  <div class="hall-container">
+    <div class="hall-bg" :style="{ backgroundImage: `url('${bgHall}')` }"></div>
+    <div class="menu">
     <button
       class="tile tile--start"
       :style="{ backgroundImage: `url('${bgStart}')` }"
@@ -110,10 +115,30 @@ onMounted(async () => {
         <div class="tile__subtitle">Tutorial</div>
       </div>
     </button>
+    </div>
   </div>
 </template>
 
 <style scoped>
+.hall-container {
+  position: relative;
+  width: 100%;
+  height: 100vh;
+  min-height: 100vh;
+  overflow: hidden;
+}
+.hall-bg {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  filter: brightness(0.9);
+  z-index: 0;
+  pointer-events: none;
+}
 .menu {
   position: absolute;
   left: 50%;
@@ -128,6 +153,7 @@ onMounted(async () => {
   pointer-events: auto;
   transform-style: preserve-3d;
   perspective: 900px;
+  z-index: 1;
 }
 .tile {
   position: relative;

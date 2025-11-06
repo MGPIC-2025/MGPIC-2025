@@ -28,6 +28,10 @@ let baseScale = 1.2;
 const isReady = ref(false);
 const showButtons = ref(false);
 const showSettings = ref(false);
+// 背景图（用于预览效果）
+const startBg = ref(
+  new URL('../assets/Gemini_Generated_Image_gtrehogtrehogtre (1).png', import.meta.url).href
+);
 
 // 对外事件（仅对外通知 started；设置改为本地弹层）
 const emit = defineEmits(['started']);
@@ -322,6 +326,9 @@ onBeforeUnmount(() => {
   <div class="startmenu">
     <canvas ref="canvasRef" class="startmenu__canvas" />
 
+    <!-- 背景图片覆盖层（仅用于预览效果） -->
+    <div class="startmenu__bg" :style="{ backgroundImage: `url('${startBg}')` }" />
+
     <div
       class="startmenu-ui"
       v-show="showButtons"
@@ -378,6 +385,17 @@ onBeforeUnmount(() => {
   height: 100%;
   display: block;
   background: #a0a0a0;
+}
+
+.startmenu__bg {
+  position: fixed;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  filter: brightness(0.9);
+  z-index: 10005; /* 高于UI，便于直接查看效果 */
+  pointer-events: none;
 }
 
 .fade-enter-active,

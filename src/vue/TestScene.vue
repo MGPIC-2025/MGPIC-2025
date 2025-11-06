@@ -52,7 +52,7 @@ function updateHealthBarsPosition() {
       // 更新血条位置（跟随模型）
       healthBar.container.position.set(
         model.object.position.x,
-        model.object.position.y + 1.5,
+        model.object.position.y + 1.0,
         model.object.position.z
       );
 
@@ -545,10 +545,14 @@ function setupMessageQueue() {
     const model = models.find(m => m.id === unitId);
     if (!model || !model.object) return;
 
+    // 根据单位类型确定血条颜色：铜偶=绿色，敌人/召唤物=红色
+    const isCopper = model.type === 'copper';
+    const healthColor = isCopper ? 0x00ff00 : 0xff0000;
+
     // 如果血条不存在，创建新的
     if (!healthBars.has(unitId)) {
       const barWidth = 1.0;
-      const barHeight = 0.1;
+      const barHeight = 0.06;
 
       // 创建血条容器
       const container = new THREE.Group();
@@ -556,15 +560,17 @@ function setupMessageQueue() {
       // 创建背景（黑色）
       const bgGeometry = new THREE.PlaneGeometry(barWidth, barHeight);
       const bgMaterial = new THREE.MeshBasicMaterial({
-        color: 0x000000,
+        color: 0xaaaaaa,
         side: THREE.DoubleSide, // 双面渲染
+        transparent: true,
+        opacity: 0.35,
       });
       const background = new THREE.Mesh(bgGeometry, bgMaterial);
 
-      // 创建前景（红色到绿色渐变）
+      // 创建前景（根据单位类型设置颜色）
       const fgGeometry = new THREE.PlaneGeometry(barWidth, barHeight);
       const fgMaterial = new THREE.MeshBasicMaterial({
-        color: 0x00ff00,
+        color: healthColor,
         side: THREE.DoubleSide, // 双面渲染
       });
       const foreground = new THREE.Mesh(fgGeometry, fgMaterial);
@@ -576,7 +582,7 @@ function setupMessageQueue() {
       // 设置血条位置（在模型上方）
       container.position.set(
         model.object.position.x,
-        model.object.position.y + 1.5, // 在模型上方1.5单位
+        model.object.position.y + 1.0, // 在模型上方1.0单位
         model.object.position.z
       );
 
@@ -596,21 +602,15 @@ function setupMessageQueue() {
     healthBar.foreground.scale.x = healthPercent;
     healthBar.foreground.position.x = (-barWidth / 2) * (1 - healthPercent);
 
-    // 根据血量百分比更新颜色（绿->黄->红）
-    if (healthPercent > 0.5) {
-      // 绿色到黄色
-      const t = (1 - healthPercent) * 2;
-      healthBar.foreground.material.color.setRGB(t, 1, 0);
-    } else {
-      // 黄色到红色
-      const t = healthPercent * 2;
-      healthBar.foreground.material.color.setRGB(1, t, 0);
+    // 根据单位类型设置颜色
+    if (healthBar.foreground.material && healthBar.foreground.material.color) {
+      healthBar.foreground.material.color.setHex(healthColor);
     }
 
     // 更新血条位置（跟随模型）
     healthBar.container.position.set(
       model.object.position.x,
-      model.object.position.y + 1.5,
+      model.object.position.y + 1.0,
       model.object.position.z
     );
 
@@ -2165,15 +2165,6 @@ function endRound() {
   <div class="test-scene">
     <div ref="container" class="scene-container"></div>
 
-    <!-- 返回按钮 -->
-    <button
-      class="back-btn"
-      @click="goBack"
-      :title="isGameMode ? '返回大厅' : '返回主菜单'"
-    >
-      ← {{ isGameMode ? '返回大厅' : '返回' }}
-    </button>
-
     <!-- 测试面板（仅测试模式显示） -->
     <TestPanel v-if="!isGameMode" />
 
@@ -2261,28 +2252,6 @@ function endRound() {
 .scene-container {
   width: 100%;
   height: 100%;
-}
-
-.back-btn {
-  position: fixed;
-  top: 20px;
-  left: 20px;
-  padding: 12px 24px;
-  background: rgba(58, 37, 25, 0.9);
-  color: white;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 12px;
-  font-size: 16px;
-  font-weight: 600;
-  cursor: pointer;
-  z-index: 10000;
-  backdrop-filter: blur(10px);
-  transition: all 0.2s ease;
-}
-
-.back-btn:hover {
-  background: rgba(75, 46, 31, 0.9);
-  transform: translateX(-2px);
 }
 
 .info-panel {

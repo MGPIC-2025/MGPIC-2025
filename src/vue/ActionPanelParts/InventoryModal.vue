@@ -182,24 +182,7 @@ function handleTransferTo(target) {
         </div>
       </div>
 
-      <!-- 底部快捷栏 -->
-      <div class="hotbar-section" v-if="inventoryItems.length > 0">
-        <div class="hotbar-grid">
-          <div
-            v-for="(item, index) in inventoryItems.slice(0, 9)"
-            :key="index"
-            class="hotbar-slot"
-          >
-            <img
-              v-if="getItemIcon(item)"
-              :src="getItemIcon(item)"
-              class="slot-icon"
-            />
-            <div class="slot-count" :style="{ color: '#4488ff' }">{{ item.count || 1 }}</div>
-            <div class="hotbar-name">{{ getItemName(item) }}</div>
-          </div>
-        </div>
-      </div>
+      
     </div>
   </div>
 </template>
@@ -249,7 +232,7 @@ function handleTransferTo(target) {
 }
 
 .copper-name {
-  color: #6a4931;
+  color: #fff;
 }
 
 .close-btn-mc {
@@ -556,58 +539,7 @@ function handleTransferTo(target) {
 }
 
 /* 快捷栏 */
-.hotbar-section {
-  border-top: 4px solid #555;
-  padding-top: 8px;
-}
-
-.hotbar-grid {
-  display: grid;
-  grid-template-columns: repeat(9, 36px);
-  gap: 4px;
-  justify-content: center;
-}
-
-.hotbar-slot {
-  width: 36px;
-  height: 36px;
-  background: #8b7d6b;
-  border: 2px solid #6b5d4a;
-  border-right-color: #a0896b;
-  border-bottom-color: #a0896b;
-  position: relative;
-  cursor: pointer;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-}
-
-.hotbar-slot:hover {
-  background: #9d8771;
-  transform: scale(1.1);
-}
-
-.hotbar-name {
-  position: absolute;
-  bottom: -22px;
-  left: 50%;
-  transform: translateX(-50%);
-  font-size: 9px;
-  color: #fef7f5;
-  white-space: nowrap;
-  background: rgba(0, 0, 0, 0.7);
-  padding: 2px 4px;
-  border-radius: 2px;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.2s;
-  z-index: 10;
-}
-
-.hotbar-slot:hover .hotbar-name {
-  opacity: 1;
-}
+ 
 
 @keyframes fadeIn {
   from {
