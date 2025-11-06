@@ -72,8 +72,15 @@ const copperInfo = computed(() => {
 async function handleMove() {
   if (!copperInfo.value.canMove) return;
   log('[ActionPanel] 请求移动范围');
+  
+  // 判断是铜偶还是友方召唤物
+  const isOwnedEnemy = props.copper.isOwnedEnemy === true;
+  const eventType = isOwnedEnemy ? 'on_enemy_move_start' : 'on_move_start';
+  
+  log(`[ActionPanel] 单位类型: ${isOwnedEnemy ? '友方召唤物' : '铜偶'}, 事件: ${eventType}`);
+  
   const message = JSON.stringify({
-    type: 'on_move_start',
+    type: eventType,
     content: { id: String(copperInfo.value.id) },
   });
   await eventloop(message);
@@ -93,8 +100,15 @@ async function handleAttack() {
     return;
   }
   log('[ActionPanel] 请求攻击范围');
+  
+  // 判断是铜偶还是友方召唤物
+  const isOwnedEnemy = props.copper.isOwnedEnemy === true;
+  const eventType = isOwnedEnemy ? 'on_enemy_attack_start' : 'on_attack_start';
+  
+  log(`[ActionPanel] 单位类型: ${isOwnedEnemy ? '友方召唤物' : '铜偶'}, 事件: ${eventType}`);
+  
   const message = JSON.stringify({
-    type: 'on_attack_start',
+    type: eventType,
     content: { id: String(copperInfo.value.id) },
   });
   await eventloop(message);
@@ -226,8 +240,12 @@ async function handleInventoryTransfer(index) {
 }
 
 async function refreshCopperState() {
+  // 判断是铜偶还是友方召唤物，发送不同的事件
+  const isOwnedEnemy = props.copper.isOwnedEnemy === true;
+  const eventType = isOwnedEnemy ? 'on_click_enemy' : 'on_click_copper';
+  
   const message = JSON.stringify({
-    type: 'on_click_copper',
+    type: eventType,
     content: { id: String(copperInfo.value.id) },
   });
   await eventloop(message);
@@ -397,8 +415,9 @@ defineExpose({ cancelAction, handleSelectCopper });
       </template>
     </div>
 
-    <!-- 操作三角图标 -->
+    <!-- 操作三角图标（野生敌人不显示操作按钮） -->
     <TriPanel
+      v-if="!props.copper.isEnemy"
       :can-move="copperInfo?.canMove !== false"
       :can-attack="copperInfo?.canAttack !== false"
       :can-summon="copperInfo?.canSummon !== false"
@@ -407,6 +426,11 @@ defineExpose({ cancelAction, handleSelectCopper });
       @attack="handleAttack"
       @summon="handleSummon"
     />
+    
+    <!-- 野生敌人提示 -->
+    <div v-if="props.copper.isEnemy" class="enemy-info-tip">
+      <span>🔍 查看模式（敌人单位）</span>
+    </div>
   </div>
 
   <!-- 背包弹窗 -->
