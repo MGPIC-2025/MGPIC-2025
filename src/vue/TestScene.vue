@@ -639,11 +639,11 @@ function setupMessageQueue() {
   // 高亮选中的铜偶
   let selectedCopperId = null;
   const highlightSelectedCopper = copperId => {
-    // 清除旧的高亮
+    // 清除所有模型的高亮（包括铜偶、召唤物、敌人）
     models.forEach(model => {
-      if (model.type === 'copper') {
+      if (model.object) {
         model.object.scale.set(1, 1, 1);
-        // 遍历所有子对象设置材质
+        // 遍历所有子对象清除高亮
         model.object.traverse(child => {
           if (child.material) {
             child.material.emissive?.setHex(0x000000);
@@ -668,7 +668,8 @@ function setupMessageQueue() {
           }
         });
         selectedCopperId = copperId;
-        log(`[TestScene] 高亮铜偶: ${model.name} (ID=${copperId})`);
+        const unitType = model.type === 'summon' ? '召唤物' : (model.type === 'copper' ? '铜偶' : '敌人');
+        log(`[TestScene] 高亮${unitType}: ${model.name} (ID=${copperId})`);
       }
     } else {
       selectedCopperId = null;
@@ -887,10 +888,18 @@ function setupMessageQueue() {
         copperActionPanelRef.value.cancelAction();
       }
 
-      // 重新获取铜偶最新状态，然后判断是否切换
+      // 重新获取单位最新状态，然后判断是否切换
       setTimeout(async () => {
-        // 重新点击当前铜偶获取最新状态
-        await handleClickCopper(id);
+        // 判断是铜偶还是友方召唤物
+        const model = models.find(m => m.id === id);
+        const isSummon = model?.type === 'summon';
+        
+        // 重新点击当前单位获取最新状态
+        if (isSummon) {
+          await handleClickEnemy(id, false);
+        } else {
+          await handleClickCopper(id);
+        }
 
         // 等待状态更新后再判断是否切换
         setTimeout(() => {
@@ -971,10 +980,18 @@ function setupMessageQueue() {
         copperActionPanelRef.value.cancelAction();
       }
 
-      // 重新获取铜偶最新状态，然后判断是否切换
+      // 重新获取单位最新状态，然后判断是否切换
       setTimeout(async () => {
-        // 重新点击当前铜偶获取最新状态
-        await handleClickCopper(id);
+        // 判断是铜偶还是友方召唤物
+        const model = models.find(m => m.id === id);
+        const isSummon = model?.type === 'summon';
+        
+        // 重新点击当前单位获取最新状态
+        if (isSummon) {
+          await handleClickEnemy(id, false);
+        } else {
+          await handleClickCopper(id);
+        }
 
         // 等待状态更新后再判断是否切换
         setTimeout(() => {
@@ -1188,7 +1205,8 @@ function setupMessageQueue() {
     onSetEnemy: async (id, position, enemy) => {
       // 使用后端传递的实际 enemy.id
       const actualId = enemy.id;
-      log(`[TestScene] 创建敌人模型: id=${actualId}, pos=${position}`);
+      const isOwned = enemy.owned || false; // 是否为友方召唤物
+      log(`[TestScene] 创建敌人模型: id=${actualId}, pos=${position}, owned=${isOwned}`);
 
       // 检查是否已存在
       const existing = models.find(m => m.id === actualId);
@@ -1224,9 +1242,19 @@ function setupMessageQueue() {
       if (!obj) {
         log(`[TestScene] 使用备用立方体代替敌人模型: ${enemyName}`);
         const geometry = new THREE.BoxGeometry(0.8, 0.8, 0.8);
-        const material = new THREE.MeshStandardMaterial({ color: 0xff0000 });
+        const material = new THREE.MeshStandardMaterial({ color: isOwned ? 0x4444ff : 0xff0000 }); // 友方蓝色，敌方红色
         obj = new THREE.Mesh(geometry, material);
         obj.position.set(position[0], 0.4, position[1]);
+      }
+
+      // 如果是友方召唤物，添加蓝色点光源
+      if (isOwned && obj) {
+        const box = new THREE.Box3().setFromObject(obj);
+        const size = box.getSize(new THREE.Vector3());
+        const pointLight = new THREE.PointLight(0x4444ff, 2.5, 12);
+        pointLight.position.set(0, size.y * modelScale * 0.8, 0);
+        obj.add(pointLight);
+        log(`[TestScene] 友方召唤物添加蓝色光源: ${enemyName}`);
       }
 
       obj.userData.modelId = actualId; // 设置ID以便点击检测
@@ -1236,11 +1264,28 @@ function setupMessageQueue() {
         id: actualId,
         object: obj,
         name: enemy.enemy_base?.enemy_type || `Enemy_${actualId}`,
-        type: 'enemy',
+        type: isOwned ? 'summon' : 'enemy', // 友方召唤物标记为summon
       });
 
+      // 创建血条（所有敌人和召唤物都需要）
+      if (enemy.now_health !== undefined && enemy.enemy_base?.health !== undefined) {
+        createOrUpdateHealthBar(actualId, enemy.now_health, enemy.enemy_base.health);
+        log(`[TestScene] 创建血条: ${enemyName} (${enemy.now_health}/${enemy.enemy_base.health})`);
+      }
+
+      // 如果是友方召唤物，添加到playerCoppers列表（使其可被操控）
+      if (isOwned) {
+        playerCoppers.value.push({
+          id: actualId,
+          name: enemy.enemy_base?.name || enemyName,
+          type: 'summon',
+          enemy: enemy, // 保存完整的enemy数据
+        });
+        log(`[TestScene] 友方召唤物添加到操控列表: ${enemyName} (ID=${actualId})`);
+      }
+
       log(
-        `[TestScene] 敌人创建成功: ${enemy.enemy_base?.enemy_type || actualId}`
+        `[TestScene] 敌人创建成功: ${enemy.enemy_base?.enemy_type || actualId}, owned=${isOwned}`
       );
     },
     onSetMaterial: async (id, position, material) => {
@@ -1708,9 +1753,9 @@ function onSceneClick(event) {
     return;
   }
 
-  // 检测铜偶点击
+  // 检测可点击单位（铜偶、友方召唤物、野生敌人）
   const clickableObjects = models
-    .filter(m => m.type === 'copper' && m.object)
+    .filter(m => (m.type === 'copper' || m.type === 'summon' || m.type === 'enemy') && m.object)
     .map(m => m.object);
 
   const intersects = raycaster.intersectObjects(clickableObjects, true);
@@ -1724,9 +1769,22 @@ function onSceneClick(event) {
 
     const modelId = clickedObject.userData.modelId;
     if (modelId !== undefined) {
-      log('[TestScene] 点击铜偶，ID:', modelId);
-      // 发送点击事件到后端
+      const model = models.find(m => m.id === modelId);
+      const unitTypeMap = {
+        'copper': '铜偶',
+        'summon': '友方召唤物',
+        'enemy': '野生敌人'
+      };
+      const unitType = unitTypeMap[model?.type] || '未知单位';
+      log(`[TestScene] 点击${unitType}，ID:`, modelId);
+      
+      // 根据单位类型分别处理
+      if (model?.type === 'summon' || model?.type === 'enemy') {
+        // 友方召唤物和野生敌人都调用handleClickEnemy
+        handleClickEnemy(modelId, model?.type === 'enemy');
+      } else {
       handleClickCopper(modelId);
+      }
     }
   } else {
     // 点击空白处，关闭面板
@@ -1765,9 +1823,14 @@ async function handleFloorClick(mousePos) {
 async function handleMoveApply(x, z) {
   if (!selectedCopper.value) return;
 
-  log(`[TestScene] 请求移动到: (${x}, ${z})`);
+  // 判断是铜偶还是友方召唤物
+  const isOwnedEnemy = selectedCopper.value.isOwnedEnemy === true;
+  const eventType = isOwnedEnemy ? 'on_enemy_move_apply' : 'on_move_apply';
+  
+  log(`[TestScene] 请求移动到: (${x}, ${z}), 单位类型=${isOwnedEnemy ? '友方召唤物' : '铜偶'}, 事件=${eventType}`);
+  
   const message = JSON.stringify({
-    type: 'on_move_apply',
+    type: eventType,
     content: {
       id: String(selectedCopper.value.id),
       position: { x: String(x), y: String(z) },
@@ -1782,9 +1845,14 @@ async function handleMoveApply(x, z) {
 async function handleAttackApply(x, z) {
   if (!selectedCopper.value) return;
 
-  log(`[TestScene] 请求攻击位置: (${x}, ${z})`);
+  // 判断是铜偶还是友方召唤物
+  const isOwnedEnemy = selectedCopper.value.isOwnedEnemy === true;
+  const eventType = isOwnedEnemy ? 'on_enemy_attack_apply' : 'on_attack_apply';
+  
+  log(`[TestScene] 请求攻击位置: (${x}, ${z}), 单位类型=${isOwnedEnemy ? '友方召唤物' : '铜偶'}, 事件=${eventType}`);
+  
   const message = JSON.stringify({
-    type: 'on_attack_apply',
+    type: eventType,
     content: {
       id: String(selectedCopper.value.id),
       position: { x: String(x), y: String(z) },
@@ -1884,6 +1952,23 @@ async function handleClickCopper(copperId) {
   const message = JSON.stringify({
     type: 'on_click_copper',
     content: { id: String(copperId) },
+  });
+  await eventloop(message);
+}
+
+// 处理点击友方召唤物或野生敌人
+async function handleClickEnemy(enemyId, isWildEnemy = false) {
+  // 只有友方召唤物才更新索引（野生敌人不在playerCoppers列表中）
+  if (!isWildEnemy) {
+    const index = playerCoppers.value.findIndex(c => c.id === enemyId);
+    if (index !== -1) {
+      currentCopperIndex.value = index;
+    }
+  }
+
+  const message = JSON.stringify({
+    type: 'on_click_enemy',
+    content: { id: String(enemyId) },
   });
   await eventloop(message);
 }
@@ -2002,10 +2087,18 @@ async function nextCopper() {
       }/${maxAttempts})`
     );
 
-    // 点击铜偶获取最新状态
+    // 点击单位获取最新状态（根据类型选择正确的函数）
     await new Promise(resolve => {
       setTimeout(async () => {
-        await handleClickCopper(nextCopper.id);
+        // 判断是铜偶还是友方召唤物
+        const model = models.find(m => m.id === nextCopper.id);
+        const isSummon = model?.type === 'summon';
+        
+        if (isSummon) {
+          await handleClickEnemy(nextCopper.id, false);
+        } else {
+          await handleClickCopper(nextCopper.id);
+        }
         resolve();
       }, 300);
     });

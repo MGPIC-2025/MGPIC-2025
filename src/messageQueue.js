@@ -120,7 +120,7 @@ export function registerAllHandlers() {
         } (ID=${copper.id})`
       );
       log(
-        `[Handler] 铜偶状态: HP=${copper.now_health}/${copper.copper.attribute.health}, 可移动=${copper.can_move}, 可攻击=${copper.can_attack}, 有攻击目标=${has_attack_targets}`
+        `[Handler] 铜偶状态: HP=${copper.now_health}/${copper.copper.attribute.health}, 可移动=${copper.can_move}, 可攻击=${copper.can_attack}, 可召唤=${copper.can_summon}, 有攻击目标=${has_attack_targets}`
       );
 
       // 高亮选中的铜偶
@@ -131,6 +131,62 @@ export function registerAllHandlers() {
       // 显示铜偶信息面板
       if (context.onShowCopperInfo) {
         context.onShowCopperInfo(copper, resources, has_attack_targets);
+      }
+    }
+  );
+
+  // handle_on_click_enemy: 当敌人被点击时（友方召唤物或野生敌人），后端返回敌人信息
+  messageQueue.registerHandler(
+    'handle_on_click_enemy',
+    async (data, context) => {
+      const { enemy, resources, has_attack_targets } = data;
+      const isOwned = enemy.owned || false;
+      const enemyType = isOwned ? '友方召唤物' : '野生敌人';
+      
+      log(
+        `[Handler] 点击${enemyType}: ${
+          enemy.enemy_base?.name || 'Unknown'
+        } (ID=${enemy.id})`
+      );
+      log(
+        `[Handler] 状态: HP=${enemy.now_health}/${enemy.enemy_base.health}, 可移动=${enemy.can_move}, 可攻击=${enemy.can_attack}, owned=${enemy.owned}, 有攻击目标=${has_attack_targets}`
+      );
+
+      // 将enemy数据转换为类似copper的格式，以便前端处理
+      const copperLikeData = {
+        id: enemy.id,
+        now_health: enemy.now_health,
+        // 野生敌人不可操控，所有操作都设为false
+        can_move: isOwned ? enemy.can_move : false,
+        can_attack: isOwned ? enemy.can_attack : false,
+        can_summon: false,
+        position: enemy.position,
+        isEnemy: !isOwned, // 标记为野生敌人（只读模式）
+        isOwnedEnemy: isOwned, // 标记为友方召唤物（用于判断事件类型）
+        copper: {
+          copper_info: {
+            name: enemy.enemy_base?.name || (isOwned ? '召唤物' : '敌人'),
+          },
+          attribute: {
+            health: enemy.enemy_base.health,
+            attack: enemy.enemy_base.attack,
+            defense: enemy.enemy_base.defense,
+          },
+        },
+        inventory: {
+          items: [],
+          capacity: 0,
+        },
+      };
+
+    // 高亮选中的单位（所有单位都可以高亮，用于表示用户正在查看哪个单位）
+    if (context.highlightSelectedCopper) {
+      context.highlightSelectedCopper(enemy.id);
+    }
+
+      // 显示信息面板
+      if (context.onShowCopperInfo) {
+        context.onShowCopperInfo(copperLikeData, resources, has_attack_targets);
       }
     }
   );
