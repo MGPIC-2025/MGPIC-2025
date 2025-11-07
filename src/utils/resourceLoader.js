@@ -690,6 +690,15 @@ export function getResourceModelUrl(resourceName) {
 }
 
 /**
+ * 获取矿物模型 URL
+ * @param {string} modelUrl - 矿物模型相对路径（如 "assets/refined_copper_ingot/refined_copper_ingot.glb"）
+ * @returns {string} 模型 URL
+ */
+export function getMaterialModelUrl(modelUrl) {
+  return getAssetUrl(modelUrl);
+}
+
+/**
  * 获取装备图标 URL
  * @param {string} equipmentName - 装备名称
  * @returns {string} 图标 URL

@@ -96,7 +96,9 @@ function getEnemyTypeLabel(type) {
                   <span class="enemy-name">{{ enemy.name }}</span>
                   <span class="enemy-level">Lv.{{ enemy.level }}</span>
                 </div>
-                <span class="enemy-type">{{ getEnemyTypeLabel(enemy.enemy_type) }}</span>
+                <span class="enemy-type">{{
+                  getEnemyTypeLabel(enemy.enemy_type)
+                }}</span>
               </div>
 
               <div class="enemy-stats">
@@ -124,7 +126,10 @@ function getEnemyTypeLabel(type) {
 
               <div class="enemy-desc">{{ enemy.description }}</div>
 
-              <div v-if="selectedEnemy?.name === enemy.name" class="selected-badge">
+              <div
+                v-if="selectedEnemy?.name === enemy.name"
+                class="selected-badge"
+              >
                 ✓ 已选择
               </div>
             </div>
@@ -441,4 +446,3 @@ function getEnemyTypeLabel(type) {
   background: rgba(255, 200, 100, 0.5);
 }
 </style>
-

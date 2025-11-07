@@ -54,7 +54,7 @@ fn remove_unit(id : Int) -> Unit {
 }
 
 ///|
-enum UnitDirection {
+priv enum UnitDirection {
   PositiveX
   NegativeX
   PositiveY

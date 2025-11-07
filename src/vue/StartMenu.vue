@@ -30,7 +30,10 @@ const showButtons = ref(false);
 const showSettings = ref(false);
 // 背景图（用于预览效果）
 const startBg = ref(
-  new URL('../assets/Gemini_Generated_Image_gtrehogtrehogtre (1).png', import.meta.url).href
+  new URL(
+    '../assets/Gemini_Generated_Image_gtrehogtrehogtre (1).png',
+    import.meta.url
+  ).href
 );
 
 // 对外事件（仅对外通知 started；设置改为本地弹层）
@@ -327,7 +330,10 @@ onBeforeUnmount(() => {
     <canvas ref="canvasRef" class="startmenu__canvas" />
 
     <!-- 背景图片覆盖层（仅用于预览效果） -->
-    <div class="startmenu__bg" :style="{ backgroundImage: `url('${startBg}')` }" />
+    <div
+      class="startmenu__bg"
+      :style="{ backgroundImage: `url('${startBg}')` }"
+    />
 
     <div
       class="startmenu-ui"

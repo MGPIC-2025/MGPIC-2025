@@ -2,7 +2,7 @@
 let battle_copper_map : Map[Int, BattleCopper] = Map::new()
 
 ///|
-struct BattleCopper {
+priv struct BattleCopper {
   id : Int
   original_id : Int
   copper : @coppers.Copper
@@ -34,7 +34,6 @@ fn BattleCopper::new(
   let inventory = Inventory::new(5)
   // 给铜偶初始背包添加一些心源火花用于召唤
   inventory.add_item(Item::new(Resource(@resource.SpiritalSpark), count=5))
-  
   let battle_copper = BattleCopper::{
     id: @id.id_pool.get_id(),
     copper,
@@ -88,12 +87,13 @@ fn BattleCopper::get_attack_range(battle_copper : BattleCopper) -> Int {
   // 优先使用 copper_info 中的自定义攻击范围（用于召唤物）
   match battle_copper.copper.copper_info.attack_range {
     Some(range) => range
-    None => match battle_copper.copper.copper_type {
-      IronWall => 1
-      Arcanist => 3
-      Mechanic => 1
-      Resonator | CraftsMan => 0 // 无攻击能力的单位返回0（会生成空攻击范围）
-    }
+    None =>
+      match battle_copper.copper.copper_type {
+        IronWall => 1
+        Arcanist => 3
+        Mechanic => 1
+        Resonator | CraftsMan => 0 // 无攻击能力的单位返回0（会生成空攻击范围）
+      }
   }
 }
 

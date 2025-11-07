@@ -2,7 +2,7 @@
 let enemy_map : Map[Int, Enemy] = {}
 
 ///|
-struct Enemy {
+priv struct Enemy {
   id : Int
   owned : Bool // true=友方召唤物，false=野生敌人
   mut summon_rounds_left : Int // 召唤物剩余回合数，-1表示永久（野生敌人）
@@ -42,9 +42,13 @@ fn Enemy::new(
     id: @id.id_pool.get_id(),
     position,
     owned,
-    summon_rounds_left: if owned { 2 } else { -1 }, // 召唤物2回合，野生敌人永久
-    can_move: false,    // 召唤出来的第一回合不能移动，等到下一回合才恢复
-    can_attack: false,  // 召唤出来的第一回合不能攻击，等到下一回合才恢复
+    summon_rounds_left: if owned {
+      2
+    } else {
+      -1
+    }, // 召唤物2回合，野生敌人永久
+    can_move: false, // 召唤出来的第一回合不能移动，等到下一回合才恢复
+    can_attack: false, // 召唤出来的第一回合不能攻击，等到下一回合才恢复
     now_health: enemy_base.health,
     enemy_base,
   }
@@ -96,13 +100,11 @@ fn Enemy::get_attack_targets(
         if occupant is Enemy(target_enemy) && target_enemy.owned == false {
           can_attack.push(CanAttackTarget::Enemy(target_enemy))
         }
-      } else {
         // 野生敌人：攻击铜偶和友方召唤物（owned=true）
-        if occupant is Copper(copper) {
-          can_attack.push(CanAttackTarget::Copper(copper))
-        } else if occupant is Enemy(target_enemy) && target_enemy.owned {
-          can_attack.push(CanAttackTarget::Enemy(target_enemy))
-        }
+      } else if occupant is Copper(copper) {
+        can_attack.push(CanAttackTarget::Copper(copper))
+      } else if occupant is Enemy(target_enemy) && target_enemy.owned {
+        can_attack.push(CanAttackTarget::Enemy(target_enemy))
       }
     }
   }
@@ -120,13 +122,12 @@ fn Enemy::get_attack_targets(
 fn Enemy::find_nearest_attack_target(enemy : Enemy) -> CanAttackTarget? {
   let position_list = []
   let (self_x, self_y) = enemy.position
-  
   if enemy.owned {
     // 友方召唤物：用户操控，不执行AI
     // for other_enemy in enemy_map.values() {
-      // if other_enemy.id != enemy.id && other_enemy.owned == false {
-      //   position_list.push((other_enemy.position, CanAttackTarget::Enemy(other_enemy)))
-      // }
+    // if other_enemy.id != enemy.id && other_enemy.owned == false {
+    //   position_list.push((other_enemy.position, CanAttackTarget::Enemy(other_enemy)))
+    // }
     // }
   } else {
     // 野生敌人：寻找最近的铜偶或友方召唤物
@@ -136,11 +137,12 @@ fn Enemy::find_nearest_attack_target(enemy : Enemy) -> CanAttackTarget? {
     }
     for other_enemy in enemy_map.values() {
       if other_enemy.id != enemy.id && other_enemy.owned {
-        position_list.push((other_enemy.position, CanAttackTarget::Enemy(other_enemy)))
+        position_list.push(
+          (other_enemy.position, CanAttackTarget::Enemy(other_enemy)),
+        )
       }
     }
   }
-  
   let mut min_distance = 1000000000
   let mut nearest_target = None
   for position in position_list {

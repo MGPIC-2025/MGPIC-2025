@@ -1,5 +1,5 @@
 ///|
-struct Room {
+priv struct Room {
   index_position : (Int, Int)
   blocks : Array[Array[MapBlock]]
 }
@@ -50,7 +50,9 @@ fn Room::new(
   }
 
   // 中心点设置为怪物生成器
-  blocks[7][7].occupant = ChargingCoil
+  blocks[7][7].occupant = Structure(
+    @structure.Structure::new(@structure.structure_map["充能线圈"]),
+  )
   for i in 0..<default_enemy_count[level] {
     let enemy = summon_enemy(level)
     let position = sumoon_postion(escape_set)
@@ -65,23 +67,19 @@ fn Room::new(
     )
   }
   // 生成 RefinedCopperIngot
-  if @rand.check_probability(0.5) {
+  if @rand.check_probability(0.7) {
+    println("生成精炼铜锭")
     let position = sumoon_postion(escape_set)
     escape_set.add(position)
-    blocks[position.0][position.1].resources.push(
-      Item::new(Resource(@resource.RefinedCopper), count=1),
-    )
     blocks[position.0][position.1].occupant = Occupant::Material(
       Material::new(refined_copper_ingot),
     )
   }
   // 生成 ResonantStarCrystal
-  if @rand.check_probability(0.5) {
+  if @rand.check_probability(0.7) {
+    println("生成共鸣星晶")
     let position = sumoon_postion(escape_set)
     escape_set.add(position)
-    blocks[position.0][position.1].resources.push(
-      Item::new(Resource(@resource.ResonantCrystal), count=1),
-    )
     blocks[position.0][position.1].occupant = Occupant::Material(
       Material::new(resonant_star_crystal),
     )

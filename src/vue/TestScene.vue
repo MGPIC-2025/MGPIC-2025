@@ -11,7 +11,7 @@ import {
   getCopperModelUrl,
   getEnemyModelUrl,
   getStructureModelUrl,
-  getResourceModelUrl,
+  getMaterialModelUrl,
 } from '../utils/resourceLoader.js';
 import modelCache from '../utils/modelCache.js';
 import {
@@ -379,7 +379,12 @@ async function loadGLTFModel(copperType, copperName, position, scale = 1.0) {
 }
 
 // 辅助函数：加载敌人模型（使用全局缓存）
-async function loadModelFromUrl(modelUrl, position, scale = 1.0, name = 'model') {
+async function loadModelFromUrl(
+  modelUrl,
+  position,
+  scale = 1.0,
+  name = 'model'
+) {
   try {
     // 使用全局模型缓存管理器
     const cachedModel = await modelCache.loadModel(modelUrl, true);
@@ -513,7 +518,7 @@ function setupMessageQueue() {
       scene.remove(indicators[type]);
       indicators[type].geometry.dispose();
       indicators[type].material.dispose();
-      delete indicators[type];  // 使用 delete 而不是 = null
+      delete indicators[type]; // 使用 delete 而不是 = null
     }
 
     // 创建新指示器
@@ -668,7 +673,12 @@ function setupMessageQueue() {
           }
         });
         selectedCopperId = copperId;
-        const unitType = model.type === 'summon' ? '召唤物' : (model.type === 'copper' ? '铜偶' : '敌人');
+        const unitType =
+          model.type === 'summon'
+            ? '召唤物'
+            : model.type === 'copper'
+              ? '铜偶'
+              : '敌人';
         log(`[TestScene] 高亮${unitType}: ${model.name} (ID=${copperId})`);
       }
     } else {
@@ -893,7 +903,7 @@ function setupMessageQueue() {
         // 判断是铜偶还是友方召唤物
         const model = models.find(m => m.id === id);
         const isSummon = model?.type === 'summon';
-        
+
         // 重新点击当前单位获取最新状态
         if (isSummon) {
           await handleClickEnemy(id, false);
@@ -904,7 +914,10 @@ function setupMessageQueue() {
         // 等待状态更新后再判断是否切换
         setTimeout(() => {
           // 如果有地面物品，不自动跳转（让玩家拾取）
-          if (selectedCopperResources.value && selectedCopperResources.value.length > 0) {
+          if (
+            selectedCopperResources.value &&
+            selectedCopperResources.value.length > 0
+          ) {
             log('[TestScene] 检测到地面物品，不自动跳转');
             return;
           }
@@ -919,14 +932,14 @@ function setupMessageQueue() {
       alert(message);
     },
     // 资源不足回调
-    onResourceNotEnough: (message) => {
+    onResourceNotEnough: message => {
       log(`[TestScene] 资源不足: ${message}`);
       alert(`❌ ${message}\n\n召唤需要消耗 1 个心源火花 (SpiritalSpark)`);
       // 清除召唤模式
       currentActionMode.value = null;
     },
     // 召唤失败回调
-    onSummonFailed: (message) => {
+    onSummonFailed: message => {
       log(`[TestScene] 召唤失败: ${message}`);
       alert(`❌ ${message}`);
       // 清除召唤模式
@@ -935,7 +948,7 @@ function setupMessageQueue() {
       summonPosition.value = null;
     },
     // 显示召唤菜单回调
-    onShowSummonMenu: (contents) => {
+    onShowSummonMenu: contents => {
       log(`[TestScene] 收到敌人列表:`, contents);
       enemyList.value = contents || [];
     },
@@ -985,7 +998,7 @@ function setupMessageQueue() {
         // 判断是铜偶还是友方召唤物
         const model = models.find(m => m.id === id);
         const isSummon = model?.type === 'summon';
-        
+
         // 重新点击当前单位获取最新状态
         if (isSummon) {
           await handleClickEnemy(id, false);
@@ -996,7 +1009,10 @@ function setupMessageQueue() {
         // 等待状态更新后再判断是否切换
         setTimeout(() => {
           // 如果有地面物品，不自动跳转（让玩家拾取）
-          if (selectedCopperResources.value && selectedCopperResources.value.length > 0) {
+          if (
+            selectedCopperResources.value &&
+            selectedCopperResources.value.length > 0
+          ) {
             log('[TestScene] 检测到地面物品，不自动跳转');
             return;
           }
@@ -1019,23 +1035,34 @@ function setupMessageQueue() {
           if (m.type === 'copper' && m.object) {
             const pos = m.object.position;
             // 检查位置是否匹配（允许小误差）
-            return Math.abs(pos.x - position[0]) < 0.1 && 
-                   Math.abs(pos.z - position[1]) < 0.1;
+            return (
+              Math.abs(pos.x - position[0]) < 0.1 &&
+              Math.abs(pos.z - position[1]) < 0.1
+            );
           }
           return false;
         });
         if (targetCopper) {
           // 从 playerCoppers 中查找详细信息
-          const copperInfo = playerCoppers.value.find(c => c.id === targetCopper.id);
+          const copperInfo = playerCoppers.value.find(
+            c => c.id === targetCopper.id
+          );
           // 检查是否已存在
-          const existing = transferTargets.value.find(t => t.id === targetCopper.id);
+          const existing = transferTargets.value.find(
+            t => t.id === targetCopper.id
+          );
           if (!existing) {
             transferTargets.value.push({
               id: targetCopper.id,
-              name: targetCopper.name || (copperInfo ? copperInfo.name : `铜偶 #${targetCopper.id}`) || `铜偶 #${targetCopper.id}`,
+              name:
+                targetCopper.name ||
+                (copperInfo ? copperInfo.name : `铜偶 #${targetCopper.id}`) ||
+                `铜偶 #${targetCopper.id}`,
               position: position,
             });
-            log(`[TestScene] 找到传递目标: ${targetCopper.name || targetCopper.id} (ID=${targetCopper.id}), 总目标数=${transferTargets.value.length}`);
+            log(
+              `[TestScene] 找到传递目标: ${targetCopper.name || targetCopper.id} (ID=${targetCopper.id}), 总目标数=${transferTargets.value.length}`
+            );
           }
         } else {
           log(`[TestScene] 传递位置 ${position} 未找到对应铜偶`);
@@ -1122,19 +1149,26 @@ function setupMessageQueue() {
       if (modelUrl && modelUrl.includes('/enemy/')) {
         // 转换为R2 CDN URL
         const cdnModelUrl = getAssetUrl(modelUrl);
-        log(`[TestScene] 召唤物：使用敌人模型URL加载: ${modelUrl} -> ${cdnModelUrl}`);
-        obj = await loadModelFromUrl(cdnModelUrl, position, modelScale, copperChineseName);
-        
+        log(
+          `[TestScene] 召唤物：使用敌人模型URL加载: ${modelUrl} -> ${cdnModelUrl}`
+        );
+        obj = await loadModelFromUrl(
+          cdnModelUrl,
+          position,
+          modelScale,
+          copperChineseName
+        );
+
         // 为召唤物添加特殊处理（光源）
         if (obj) {
           // 计算包围盒
           const box = new THREE.Box3().setFromObject(obj);
           const size = box.getSize(new THREE.Vector3());
-          
+
           // 调整Y位置使模型底部对齐地面
           const scaledBox = new THREE.Box3().setFromObject(obj);
           obj.position.y = -scaledBox.min.y;
-          
+
           // 添加蓝色点光源（区分友方召唤物）
           const pointLight = new THREE.PointLight(0x4444ff, 2.5, 12);
           pointLight.position.set(0, size.y * modelScale * 0.8, 0);
@@ -1150,12 +1184,7 @@ function setupMessageQueue() {
         );
 
         // 尝试加载GLTF模型（传入文件夹名称和模型名称）
-        obj = await loadGLTFModel(
-          typeFolder,
-          copperName,
-          position,
-          modelScale
-        );
+        obj = await loadGLTFModel(typeFolder, copperName, position, modelScale);
       }
 
       // 如果模型加载失败，创建备用立方体
@@ -1206,7 +1235,9 @@ function setupMessageQueue() {
       // 使用后端传递的实际 enemy.id
       const actualId = enemy.id;
       const isOwned = enemy.owned || false; // 是否为友方召唤物
-      log(`[TestScene] 创建敌人模型: id=${actualId}, pos=${position}, owned=${isOwned}`);
+      log(
+        `[TestScene] 创建敌人模型: id=${actualId}, pos=${position}, owned=${isOwned}`
+      );
 
       // 检查是否已存在
       const existing = models.find(m => m.id === actualId);
@@ -1242,7 +1273,9 @@ function setupMessageQueue() {
       if (!obj) {
         log(`[TestScene] 使用备用立方体代替敌人模型: ${enemyName}`);
         const geometry = new THREE.BoxGeometry(0.8, 0.8, 0.8);
-        const material = new THREE.MeshStandardMaterial({ color: isOwned ? 0x4444ff : 0xff0000 }); // 友方蓝色，敌方红色
+        const material = new THREE.MeshStandardMaterial({
+          color: isOwned ? 0x4444ff : 0xff0000,
+        }); // 友方蓝色，敌方红色
         obj = new THREE.Mesh(geometry, material);
         obj.position.set(position[0], 0.4, position[1]);
       }
@@ -1268,9 +1301,18 @@ function setupMessageQueue() {
       });
 
       // 创建血条（所有敌人和召唤物都需要）
-      if (enemy.now_health !== undefined && enemy.enemy_base?.health !== undefined) {
-        createOrUpdateHealthBar(actualId, enemy.now_health, enemy.enemy_base.health);
-        log(`[TestScene] 创建血条: ${enemyName} (${enemy.now_health}/${enemy.enemy_base.health})`);
+      if (
+        enemy.now_health !== undefined &&
+        enemy.enemy_base?.health !== undefined
+      ) {
+        createOrUpdateHealthBar(
+          actualId,
+          enemy.now_health,
+          enemy.enemy_base.health
+        );
+        log(
+          `[TestScene] 创建血条: ${enemyName} (${enemy.now_health}/${enemy.enemy_base.health})`
+        );
       }
 
       // 如果是友方召唤物，添加到playerCoppers列表（使其可被操控）
@@ -1281,7 +1323,9 @@ function setupMessageQueue() {
           type: 'summon',
           enemy: enemy, // 保存完整的enemy数据
         });
-        log(`[TestScene] 友方召唤物添加到操控列表: ${enemyName} (ID=${actualId})`);
+        log(
+          `[TestScene] 友方召唤物添加到操控列表: ${enemyName} (ID=${actualId})`
+        );
       }
 
       log(
@@ -1300,22 +1344,61 @@ function setupMessageQueue() {
         return;
       }
 
-      // 创建矿物立方体（金黄色，表示可收集资源）
-      const geometry = new THREE.BoxGeometry(0.5, 0.5, 0.5);
-      const material_mesh = new THREE.MeshStandardMaterial({
-        color: 0xffd700, // 金色
-        emissive: 0xffaa00,
-        emissiveIntensity: 0.2,
-        metalness: 0.6,
-        roughness: 0.4,
-      });
-      const obj = new THREE.Mesh(geometry, material_mesh);
-      obj.position.set(position[0], 0.25, position[1]);
+      const materialName = material.material_base?.name || '';
+      const rawModelUrl = material.material_base?.model_url;
 
-      // 添加发光效果
-      const pointLight = new THREE.PointLight(0xffaa00, 1.5, 3);
-      pointLight.position.set(0, 0.5, 0);
-      obj.add(pointLight);
+      if (!rawModelUrl) {
+        log(`[TestScene] 矿物model_url为空，创建占位立方体`);
+        const geometry = new THREE.BoxGeometry(0.5, 0.5, 0.5);
+        const placeholderMaterial = new THREE.MeshStandardMaterial({
+          color: 0xffaa00,
+          metalness: 0.3,
+          roughness: 0.7,
+        });
+        const obj = new THREE.Mesh(geometry, placeholderMaterial);
+        obj.position.set(position[0], 0.25, position[1]);
+        obj.userData.modelId = id;
+        scene.add(obj);
+        models.push({
+          id: id,
+          object: obj,
+          name: materialName || `Material_${id}`,
+          type: 'material',
+        });
+        return;
+      }
+
+      const modelUrl = getMaterialModelUrl(rawModelUrl);
+      let obj = null;
+
+      try {
+        const modelInstance = await modelCache.loadModel(modelUrl, true);
+
+        const group = new THREE.Group();
+        group.add(modelInstance);
+        group.position.set(position[0], 0, position[1]);
+        group.scale.set(1.0, 1.0, 1.0);
+        group.rotation.y = 0;
+
+        // 调整Y位置使模型底部对齐地面
+        const scaledBox = new THREE.Box3().setFromObject(group);
+        group.position.y = -scaledBox.min.y;
+
+        obj = group;
+        log(`[TestScene] 矿物模型加载成功: ${materialName}, URL: ${modelUrl}`);
+      } catch (e) {
+        log(`[TestScene] 矿物模型加载失败: ${materialName}`, e);
+
+        // 创建占位立方体
+        const geometry = new THREE.BoxGeometry(0.5, 0.5, 0.5);
+        const placeholderMaterial = new THREE.MeshStandardMaterial({
+          color: 0xffaa00,
+          metalness: 0.3,
+          roughness: 0.7,
+        });
+        obj = new THREE.Mesh(geometry, placeholderMaterial);
+        obj.position.set(position[0], 0.25, position[1]);
+      }
 
       obj.userData.modelId = id;
       scene.add(obj);
@@ -1323,11 +1406,11 @@ function setupMessageQueue() {
       models.push({
         id: id,
         object: obj,
-        name: material.material_base?.name || `Material_${id}`,
+        name: materialName || `Material_${id}`,
         type: 'material',
       });
 
-      log(`[TestScene] 矿物创建成功: ${material.material_base?.name}`);
+      log(`[TestScene] 矿物创建成功: ${materialName}`);
     },
     onSetStructure: async (id, position, structure) => {
       log(`[TestScene] 创建建筑: id=${id}, pos=${position}`);
@@ -1755,7 +1838,11 @@ function onSceneClick(event) {
 
   // 检测可点击单位（铜偶、友方召唤物、野生敌人）
   const clickableObjects = models
-    .filter(m => (m.type === 'copper' || m.type === 'summon' || m.type === 'enemy') && m.object)
+    .filter(
+      m =>
+        (m.type === 'copper' || m.type === 'summon' || m.type === 'enemy') &&
+        m.object
+    )
     .map(m => m.object);
 
   const intersects = raycaster.intersectObjects(clickableObjects, true);
@@ -1771,19 +1858,19 @@ function onSceneClick(event) {
     if (modelId !== undefined) {
       const model = models.find(m => m.id === modelId);
       const unitTypeMap = {
-        'copper': '铜偶',
-        'summon': '友方召唤物',
-        'enemy': '野生敌人'
+        copper: '铜偶',
+        summon: '友方召唤物',
+        enemy: '野生敌人',
       };
       const unitType = unitTypeMap[model?.type] || '未知单位';
       log(`[TestScene] 点击${unitType}，ID:`, modelId);
-      
+
       // 根据单位类型分别处理
       if (model?.type === 'summon' || model?.type === 'enemy') {
         // 友方召唤物和野生敌人都调用handleClickEnemy
         handleClickEnemy(modelId, model?.type === 'enemy');
       } else {
-      handleClickCopper(modelId);
+        handleClickCopper(modelId);
       }
     }
   } else {
@@ -1826,9 +1913,11 @@ async function handleMoveApply(x, z) {
   // 判断是铜偶还是友方召唤物
   const isOwnedEnemy = selectedCopper.value.isOwnedEnemy === true;
   const eventType = isOwnedEnemy ? 'on_enemy_move_apply' : 'on_move_apply';
-  
-  log(`[TestScene] 请求移动到: (${x}, ${z}), 单位类型=${isOwnedEnemy ? '友方召唤物' : '铜偶'}, 事件=${eventType}`);
-  
+
+  log(
+    `[TestScene] 请求移动到: (${x}, ${z}), 单位类型=${isOwnedEnemy ? '友方召唤物' : '铜偶'}, 事件=${eventType}`
+  );
+
   const message = JSON.stringify({
     type: eventType,
     content: {
@@ -1848,9 +1937,11 @@ async function handleAttackApply(x, z) {
   // 判断是铜偶还是友方召唤物
   const isOwnedEnemy = selectedCopper.value.isOwnedEnemy === true;
   const eventType = isOwnedEnemy ? 'on_enemy_attack_apply' : 'on_attack_apply';
-  
-  log(`[TestScene] 请求攻击位置: (${x}, ${z}), 单位类型=${isOwnedEnemy ? '友方召唤物' : '铜偶'}, 事件=${eventType}`);
-  
+
+  log(
+    `[TestScene] 请求攻击位置: (${x}, ${z}), 单位类型=${isOwnedEnemy ? '友方召唤物' : '铜偶'}, 事件=${eventType}`
+  );
+
   const message = JSON.stringify({
     type: eventType,
     content: {
@@ -1868,19 +1959,19 @@ async function handleSummonApply(x, z) {
   if (!selectedCopper.value) return;
 
   log(`[TestScene] 选择召唤位置: (${x}, ${z})`);
-  
+
   // 保存召唤位置
   summonPosition.value = [x, z];
-  
+
   // 获取可召唤的敌人列表
   const message = JSON.stringify({
     type: 'on_get_summon_menu',
   });
   await eventloop(message);
-  
+
   // 短暂延迟等待敌人列表加载
   await new Promise(resolve => setTimeout(resolve, 100));
-  
+
   // 显示召唤菜单
   showSummonModal.value = true;
 }
@@ -1891,7 +1982,7 @@ async function handleSummonConfirm(enemyName) {
 
   const [x, z] = summonPosition.value;
   log(`[TestScene] 确认召唤 ${enemyName} 到位置: (${x}, ${z})`);
-  
+
   try {
     const message = JSON.stringify({
       type: 'on_summon_apply',
@@ -1908,16 +1999,16 @@ async function handleSummonConfirm(enemyName) {
     // 无论成功还是失败，都清理UI
     // 关闭召唤菜单
     showSummonModal.value = false;
-    
+
     // 召唤完成后清除召唤模式
     currentActionMode.value = null;
     summonPosition.value = null;
-    
+
     // 清理 ActionPanel 的状态
     if (copperActionPanelRef.value) {
       copperActionPanelRef.value.cancelAction();
     }
-    
+
     // 发送召唤结束消息
     try {
       const endMessage = JSON.stringify({ type: 'on_summon_end' });
@@ -2049,7 +2140,8 @@ function tryNextCopper() {
     // 1. 可以移动
     // 2. 可以攻击 且 有攻击目标
     // 3. 可以召唤
-    const hasValidActions = canMove || (canAttack && hasAttackTargets.value) || canSummon;
+    const hasValidActions =
+      canMove || (canAttack && hasAttackTargets.value) || canSummon;
 
     if (hasValidActions) {
       log('[TestScene] 当前铜偶还能操作，不切换');
@@ -2093,7 +2185,7 @@ async function nextCopper() {
         // 判断是铜偶还是友方召唤物
         const model = models.find(m => m.id === nextCopper.id);
         const isSummon = model?.type === 'summon';
-        
+
         if (isSummon) {
           await handleClickEnemy(nextCopper.id, false);
         } else {
@@ -2114,7 +2206,8 @@ async function nextCopper() {
     const canMove = selectedCopper.value?.can_move || false;
     const canAttack = selectedCopper.value?.can_attack || false;
     const canSummon = selectedCopper.value?.can_summon || false;
-    const hasValidActions = canMove || (canAttack && hasAttackTargets.value) || canSummon;
+    const hasValidActions =
+      canMove || (canAttack && hasAttackTargets.value) || canSummon;
 
     log(
       `[TestScene] 铜偶 ${nextCopper.name}: can_move=${canMove}, can_attack=${canAttack}, can_summon=${canSummon}, hasTargets=${hasAttackTargets.value}, valid=${hasValidActions}`

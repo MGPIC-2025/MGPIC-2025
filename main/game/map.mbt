@@ -4,7 +4,6 @@ priv enum Occupant {
   Copper(BattleCopper)
   Material(Material)
   Structure(@structure.Structure)
-  ChargingCoil
   Empty
 }
 
@@ -123,24 +122,25 @@ fn broadcast_room_content(room : Room) -> Unit {
     for y in 0..<16 {
       let global_pos = (room_x + x, room_y + y)
       let occupant = room.blocks[x][y].occupant
-      if occupant is Enemy(enemy) {
-        set_enemy(enemy, enemy.id, global_pos)
-        // 显示敌人血条
-        update_health(enemy.id, enemy.now_health, enemy.enemy_base.health)
-      } else if occupant is Copper(copper) {
-        set_copper(copper, copper.id, global_pos)
-        // 显示铜偶血条
-        update_health(
-          copper.id,
-          copper.now_health,
-          copper.copper.attribute.health,
-        )
-      } else if occupant is Structure(structure) {
-        set_structure(structure, structure.id(), global_pos)
-      } else if occupant is ChargingCoil {
-        // ChargingCoil 是充能线圈，作为特殊标记（中心点的怪物生成器）
-        // 暂时不渲染，或者可以渲染一个特殊的建筑模型
-        // TODO: 可以添加 set_charging_coil(global_pos) 如果需要渲染
+      match occupant {
+        Empty => ()
+        Enemy(enemy) => {
+          set_enemy(enemy, enemy.id, global_pos)
+          // 显示敌人血条
+          update_health(enemy.id, enemy.now_health, enemy.enemy_base.health)
+        }
+        Copper(copper) => {
+          set_copper(copper, copper.id, global_pos)
+          // 显示铜偶血条
+          update_health(
+            copper.id,
+            copper.now_health,
+            copper.copper.attribute.health,
+          )
+        }
+        Structure(structure) =>
+          set_structure(structure, structure.id, global_pos)
+        Material(material) => set_material(material, material.id, global_pos)
       }
 
       // 如果该格子有地面资源，发送资源标记

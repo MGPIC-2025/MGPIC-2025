@@ -142,7 +142,7 @@ export function registerAllHandlers() {
       const { enemy, resources, has_attack_targets } = data;
       const isOwned = enemy.owned || false;
       const enemyType = isOwned ? '友方召唤物' : '野生敌人';
-      
+
       log(
         `[Handler] 点击${enemyType}: ${
           enemy.enemy_base?.name || 'Unknown'
@@ -179,10 +179,10 @@ export function registerAllHandlers() {
         },
       };
 
-    // 高亮选中的单位（所有单位都可以高亮，用于表示用户正在查看哪个单位）
-    if (context.highlightSelectedCopper) {
-      context.highlightSelectedCopper(enemy.id);
-    }
+      // 高亮选中的单位（所有单位都可以高亮，用于表示用户正在查看哪个单位）
+      if (context.highlightSelectedCopper) {
+        context.highlightSelectedCopper(enemy.id);
+      }
 
       // 显示信息面板
       if (context.onShowCopperInfo) {
@@ -218,7 +218,6 @@ export function registerAllHandlers() {
   // set_material: 在指定地点放置矿物
   messageQueue.registerHandler('set_material', async (data, context) => {
     const { id, position, material } = data;
-
     if (context.onSetMaterial) {
       await context.onSetMaterial(id, position, material);
     }

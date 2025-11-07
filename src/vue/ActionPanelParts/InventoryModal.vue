@@ -54,7 +54,10 @@ function handleDrop(index) {
 
 function handleTransfer(index) {
   // 验证物品数量
-  if (!props.inventoryItems[index] || (props.inventoryItems[index].count || 1) <= 0) {
+  if (
+    !props.inventoryItems[index] ||
+    (props.inventoryItems[index].count || 1) <= 0
+  ) {
     console.log(`[InventoryModal] 物品数量不足，无法传递: index=${index}`);
     return;
   }
@@ -63,7 +66,9 @@ function handleTransfer(index) {
 }
 
 function handleTransferTo(target) {
-  console.log(`[InventoryModal] 传递到目标: ${target.name} (位置: ${target.position})`);
+  console.log(
+    `[InventoryModal] 传递到目标: ${target.name} (位置: ${target.position})`
+  );
   emit('transferTo', target.position);
 }
 </script>
@@ -130,8 +135,12 @@ function handleTransferTo(target) {
                   {{ inventoryItems[index].count || 1 }}
                 </div>
                 <!-- 传递模式下显示独立的目标选择区域 -->
-                <div 
-                  v-if="transferringItemIndex === index && transferTargets && transferTargets.length > 0"
+                <div
+                  v-if="
+                    transferringItemIndex === index &&
+                    transferTargets &&
+                    transferTargets.length > 0
+                  "
                   class="transfer-targets-panel"
                 >
                   <div class="transfer-title">传递到：</div>
@@ -145,17 +154,22 @@ function handleTransferTo(target) {
                   </div>
                 </div>
                 <!-- 普通tooltip（非传递模式） -->
-                <div 
-                  v-else
-                  class="slot-tooltip"
-                >
+                <div v-else class="slot-tooltip">
                   <div class="tooltip-name">
                     {{ getItemName(inventoryItems[index]) }}
                   </div>
                   <!-- 如果正在传递但没有目标，显示提示 -->
-                  <template v-if="transferringItemIndex === index && transferTargets && transferTargets.length === 0">
+                  <template
+                    v-if="
+                      transferringItemIndex === index &&
+                      transferTargets &&
+                      transferTargets.length === 0
+                    "
+                  >
                     <div class="transfer-targets">
-                      <div class="transfer-title" style="color: #ff4444;">无可传递目标</div>
+                      <div class="transfer-title" style="color: #ff4444">
+                        无可传递目标
+                      </div>
                     </div>
                   </template>
                   <!-- 否则显示操作按钮 -->
@@ -181,8 +195,6 @@ function handleTransferTo(target) {
           </div>
         </div>
       </div>
-
-      
     </div>
   </div>
 </template>
@@ -434,7 +446,6 @@ function handleTransferTo(target) {
   opacity: 1;
 }
 
-
 .tooltip-name {
   font-size: 12px;
   color: #6a4931;
@@ -539,7 +550,6 @@ function handleTransferTo(target) {
 }
 
 /* 快捷栏 */
- 
 
 @keyframes fadeIn {
   from {

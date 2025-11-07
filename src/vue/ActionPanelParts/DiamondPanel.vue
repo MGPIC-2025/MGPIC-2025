@@ -77,8 +77,8 @@ onMounted(async () => {
 <template>
   <div ref="diamondPanelRef" class="diamond-panel">
     <div class="diamond-row diamond-row--top">
-      <div 
-        class="diamond border-blue" 
+      <div
+        class="diamond border-blue"
         :class="{ 'diamond--disabled': inventoryCapacity === 0 }"
         @click="handleInventoryClick"
         :title="inventoryCapacity === 0 ? '此单位没有背包' : '打开背包'"
@@ -86,7 +86,9 @@ onMounted(async () => {
         <div class="diamond-content">
           <div class="diamond-text">
             <div class="diamond-label">背包</div>
-            <div class="diamond-value">{{ inventoryItems.length }}/{{ inventoryCapacity }}</div>
+            <div class="diamond-value">
+              {{ inventoryItems.length }}/{{ inventoryCapacity }}
+            </div>
           </div>
         </div>
       </div>

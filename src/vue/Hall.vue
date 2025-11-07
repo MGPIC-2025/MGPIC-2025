@@ -28,7 +28,12 @@ const bgWarehouse = ref(getAssetUrl('frontend_resource/copper_warehouse.webp'));
 const bgWiki = ref(getAssetUrl('frontend_resource/game_wiki.webp'));
 const bgTutorial = ref(getAssetUrl('frontend_resource/Tutorial.webp'));
 // 使用 Vite 的静态资源导入方式
-const bgHall = ref(new URL('../../assets/Gemini_Generated_Image_gtrehogtrehogtre (1).png', import.meta.url).href);
+const bgHall = ref(
+  new URL(
+    '../../assets/Gemini_Generated_Image_gtrehogtrehogtre (1).png',
+    import.meta.url
+  ).href
+);
 
 onMounted(async () => {
   try {
@@ -71,50 +76,50 @@ onMounted(async () => {
   <div class="hall-container">
     <div class="hall-bg" :style="{ backgroundImage: `url('${bgHall}')` }"></div>
     <div class="menu">
-    <button
-      class="tile tile--start"
-      :style="{ backgroundImage: `url('${bgStart}')` }"
-      @click="startGame"
-    >
-      <div class="tile__mask"></div>
-      <div class="tile__caption tile__caption--bottom">
-        <div class="tile__title">开始游戏</div>
-        <div class="tile__subtitle">Begin Adventure</div>
-      </div>
-    </button>
-    <button
-      class="tile tile--warehouse"
-      :style="{ backgroundImage: `url('${bgWarehouse}')` }"
-      @click="openWarehouse"
-    >
-      <div class="tile__mask"></div>
-      <div class="tile__caption tile__caption--top">
-        <div class="tile__title">铜偶仓库</div>
-        <div class="tile__subtitle">Character Collection</div>
-      </div>
-    </button>
-    <button
-      class="tile tile--wiki"
-      :style="{ backgroundImage: `url('${bgWiki}')` }"
-      @click="openEncyclopedia"
-    >
-      <div class="tile__mask"></div>
-      <div class="tile__caption tile__caption--bottom">
-        <div class="tile__title">游戏百科</div>
-        <div class="tile__subtitle">Encyclopedia</div>
-      </div>
-    </button>
-    <button
-      class="tile tile--tutorial"
-      :style="{ backgroundImage: `url('${bgTutorial}')` }"
-      @click="openTutorial"
-    >
-      <div class="tile__mask"></div>
-      <div class="tile__caption tile__caption--top">
-        <div class="tile__title">新手教程</div>
-        <div class="tile__subtitle">Tutorial</div>
-      </div>
-    </button>
+      <button
+        class="tile tile--start"
+        :style="{ backgroundImage: `url('${bgStart}')` }"
+        @click="startGame"
+      >
+        <div class="tile__mask"></div>
+        <div class="tile__caption tile__caption--bottom">
+          <div class="tile__title">开始游戏</div>
+          <div class="tile__subtitle">Begin Adventure</div>
+        </div>
+      </button>
+      <button
+        class="tile tile--warehouse"
+        :style="{ backgroundImage: `url('${bgWarehouse}')` }"
+        @click="openWarehouse"
+      >
+        <div class="tile__mask"></div>
+        <div class="tile__caption tile__caption--top">
+          <div class="tile__title">铜偶仓库</div>
+          <div class="tile__subtitle">Character Collection</div>
+        </div>
+      </button>
+      <button
+        class="tile tile--wiki"
+        :style="{ backgroundImage: `url('${bgWiki}')` }"
+        @click="openEncyclopedia"
+      >
+        <div class="tile__mask"></div>
+        <div class="tile__caption tile__caption--bottom">
+          <div class="tile__title">游戏百科</div>
+          <div class="tile__subtitle">Encyclopedia</div>
+        </div>
+      </button>
+      <button
+        class="tile tile--tutorial"
+        :style="{ backgroundImage: `url('${bgTutorial}')` }"
+        @click="openTutorial"
+      >
+        <div class="tile__mask"></div>
+        <div class="tile__caption tile__caption--top">
+          <div class="tile__title">新手教程</div>
+          <div class="tile__subtitle">Tutorial</div>
+        </div>
+      </button>
     </div>
   </div>
 </template>

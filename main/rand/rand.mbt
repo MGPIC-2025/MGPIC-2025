@@ -8,5 +8,7 @@ pub fn summon_random_number(min : Int, max : Int) -> Int {
 
 ///|
 pub fn check_probability(probability : Double) -> Bool {
-  random.double() <= probability
+  let temp = random.double()
+  println("12121:" + temp.to_string())
+  temp <= probability
 }

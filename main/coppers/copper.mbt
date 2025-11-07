@@ -3,7 +3,7 @@ pub(all) struct Copper {
   id : Int
   level : Int
   suffix : Int
-  mut live_left : Int  // 可变字段，用于召唤物生命周期管理
+  mut live_left : Int // 可变字段，用于召唤物生命周期管理
   mut attribute : @attribute.Attribute
   copper_type : CopperType
   mut equipment_slot : EquipmentSlot
@@ -52,7 +52,7 @@ pub fn create_summoned_copper_from_enemy(
   attack_range : Int,
 ) -> Copper {
   let id = @id.id_pool.get_id()
-  
+
   // 根据攻击范围决定铜偶类型（近战=IronWall，远程=Arcanist）
   // 这样召唤物只能攻击敌人，不会治疗友方
   let copper_type = if attack_range <= 1 {
@@ -60,7 +60,7 @@ pub fn create_summoned_copper_from_enemy(
   } else {
     Arcanist // 远程单位
   }
-  
+
   // 创建召唤铜偶的 CopperInfo（使用敌人的外观信息）
   let copper_info : CopperInfo = {
     name: enemy_name,
@@ -71,15 +71,9 @@ pub fn create_summoned_copper_from_enemy(
     skill: None, // 召唤物没有技能
     attack_range: Some(attack_range), // 使用敌人的原始攻击范围
   }
-  
+
   // 创建基于敌人属性的 Attribute
-  let attribute = @attribute.Attribute::new(
-    health~,
-    attack~,
-    defense~,
-    dodge~,
-  )
-  
+  let attribute = @attribute.Attribute::new(health~, attack~, defense~, dodge~)
   Copper::{
     id,
     level: 1,

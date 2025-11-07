@@ -593,7 +593,6 @@ fn handle_on_copper_pick_up(id : Int, index : Int) -> Unit {
     })
     return
   }
-  
   let battle_copper = get_battle_copper_by_id(id)
   let map = force_get_current_map()
   let map_block = map.global_position_to_room_position(battle_copper.position)
@@ -726,11 +725,11 @@ fn handle_game_round_pass() -> Unit {
     clear_block(summon_block)
   }
   setted_can_summon_blocks.clear()
-  
+
   // 清理死亡单位和检查召唤物生命周期（在恢复状态前）
   let map = force_get_current_map()
-  let enemies_to_remove : Array[(Int, (Int, Int))] = []  // (id, position)
-  
+  let enemies_to_remove : Array[(Int, (Int, Int))] = [] // (id, position)
+
   // 检查所有敌人（包括召唤物）是否死亡
   for enemy in enemy_map.values() {
     // 死亡检查：血量<=0
@@ -738,26 +737,26 @@ fn handle_game_round_pass() -> Unit {
       enemies_to_remove.push((enemy.id, enemy.position))
       continue
     }
-    
+
     // 只对友方召唤物减少回合数（owned=true && summon_rounds_left>0）
     if enemy.owned && enemy.summon_rounds_left > 0 {
       enemy.summon_rounds_left = enemy.summon_rounds_left - 1
-      
+
       // 如果回合数用尽，标记为移除
       if enemy.summon_rounds_left <= 0 {
         enemies_to_remove.push((enemy.id, enemy.position))
       }
     }
   }
-  
+
   // 移除死亡单位和生命周期结束的召唤物
   for item in enemies_to_remove {
     let (enemy_id, enemy_position) = item
     enemy_map.remove(enemy_id)
     map.remove_occupant(enemy_position)
-    remove_unit(enemy_id)  // 通知前端移除
+    remove_unit(enemy_id) // 通知前端移除
   }
-  
+
   // 恢复铜偶状态
   for battle_copper in battle_copper_map.values() {
     battle_copper.can_move = true
@@ -772,7 +771,7 @@ fn handle_game_round_pass() -> Unit {
     }
     battle_copper.update_move_and_attack_and_summon_status()
   }
-  
+
   // 恢复友方召唤物状态
   for enemy in enemy_map.values() {
     if enemy.owned {
@@ -781,7 +780,7 @@ fn handle_game_round_pass() -> Unit {
       enemy.update_move_and_attack_and_summon_status()
     }
   }
-  
+
   // 野生敌人AI：寻找攻击目标和移动（友方召唤物由玩家控制，不执行AI）
   let enemys = enemy_map.values()
   for enemy in enemys {
@@ -789,7 +788,6 @@ fn handle_game_round_pass() -> Unit {
     if enemy.owned {
       continue
     }
-    
     let attack_targets = enemy.get_attack_targets(map)
     // 如果攻击范围内有可以攻击的目标，则直接开始攻击
     if attack_targets.length() > 0 {
@@ -908,7 +906,7 @@ fn handle_on_summon_apply(
   let enemy_base = enemy_list[enemy_idx]
   let resource_cost = enemy_base.summon_cost
   let battle_copper = get_battle_copper_by_id(id)
-  
+
   // 检查召唤位置是否有效（在地图范围内且未被占据）
   if map.is_occupy(position) {
     @global_msg.msg_info.broadcast({
@@ -917,40 +915,36 @@ fn handle_on_summon_apply(
     })
     return
   }
-  
+
   // 检查位置是否在有效房间内
-  guard map.global_position_to_room_position(position) is Some(_)
-  else {
+  guard map.global_position_to_room_position(position) is Some(_) else {
     @global_msg.msg_info.broadcast({
       type_msg: "summon_failed",
       content: ({ "message": "召唤位置无效" } : Json).stringify(),
     })
     return
   }
-  
   if battle_copper.inventory.check_resource_cost_in_inventory(resource_cost) {
     battle_copper.inventory.consume_resource_cost(resource_cost)
-    
+
     // 创建友方召唤物（owned=true 的 Enemy）
     let summoned_enemy = Enemy::new(
-      enemy_base,
-      position,
-      true,  // owned=true 友方召唤物
+      enemy_base, position, true, // owned=true 友方召唤物
     )
-    
+
     // 添加到地图（作为Enemy）
     map.add_occupant(position, Occupant::Enemy(summoned_enemy))
-    
+
     // 通知前端创建敌人模型（前端会根据model_url加载）
     // 注意：set_enemy 会在内部完成后自动调用 update_health 显示血条
     set_enemy(summoned_enemy, summoned_enemy.id, position)
     // 显示召唤物状态（绿圈/红圈）
     summoned_enemy.update_move_and_attack_and_summon_status()
-    
+
     // 召唤完成，设置召唤者的召唤状态为 false
     battle_copper.can_summon = false
     battle_copper.update_move_and_attack_and_summon_status()
-    
+
     // 清除召唤范围地板块
     for summon_position in setted_can_summon_blocks {
       clear_block(summon_position)

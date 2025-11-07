@@ -1,5 +1,5 @@
 ///|
-enum Direction {
+priv enum Direction {
   Left
   Right
   Up

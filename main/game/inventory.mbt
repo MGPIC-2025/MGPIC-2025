@@ -69,11 +69,17 @@ fn Inventory::add_item(inventory : Inventory, item : Item) -> Unit {
       }
       // 只有在数量>0时才添加新物品
       if item.count > 0 {
-        inventory.items.push({ item_type: Resource(resource), count: item.count })
+        inventory.items.push({
+          item_type: Resource(resource),
+          count: item.count,
+        })
       }
     }
     Equipment(equipment) =>
-      inventory.items.push({ item_type: Equipment(equipment), count: item.count })
+      inventory.items.push({
+        item_type: Equipment(equipment),
+        count: item.count,
+      })
   }
 }
 
