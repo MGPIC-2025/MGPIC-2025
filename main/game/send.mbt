@@ -1,7 +1,4 @@
 ///|
-using @structure {type Structure}
-
-///|
 /// 在指定地点放下一个铜偶
 fn set_copper(copper : BattleCopper, id : Int, position : (Int, Int)) -> Unit {
   @global_msg.msg_info.broadcast({

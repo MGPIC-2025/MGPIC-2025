@@ -41,8 +41,8 @@ fn Enemy::new(
     id: @id.id_pool.get_id(),
     position,
     owned,
-    can_move: false, // 召唤出来的第一回合不能移动，等到下一回合才恢复
-    can_attack: false, // 召唤出来的第一回合不能攻击，等到下一回合才恢复
+    can_move: true,
+    can_attack: true,
     now_health: enemy_base.health,
     enemy_base,
   }
@@ -90,15 +90,23 @@ fn Enemy::get_attack_targets(
     if map.is_occupy(position) {
       let occupant = map.get_occupant(position)
       if enemy.owned {
-        // 友方召唤物：只攻击野生敌人（owned=false）
-        if occupant is Enemy(target_enemy) && target_enemy.owned == false {
-          can_attack.push(CanAttackTarget::Enemy(target_enemy))
+        match occupant {
+          Copper(copper) => can_attack.push(CanAttackTarget::Copper(copper))
+          Enemy(enemy) if enemy.owned == true =>
+            can_attack.push(CanAttackTarget::Enemy(enemy))
+          Structure(structure) if structure.owned == true =>
+            can_attack.push(CanAttackTarget::Structure(structure))
+          _ => ()
         }
-        // 野生敌人：攻击铜偶和友方召唤物（owned=true）
-      } else if occupant is Copper(copper) {
-        can_attack.push(CanAttackTarget::Copper(copper))
-      } else if occupant is Enemy(target_enemy) && target_enemy.owned {
-        can_attack.push(CanAttackTarget::Enemy(target_enemy))
+      } else {
+        match occupant {
+          Copper(copper) => can_attack.push(CanAttackTarget::Copper(copper))
+          Enemy(enemy) if enemy.owned == false =>
+            can_attack.push(CanAttackTarget::Enemy(enemy))
+          Structure(structure) if structure.owned == false =>
+            can_attack.push(CanAttackTarget::Structure(structure))
+          _ => ()
+        }
       }
     }
   }

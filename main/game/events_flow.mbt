@@ -34,6 +34,7 @@ fn handle_game_round_pass() -> Unit {
   reset_states()
   enemy_ai()
   animate_reset()
+  summon_enemy_while_game_round_pass()
 }
 
 ///|
@@ -55,6 +56,32 @@ fn reset_all_blocks() -> Unit {
     clear_block(summon_block)
   }
   setted_can_summon_blocks.clear()
+}
+
+///|
+/// 游戏回合结束时如果还有充能线圈，则有概率持续生成敌人
+fn summon_enemy_while_game_round_pass() -> Unit {
+  if @rand.check_probability(0.2) {
+    let map = force_get_current_map()
+    for room in map.rooms {
+      if Room::is_full(room) {
+        continue
+      }
+      if room.blocks[7][7].occupant is Structure(structure) {
+        let level = room.level
+        let enemy = summon_enemy(level)
+        // 不再用 escape_set 来判断位置了，直接反选空坐标
+        let empty_positions = Room::get_empty_positions(room)
+        let position = empty_positions[@rand.summon_random_number(
+            0,
+            empty_positions.length() - 1,
+          )]
+        let enemy = Enemy::new(enemy, position, false)
+        room.blocks[position.0][position.1].occupant = Occupant::Enemy(enemy)
+        enemy_map.set(enemy.id, enemy)
+      }
+    }
+  }
 }
 
 ///|
@@ -80,6 +107,19 @@ fn reset_states() -> Unit {
       enemy.can_move = true
       enemy.can_attack = true
       enemy.update_move_and_attack_and_summon_status()
+    }
+  }
+
+  // 恢复建筑状态
+  for structure in structure_map.values() {
+    if structure.owned {
+      if structure.structure_base.can_move {
+        structure.can_move = true
+      }
+      if structure.structure_base.can_attack {
+        structure.can_attack = true
+      }
+      structure.update_move_and_attack_and_summon_status()
     }
   }
 }
@@ -125,6 +165,21 @@ fn enemy_ai() -> Unit {
               copper.id,
               copper.now_health,
               copper.copper.attribute.health,
+            )
+          }
+        }
+        Structure(structure) => {
+          let result = structure.apply_attack(enemy.enemy_base.attack)
+          if result {
+            structure_map.remove(structure.id)
+            remove_unit(structure.id)
+            map.remove_occupant(structure.position)
+          } else {
+            // 更新建筑血量显示
+            update_health(
+              structure.id,
+              structure.now_health,
+              structure.structure_base.health,
             )
           }
         }

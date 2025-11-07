@@ -112,14 +112,14 @@ fn BattleCopper::get_can_attack(
     )
     if map.is_occupy(position) {
       let occupant = map.get_occupant(position)
-      if occupant is Enemy(enemy) {
-        // 铜偶只攻击野生敌人（owned=false），不攻击友方召唤物
-        if enemy.owned == false {
+      match occupant {
+        Copper(copper) if copper.copper.copper_type is Mechanic =>
+          can_attack.push(CanAttackTarget::Copper(copper))
+        Structure(structure) if structure.owned == false =>
+          can_attack.push(CanAttackTarget::Structure(structure))
+        Enemy(enemy) if enemy.owned == false =>
           can_attack.push(CanAttackTarget::Enemy(enemy))
-        }
-      } else if battle_copper.copper.copper_type is Mechanic &&
-        occupant is Copper(copper) {
-        can_attack.push(CanAttackTarget::Copper(copper))
+        _ => ()
       }
     }
   }
@@ -164,6 +164,51 @@ fn BattleCopper::get_transfer_position(
           result.push(position)
         }
       }
+    }
+  }
+  result
+}
+
+///|
+fn BattleCopper::get_summon_position(
+  battle_copper : BattleCopper,
+  map : Map_,
+) -> Array[(Int, Int)] {
+  let result = []
+  let offset = [(-1, 0), (1, 0), (0, -1), (0, 1)]
+  for offset_ in offset {
+    let position = (
+      battle_copper.position.0 + offset_.0,
+      battle_copper.position.1 + offset_.1,
+    )
+    if !map.is_occupy_or_out_of_map(position) {
+      result.push(position)
+    }
+  }
+  result
+}
+
+///|
+fn BattleCopper::get_structure_build_position(
+  battle_copper : BattleCopper,
+  map : Map_,
+  is_drill~ : Bool,
+) -> Array[(Int, Int)] {
+  let result = []
+  let offset = [(-1, 0), (1, 0), (0, -1), (0, 1)]
+  for offset_ in offset {
+    let position = (
+      battle_copper.position.0 + offset_.0,
+      battle_copper.position.1 + offset_.1,
+    )
+    if is_drill {
+      if map.is_occupy(position) &&
+        map.force_get_map_block(position).occupant is Material(_) {
+        result.push(position)
+      }
+    } else if !map.is_occupy(position) &&
+      map.force_get_map_block(position).resources.is_empty() {
+      result.push(position)
     }
   }
   result

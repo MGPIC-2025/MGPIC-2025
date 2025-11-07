@@ -22,6 +22,7 @@ pub fn eventloop(msg : String) -> Unit {
       )
     { "type": "on_move_start", "content": { "id": id, .. }, .. } =>
       handle_on_move_start(force_get_current_map(), string_to_int(id))
+    { "type": "on_move_end", .. } => handle_on_move_end()
     {
       "type": "on_move_apply",
       "content": { "id": id, "position": { "x": x, "y": y, .. }, .. },
@@ -121,6 +122,99 @@ pub fn eventloop(msg : String) -> Unit {
         name.as_string().unwrap(),
       )
     { "type": "on_summon_end", .. } => handle_on_summon_end()
+    { "type": "on_click_structure", "content": { "id": id, .. }, .. } =>
+      handle_on_click_structure(string_to_int(id))
+    { "type": "on_get_structure_menu", .. } => handle_on_get_structure_menu()
+    {
+      "type": "on_structure_build_start",
+      "content": { "id": id, "name": name, .. },
+      ..
+    } =>
+      handle_on_structure_build_start(
+        string_to_int(id),
+        name.as_string().unwrap(),
+      )
+    {
+      "type": "on_structure_build_apply",
+      "content": {
+        "id": id,
+        "position": { "x": x, "y": y, .. },
+        "name": name,
+        ..
+      },
+      ..
+    } =>
+      handle_on_structure_build_apply(
+        string_to_int(id),
+        (string_to_int(x), string_to_int(y)),
+        force_get_current_map(),
+        name.as_string().unwrap(),
+      )
+    { "type": "on_structure_build_end", .. } => handle_on_structure_build_end()
+    { "type": "on_structure_attack_start", "content": { "id": id, .. }, .. } =>
+      handle_on_structure_attack_start(
+        force_get_current_map(),
+        string_to_int(id),
+      )
+    { "type": "on_structure_attack_end", .. } =>
+      handle_on_structure_attack_end()
+    {
+      "type": "on_structure_attack_apply",
+      "content": { "id": id, "position": { "x": x, "y": y, .. }, .. },
+      ..
+    } =>
+      handle_on_structure_attack_apply(
+        string_to_int(id),
+        (string_to_int(x), string_to_int(y)),
+        force_get_current_map(),
+      )
+    { "type": "on_structure_move_start", "content": { "id": id, .. }, .. } =>
+      handle_on_structure_move_start(force_get_current_map(), string_to_int(id))
+    { "type": "on_structure_move_end", .. } => handle_on_structure_move_end()
+    {
+      "type": "on_structure_move_apply",
+      "content": { "id": id, "position": { "x": x, "y": y, .. }, .. },
+      ..
+    } =>
+      handle_on_structure_move_apply(
+        string_to_int(id),
+        (string_to_int(x), string_to_int(y)),
+        force_get_current_map(),
+      )
+    { "type": "on_structure_extract_start", "content": { "id": id, .. }, .. } =>
+      handle_on_structure_extract_start(
+        force_get_current_map(),
+        string_to_int(id),
+      )
+    { "type": "on_structure_extract_end", .. } =>
+      handle_on_structure_extract_end()
+    {
+      "type": "on_structure_extract_apply",
+      "content": { "id": id, "position": { "x": x, "y": y, .. }, .. },
+      ..
+    } =>
+      handle_on_structure_extract_apply(
+        string_to_int(id),
+        (string_to_int(x), string_to_int(y)),
+        force_get_current_map(),
+      )
+    { "type": "on_structure_transfer_start", "content": { "id": id, .. }, .. } =>
+      handle_on_structure_transfer_start(
+        force_get_current_map(),
+        string_to_int(id),
+      )
+    { "type": "on_structure_transfer_end", .. } =>
+      handle_on_structure_transfer_end()
+    {
+      "type": "on_structure_transfer_apply",
+      "content": { "id": id, "position": { "x": x, "y": y, .. }, .. },
+      ..
+    } =>
+      handle_on_structure_transfer_apply(
+        string_to_int(id),
+        (string_to_int(x), string_to_int(y)),
+        force_get_current_map(),
+      )
     _ => abort("Invalid message")
   }
 }

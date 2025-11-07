@@ -2,6 +2,7 @@
 priv enum CanAttackTarget {
   Enemy(Enemy)
   Copper(BattleCopper)
+  Structure(Structure)
 }
 
 ///|
@@ -11,5 +12,6 @@ fn CanAttackTarget::get_position_from_can_attack_target(
   match can_attack_target {
     Enemy(enemy) => enemy.position
     Copper(copper) => copper.position
+    Structure(structure) => structure.position
   }
 }

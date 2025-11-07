@@ -15,8 +15,7 @@ fn handle_on_click_copper(id : Int) -> Unit {
   guard map_block is Some((room, position))
   let resource = room.blocks[position.0][position.1].resources
   // 检查是否有攻击目标
-  let attack_targets = battle_copper.get_can_attack(map)
-  let has_attack_targets = attack_targets.length() > 0
+  let has_attack_targets = !battle_copper.get_can_attack(map).is_empty()
   @global_msg.msg_info.broadcast({
     type_msg: "handle_on_click_copper",
     content: (
@@ -34,7 +33,6 @@ fn handle_on_click_copper(id : Int) -> Unit {
 /// 前端：当铜偶开始攻击
 /// 搜索敌人并且设置可攻击状态地块
 fn handle_on_attack_start(map : Map_, id : Int) -> Unit {
-  // 先清除之前的移动范围和攻击范围
   handle_on_move_end()
   handle_on_attack_end()
   handle_on_transfer_end()
@@ -49,7 +47,7 @@ fn handle_on_attack_start(map : Map_, id : Int) -> Unit {
 }
 
 ///|
-/// 前端：当玩家取消攻击
+/// 前端：当玩家取消或结束攻击
 /// 后端：清除可攻击的地块
 fn handle_on_attack_end() -> Unit {
   for position in setted_attack_blocks {
@@ -63,11 +61,6 @@ fn handle_on_attack_end() -> Unit {
 /// 前端：当玩家实施攻击
 /// 后端：计算攻击结果
 fn handle_on_attack_apply(id : Int, position : (Int, Int), map : Map_) -> Unit {
-  // 验证攻击位置是否在有效范围内
-  if not(setted_attack_blocks.contains(position)) {
-    // 位置无效，保持范围显示，等待玩家重新选择
-    return
-  }
   // 攻击前将视角聚焦到铜偶
   animate_move(id)
   let battle_copper = get_battle_copper_by_id(id)
@@ -106,7 +99,23 @@ fn handle_on_attack_apply(id : Int, position : (Int, Int), map : Map_) -> Unit {
       battle_copper.can_attack = false
       battle_copper.update_move_and_attack_and_summon_status()
     }
-    // 目标已经死亡或不存在，清除攻击范围但不消耗攻击机会
+    Structure(structure) => {
+      let result = structure.apply_attack(battle_copper.attribute.attack)
+      if result {
+        structure_map.remove(structure.id)
+        remove_unit(structure.id)
+        map.remove_occupant(structure.position)
+      } else {
+        // 更新建筑血量显示
+        update_health(
+          structure.id,
+          structure.now_health,
+          structure.structure_base.health,
+        )
+      }
+      battle_copper.can_attack = false
+      battle_copper.update_move_and_attack_and_summon_status()
+    }
     Empty => ()
     _ => abort("target is not enemy or copper")
   }
@@ -117,7 +126,7 @@ fn handle_on_attack_apply(id : Int, position : (Int, Int), map : Map_) -> Unit {
   }
   setted_attack_blocks.clear()
   // 只有成功攻击才发送完成消息
-  if not(target is Empty) {
+  if !(target is Empty) {
     attack_complete(id)
   }
 }
@@ -140,7 +149,7 @@ fn handle_on_move_start(map : Map_, id : Int) -> Unit {
 }
 
 ///|
-/// 前端：当玩家取消移动
+/// 前端：当玩家或结束移动
 /// 后端：清除可移动的地块
 fn handle_on_move_end() -> Unit {
   for position in setted_move_blocks {
@@ -154,11 +163,6 @@ fn handle_on_move_end() -> Unit {
 /// 前端：当玩家实施移动
 /// 后端：计算移动结果
 fn handle_on_move_apply(id : Int, position : (Int, Int), map : Map_) -> Unit {
-  // 验证移动位置是否在有效范围内
-  if not(setted_move_blocks.contains(position)) {
-    // 位置无效，保持范围显示，等待玩家重新选择
-    return
-  }
   // 移动前将视角聚焦到铜偶
   animate_move(id)
   let battle_copper = get_battle_copper_by_id(id)
@@ -265,7 +269,7 @@ fn handle_on_transfer_start(id : Int, index : Int, count : Int) -> Unit {
 }
 
 ///|
-/// 前端：当玩家取消转移
+/// 前端：当玩家取消或结束转移
 /// 后端：清除可转移的地块
 fn handle_on_transfer_end() -> Unit {
   for position in setted_transfer_blocks {
@@ -438,7 +442,7 @@ fn handle_on_summon_start(id : Int) -> Unit {
   handle_on_summon_end()
   let battle_copper = get_battle_copper_by_id(id)
   let map = force_get_current_map()
-  let can_summon = battle_copper.get_can_move(map)
+  let can_summon = battle_copper.get_summon_position(map)
   for position in can_summon {
     set_can_summon_blocks(position)
     setted_can_summon_blocks.add(position)
@@ -454,55 +458,17 @@ fn handle_on_summon_apply(
   map : Map_,
   name : String,
 ) -> Unit {
-  let enemy_idx = enemy_list.search_by(enemy => enemy.name == name).unwrap()
-  let enemy_base = enemy_list[enemy_idx]
+  let enemy_base = enemy_info_map.get(name).unwrap()
   let resource_cost = enemy_base.summon_cost
   let battle_copper = get_battle_copper_by_id(id)
-
-  // 检查召唤位置是否有效（在地图范围内且未被占据）
-  if map.is_occupy(position) {
-    @global_msg.msg_info.broadcast({
-      type_msg: "summon_failed",
-      content: ({ "message": "召唤位置已被占据" } : Json).stringify(),
-    })
-    return
-  }
-
-  // 检查位置是否在有效房间内
-  guard map.global_position_to_room_position(position) is Some(_) else {
-    @global_msg.msg_info.broadcast({
-      type_msg: "summon_failed",
-      content: ({ "message": "召唤位置无效" } : Json).stringify(),
-    })
-    return
-  }
   if battle_copper.inventory.check_resource_cost_in_inventory(resource_cost) {
     battle_copper.inventory.consume_resource_cost(resource_cost)
-
-    // 创建友方召唤物（owned=true 的 Enemy）
-    let summoned_enemy = Enemy::new(
-      enemy_base, position, true, // owned=true 友方召唤物
-    )
-
-    // 添加到地图（作为Enemy）
+    let summoned_enemy = Enemy::new(enemy_base, position, true)
     map.add_occupant(position, Occupant::Enemy(summoned_enemy))
-
-    // 通知前端创建敌人模型（前端会根据model_url加载）
-    // 注意：set_enemy 会在内部完成后自动调用 update_health 显示血条
     set_enemy(summoned_enemy, summoned_enemy.id, position)
-    // 显示召唤物状态（绿圈/红圈）
     summoned_enemy.update_move_and_attack_and_summon_status()
-
-    // 召唤完成，设置召唤者的召唤状态为 false
     battle_copper.can_summon = false
     battle_copper.update_move_and_attack_and_summon_status()
-
-    // 清除召唤范围地板块
-    for summon_position in setted_can_summon_blocks {
-      clear_block(summon_position)
-      check_and_reset_block(summon_position, Summon)
-    }
-    setted_can_summon_blocks.clear()
   } else {
     @global_msg.msg_info.broadcast({
       type_msg: "resource_not_enough",
@@ -531,4 +497,82 @@ fn handle_on_get_summon_menu() -> Unit {
     type_msg: "get_summon_menu",
     content: ({ "contents": enemy_list.to_json() } : Json).stringify(),
   })
+}
+
+// 备注：建筑用的圈和召唤用的圈一样
+
+///|
+/// 前端：当玩家获取结构建造菜单
+/// 后端：返回结构建造菜单
+/// 需要可以选择结构以及确定资源消耗
+fn handle_on_get_structure_menu() -> Unit {
+  @global_msg.msg_info.broadcast({
+    type_msg: "get_structure_menu",
+    content: ({ "contents": structure_info_list.to_json() } : Json).stringify(),
+  })
+}
+
+///|
+fn handle_on_structure_build_start(id : Int, name : String) -> Unit {
+  handle_on_move_end()
+  handle_on_attack_end()
+  handle_on_transfer_end()
+  handle_on_summon_end()
+  let battle_copper = get_battle_copper_by_id(id)
+  let map = force_get_current_map()
+  let can_build = battle_copper.get_structure_build_position(
+    map,
+    is_drill=name == "心源矿钻",
+  )
+  for position in can_build {
+    set_can_summon_blocks(position)
+    setted_can_summon_blocks.add(position)
+  }
+}
+
+///|
+fn handle_on_structure_build_apply(
+  id : Int,
+  position : (Int, Int),
+  map : Map_,
+  name : String,
+) -> Unit {
+  let structure_base = structure_info_map.get(name).unwrap()
+  let resource_cost = structure_base.cost
+  let battle_copper = get_battle_copper_by_id(id)
+  if battle_copper.inventory.check_resource_cost_in_inventory(resource_cost) {
+    battle_copper.inventory.consume_resource_cost(resource_cost)
+    let resource_type = if name == "心源矿钻" {
+      let material = map.get_occupant(position)
+      guard material is Material(material)
+      map.remove_occupant(position)
+      remove_unit(material.id)
+      Some(material.material_base.resource_type)
+    } else {
+      None
+    }
+    let structure = Structure::new(
+      structure_base,
+      owned=true,
+      resource_type~,
+      position,
+    )
+    map.add_occupant(position, Occupant::Structure(structure))
+    set_structure(structure, structure.id, position)
+    structure.update_move_and_attack_and_summon_status()
+  } else {
+    @global_msg.msg_info.broadcast({
+      type_msg: "resource_not_enough",
+      content: ({ "message": "资源不足" } : Json).stringify(),
+    })
+  }
+}
+
+///|
+fn handle_on_structure_build_end() -> Unit {
+  for position in setted_can_summon_blocks {
+    clear_block(position)
+    check_and_reset_block(position, Summon)
+  }
+  setted_can_summon_blocks.clear()
 }

@@ -15,8 +15,7 @@ fn handle_on_click_enemy(id : Int) -> Unit {
   guard map_block is Some((room, position))
   let resource = room.blocks[position.0][position.1].resources
   // 检查是否有攻击目标
-  let attack_targets = enemy.get_attack_targets(map)
-  let has_attack_targets = attack_targets.length() > 0
+  let has_attack_targets = !enemy.get_attack_targets(map).is_empty()
   @global_msg.msg_info.broadcast({
     type_msg: "handle_on_click_enemy",
     content: (
@@ -46,7 +45,7 @@ fn handle_on_enemy_attack_start(map : Map_, id : Int) -> Unit {
 }
 
 ///|
-/// 前端：当敌人（玩家）取消攻击
+/// 前端：当敌人（玩家）取消或结束攻击
 /// 后端：清除可攻击的地块
 fn handle_on_enemy_attack_end() -> Unit {
   for position in setted_attack_blocks {
@@ -64,10 +63,7 @@ fn handle_on_enemy_attack_apply(
   position : (Int, Int),
   map : Map_,
 ) -> Unit {
-  if not(setted_attack_blocks.contains(position)) {
-    return
-  }
-  // 移动前将视角聚焦到敌人
+  // 攻击前将视角聚焦到敌人
   animate_move(id)
   let enemy = enemy_map.get(id).unwrap()
   let target = map.get_occupant(position)
@@ -98,7 +94,23 @@ fn handle_on_enemy_attack_apply(
       enemy.can_attack = false
       enemy.update_move_and_attack_and_summon_status()
     }
-    // 目标已经死亡或不存在，清除攻击范围但不消耗攻击机会
+    Structure(structure) => {
+      let result = structure.apply_attack(enemy.enemy_base.attack)
+      if result {
+        structure_map.remove(structure.id)
+        remove_unit(structure.id)
+        map.remove_occupant(structure.position)
+      } else {
+        // 更新建筑血量显示
+        update_health(
+          structure.id,
+          structure.now_health,
+          structure.structure_base.health,
+        )
+      }
+      enemy.can_attack = false
+      enemy.update_move_and_attack_and_summon_status()
+    }
     Empty => ()
     _ => abort("target is not enemy or copper")
   }
@@ -109,14 +121,13 @@ fn handle_on_enemy_attack_apply(
   }
   setted_attack_blocks.clear()
   // 只有成功攻击才发送完成消息
-  if not(target is Empty) {
+  if !(target is Empty) {
     attack_complete(id)
   }
 }
 
 ///|
 fn handle_on_enemy_move_start(map : Map_, id : Int) -> Unit {
-  // 先清除之前的移动范围和攻击范围
   handle_on_move_end()
   handle_on_attack_end()
   handle_on_transfer_end()
@@ -148,11 +159,6 @@ fn handle_on_enemy_move_apply(
   position : (Int, Int),
   map : Map_,
 ) -> Unit {
-  // 验证移动位置是否在有效范围内
-  if not(setted_move_blocks.contains(position)) {
-    // 位置无效，保持范围显示，等待玩家重新选择
-    return
-  }
   // 移动前将视角聚焦到敌人
   animate_move(id)
   let enemy = enemy_map.get(id).unwrap()

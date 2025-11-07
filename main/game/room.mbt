@@ -1,5 +1,6 @@
 ///|
 priv struct Room {
+  level : Int
   index_position : (Int, Int)
   blocks : Array[Array[MapBlock]]
 }
@@ -51,7 +52,12 @@ fn Room::new(
 
   // 中心点设置为怪物生成器
   blocks[7][7].occupant = Structure(
-    @structure.Structure::new(@structure.structure_map["充能线圈"], false),
+    Structure::new(
+      structure_info_map["充能线圈"],
+      owned=false,
+      resource_type=None,
+      (7, 7),
+    ),
   )
   for i in 0..<default_enemy_count[level] {
     let enemy = summon_enemy(level)
@@ -84,7 +90,32 @@ fn Room::new(
       Material::new(resonant_star_crystal),
     )
   }
-  { index_position, blocks }
+  { level, index_position, blocks }
+}
+
+///|
+fn Room::is_full(room : Room) -> Bool {
+  for blocks in room.blocks {
+    for block in blocks {
+      if block.occupant is Enemy(_) {
+        return false
+      }
+    }
+  }
+  true
+}
+
+///|
+fn Room::get_empty_positions(room : Room) -> Array[(Int, Int)] {
+  let positions = []
+  for block_x in 0..<16 {
+    for block_y in 0..<16 {
+      if room.blocks[block_x][block_y].occupant is Empty {
+        positions.push((block_x, block_y))
+      }
+    }
+  }
+  positions
 }
 
 ///|
