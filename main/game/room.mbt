@@ -51,7 +51,7 @@ fn Room::new(
 
   // 中心点设置为怪物生成器
   blocks[7][7].occupant = Structure(
-    @structure.Structure::new(@structure.structure_map["充能线圈"]),
+    @structure.Structure::new(@structure.structure_map["充能线圈"], false),
   )
   for i in 0..<default_enemy_count[level] {
     let enemy = summon_enemy(level)

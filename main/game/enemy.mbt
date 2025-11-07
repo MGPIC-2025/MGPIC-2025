@@ -5,7 +5,6 @@ let enemy_map : Map[Int, Enemy] = {}
 priv struct Enemy {
   id : Int
   owned : Bool // true=友方召唤物，false=野生敌人
-  mut summon_rounds_left : Int // 召唤物剩余回合数，-1表示永久（野生敌人）
   // 是否可以移动/攻击（仅用于 owned 为 true 的敌人）
   mut can_move : Bool
   mut can_attack : Bool
@@ -42,11 +41,6 @@ fn Enemy::new(
     id: @id.id_pool.get_id(),
     position,
     owned,
-    summon_rounds_left: if owned {
-      2
-    } else {
-      -1
-    }, // 召唤物2回合，野生敌人永久
     can_move: false, // 召唤出来的第一回合不能移动，等到下一回合才恢复
     can_attack: false, // 召唤出来的第一回合不能攻击，等到下一回合才恢复
     now_health: enemy_base.health,
@@ -122,25 +116,15 @@ fn Enemy::get_attack_targets(
 fn Enemy::find_nearest_attack_target(enemy : Enemy) -> CanAttackTarget? {
   let position_list = []
   let (self_x, self_y) = enemy.position
-  if enemy.owned {
-    // 友方召唤物：用户操控，不执行AI
-    // for other_enemy in enemy_map.values() {
-    // if other_enemy.id != enemy.id && other_enemy.owned == false {
-    //   position_list.push((other_enemy.position, CanAttackTarget::Enemy(other_enemy)))
-    // }
-    // }
-  } else {
-    // 野生敌人：寻找最近的铜偶或友方召唤物
-    let copper_list = get_battle_copper_list()
-    for copper in copper_list {
-      position_list.push((copper.position, CanAttackTarget::Copper(copper)))
-    }
-    for other_enemy in enemy_map.values() {
-      if other_enemy.id != enemy.id && other_enemy.owned {
-        position_list.push(
-          (other_enemy.position, CanAttackTarget::Enemy(other_enemy)),
-        )
-      }
+  let copper_list = get_battle_copper_list()
+  for copper in copper_list {
+    position_list.push((copper.position, CanAttackTarget::Copper(copper)))
+  }
+  for other_enemy in enemy_map.values() {
+    if other_enemy.id != enemy.id && other_enemy.owned {
+      position_list.push(
+        (other_enemy.position, CanAttackTarget::Enemy(other_enemy)),
+      )
     }
   }
   let mut min_distance = 1000000000
