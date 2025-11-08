@@ -2,6 +2,7 @@
 import log from '../log.js';
 import { ref, computed, watch, nextTick } from 'vue';
 import { getAssetUrl } from '../utils/resourceLoader.js';
+import { getItemName } from '../utils/resourceMeta.js';
 
 const props = defineProps({
   structure: {
@@ -12,9 +13,13 @@ const props = defineProps({
     type: Array,
     default: () => [],
   },
+  actionMode: {
+    type: String,
+    default: null, // 'extract', 'transfer', null
+  },
 });
 
-const emit = defineEmits(['close', 'action']);
+const emit = defineEmits(['close', 'action', 'cancel']);
 
 // 计算属性
 const structureName = computed(() => props.structure.structure_base?.name || '建筑');
@@ -43,10 +48,28 @@ const healthColor = computed(() => {
 // UI 资源
 const panelSrc = getAssetUrl('ui/panel.png');
 
+// 计算是否处于操作模式（最小化）
+const isInActionMode = computed(() => props.actionMode !== null);
+
+// 操作模式描述
+const actionModeText = computed(() => {
+  if (props.actionMode === 'move') return '选择移动位置...';
+  if (props.actionMode === 'attack') return '选择攻击目标...';
+  if (props.actionMode === 'extract') return '选择提取目标...';
+  if (props.actionMode === 'transfer') return '选择传递目标...';
+  return '';
+});
+
 // 处理动作
 function handleAction(actionType) {
   log(`[StructurePanel] 触发动作: ${actionType}`);
   emit('action', { type: actionType });
+}
+
+// 取消操作
+function handleCancel() {
+  log('[StructurePanel] 取消操作');
+  emit('cancel');
 }
 
 // 关闭面板
@@ -56,18 +79,33 @@ function handleClose() {
 </script>
 
 <template>
-  <div class="structure-panel">
-    <div class="structure-panel__header">
-      <div class="structure-panel__title">
-        {{ structureName }}
-        <span class="structure-panel__badge" :class="{ 'structure-panel__badge--owned': isOwned }">
-          {{ isOwned ? '玩家' : '中立' }}
-        </span>
+  <div class="structure-panel" :class="{ 'structure-panel--minimized': isInActionMode }">
+    <!-- 最小化状态 -->
+    <div v-if="isInActionMode" class="minimized-content">
+      <div class="minimized-info">
+        <span class="minimized-name">{{ structureName }}</span>
+        <span class="minimized-action">{{ actionModeText }}</span>
       </div>
-      <button class="structure-panel__close" @click="handleClose" aria-label="关闭">✕</button>
+      <div class="minimized-actions">
+        <button class="mini-btn mini-btn--cancel" @click="handleCancel" title="取消">
+          ✕
+        </button>
+      </div>
     </div>
+    
+    <!-- 完整状态 -->
+    <div v-else>
+      <div class="structure-panel__header">
+        <div class="structure-panel__title">
+          {{ structureName }}
+          <span class="structure-panel__badge" :class="{ 'structure-panel__badge--owned': isOwned }">
+            {{ isOwned ? '玩家' : '中立' }}
+          </span>
+        </div>
+        <button class="structure-panel__close" @click="handleClose" aria-label="关闭">✕</button>
+      </div>
 
-    <div class="structure-panel__body">
+      <div class="structure-panel__body">
       <!-- 血量信息 -->
       <div class="structure-panel__health">
         <div class="structure-panel__health-label">血量</div>
@@ -82,7 +120,7 @@ function handleClose() {
         <div class="structure-panel__storage-label">储物空间</div>
         <div class="structure-panel__storage-content">
           <div v-if="storage" class="structure-panel__storage-item">
-            <span class="structure-panel__storage-name">{{ storage.name || '资源' }}</span>
+            <span class="structure-panel__storage-name">{{ getItemName(storage) }}</span>
             <span class="structure-panel__storage-count">x{{ storage.count || 0 }}</span>
           </div>
           <div v-else class="structure-panel__storage-empty">空</div>
@@ -135,6 +173,7 @@ function handleClose() {
           提取
         </button>
       </div>
+      </div>
     </div>
   </div>
 </template>
@@ -152,6 +191,65 @@ function handleClose() {
   color: #fff;
   z-index: 1000;
   border: 2px solid rgba(139, 92, 246, 0.3);
+}
+
+.structure-panel--minimized {
+  bottom: 48px;
+  width: min(300px, 170vw);
+  background: rgba(239, 68, 68, 0.95);
+  border: 2px solid rgba(239, 68, 68, 0.5);
+}
+
+/* 最小化内容 */
+.minimized-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+}
+
+.minimized-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.minimized-name {
+  font-size: 16px;
+  font-weight: 700;
+  color: #fff;
+}
+
+.minimized-action {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.minimized-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.mini-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  border: none;
+  font-size: 18px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.mini-btn--cancel {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+}
+
+.mini-btn--cancel:hover {
+  background: rgba(255, 255, 255, 0.2);
 }
 
 .structure-panel__header {

@@ -85,7 +85,8 @@ fn Structure::get_attack_targets(
       let occupant = map.get_occupant(position)
       if structure.owned {
         match occupant {
-          Copper(copper) => can_attack.push(CanAttackTarget::Copper(copper))
+          Copper(copper) if structure.structure_base.name == "维修工坊" =>
+            can_attack.push(CanAttackTarget::Copper(copper))
           Enemy(enemy) if enemy.owned == true =>
             can_attack.push(CanAttackTarget::Enemy(enemy))
           Structure(structure) if structure.owned == true =>
@@ -147,7 +148,6 @@ fn Structure::get_can_extract(
     let self_item = structure.storage
     if map.is_occupy(position) {
       if map.get_occupant(position) is Structure(structure) &&
-        structure.owned == false &&
         structure.storage is Some(item) &&
         item.item_type is Resource(resource_type) &&
         item.count > 0 &&

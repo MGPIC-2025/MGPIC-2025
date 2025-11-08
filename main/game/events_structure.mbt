@@ -76,11 +76,22 @@ fn handle_on_structure_attack_apply(
         // 更新敌人血量显示
         update_health(enemy.id, enemy.now_health, enemy.enemy_base.health)
       }
-      enemy.can_attack = false
-      enemy.update_move_and_attack_and_summon_status()
+      structure.can_attack = false
+      structure.update_move_and_attack_and_summon_status()
     }
     Copper(copper) => {
-      copper.apply_mechanic_heal(structure.structure_base.attribute.attack)
+      if structure.owned {
+        copper.apply_mechanic_heal(structure.structure_base.attribute.attack)
+      } else {
+        let result = copper.apply_attack(
+          structure.structure_base.attribute.attack,
+        )
+        if result {
+          battle_copper_map.remove(copper.id)
+          remove_unit(copper.id)
+          map.remove_occupant(copper.position)
+        }
+      }
       // 更新铜偶血量显示
       update_health(
         copper.id,

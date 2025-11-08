@@ -210,6 +210,11 @@ export function registerAllHandlers() {
         `[Handler] 建筑状态: HP=${structure.now_health}/${structure.structure_base.health}, 可移动=${structure.can_move}, 可攻击=${structure.can_attack}, owned=${structure.owned}, 有储物空间=${structure.structure_base.has_storage}`
       );
 
+      // 高亮选中的建筑
+      if (context.highlightSelectedCopper) {
+        context.highlightSelectedCopper(structure.id);
+      }
+
       // 显示建筑信息
       if (context.onShowStructureInfo) {
         context.onShowStructureInfo(structure, resources);

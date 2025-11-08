@@ -16,7 +16,7 @@ let structure_info_list : FixedArray[StructureBase] = [
   {
     name: "齿轮箭塔",
     health: 200,
-    can_move: true,
+    can_move: false,
     can_attack: true,
     has_storage: false,
     attack_range: 3,
