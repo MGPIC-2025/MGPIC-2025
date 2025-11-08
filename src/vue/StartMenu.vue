@@ -156,9 +156,7 @@ async function initScene(onProgress = null) {
   // 步骤3：准备加载模型
   if (onProgress) onProgress(0, 100, 50);
 
-  const logoUrl = window.getAssetUrl
-    ? window.getAssetUrl('logo.glb')
-    : './assets/logo.glb';
+  const logoUrl = getAssetUrl('logo.glb');
 
   const tryLoad = () =>
     new Promise((resolve, reject) => {
