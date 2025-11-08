@@ -2365,11 +2365,21 @@ async function handleStructureExtractApply(x, z) {
   });
   await eventloop(message);
   
-  // 提取完成，清除模式（后端会自动清除红色圈）
+  // 清除红色圈
+  log('[GameScene] 发送提取结束消息，清除红色圈');
+  const endMessage = JSON.stringify({ type: 'on_structure_extract_end' });
+  await eventloop(endMessage);
+  
+  // 等待消息处理
+  await new Promise(resolve => setTimeout(resolve, 100));
+  log('[GameScene] 提取完成，准备刷新建筑状态');
+  
+  // 提取完成，清除模式
   currentActionMode.value = null;
   
   // 重新点击建筑刷新状态（延迟以确保后端状态已更新）
   setTimeout(async () => {
+    log('[GameScene] 重新点击建筑刷新状态');
     await handleClickStructure(structureId);
   }, 300);
 }
@@ -2391,11 +2401,21 @@ async function handleStructureTransferApply(x, z) {
   });
   await eventloop(message);
   
-  // 传递完成，清除模式（后端会自动清除红色圈）
+  // 清除红色圈
+  log('[GameScene] 发送传递结束消息，清除红色圈');
+  const endMessage = JSON.stringify({ type: 'on_structure_transfer_end' });
+  await eventloop(endMessage);
+  
+  // 等待消息处理
+  await new Promise(resolve => setTimeout(resolve, 100));
+  log('[GameScene] 传递完成，准备刷新建筑状态');
+  
+  // 传递完成，清除模式
   currentActionMode.value = null;
   
   // 重新点击建筑刷新状态（延迟以确保后端状态已更新）
   setTimeout(async () => {
+    log('[GameScene] 重新点击建筑刷新状态');
     await handleClickStructure(structureId);
   }, 300);
 }
