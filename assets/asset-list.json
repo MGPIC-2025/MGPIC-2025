@@ -1,12 +1,12 @@
 {
   "generated": "2025-10-20T08:36:09.392Z",
   "version": "1.0.0",
-  "total": 140,
+  "total": 168,
   "categories": {
     "high": {
       "description": "首屏必需资源（自动预加载）",
-      "count": 6,
-      "totalSize": 7573442,
+      "count": 7,
+      "totalSize": 9738881,
       "resources": [
         {
           "path": "frontend_resource/copper_warehouse.webp",
@@ -37,18 +37,158 @@
           "path": "logo.glb",
           "size": 6940600,
           "ext": ".glb"
+        },
+        {
+          "path": "ui/Gemini_Generated_Image_gtrehogtrehogtre (1).png",
+          "size": 2165439,
+          "ext": ".png"
         }
       ]
     },
     "medium": {
       "description": "常用资源（推荐预加载）",
-      "count": 84,
-      "totalSize": 8813840,
+      "count": 111,
+      "totalSize": 13113297,
       "resources": [
         {
           "path": "asset-list.json",
           "size": 18816,
           "ext": ".json"
+        },
+        {
+          "path": "ui/铜偶的探险.mp3",
+          "size": 4293571,
+          "ext": ".mp3"
+        },
+        {
+          "path": "ui/favicon.ico",
+          "size": 4286,
+          "ext": ".ico"
+        },
+        {
+          "path": "ui/blood-bar.png",
+          "size": 631,
+          "ext": ".png"
+        },
+        {
+          "path": "ui/blood-border-left.png",
+          "size": 167,
+          "ext": ".png"
+        },
+        {
+          "path": "ui/blood-border-middle.png",
+          "size": 141,
+          "ext": ".png"
+        },
+        {
+          "path": "ui/blood-border-right.png",
+          "size": 165,
+          "ext": ".png"
+        },
+        {
+          "path": "ui/boot.png",
+          "size": 170,
+          "ext": ".png"
+        },
+        {
+          "path": "ui/border-blue.png",
+          "size": 248,
+          "ext": ".png"
+        },
+        {
+          "path": "ui/border-green.png",
+          "size": 248,
+          "ext": ".png"
+        },
+        {
+          "path": "ui/border-orange-red.png",
+          "size": 248,
+          "ext": ".png"
+        },
+        {
+          "path": "ui/btn.png",
+          "size": 259,
+          "ext": ".png"
+        },
+        {
+          "path": "ui/choice-active.png",
+          "size": 147,
+          "ext": ".png"
+        },
+        {
+          "path": "ui/choice.png",
+          "size": 147,
+          "ext": ".png"
+        },
+        {
+          "path": "ui/circle1_1.png",
+          "size": 172,
+          "ext": ".png"
+        },
+        {
+          "path": "ui/circle2_1.png",
+          "size": 172,
+          "ext": ".png"
+        },
+        {
+          "path": "ui/circle3_1.png",
+          "size": 173,
+          "ext": ".png"
+        },
+        {
+          "path": "ui/currentcupper.png",
+          "size": 189,
+          "ext": ".png"
+        },
+        {
+          "path": "ui/green.png",
+          "size": 277,
+          "ext": ".png"
+        },
+        {
+          "path": "ui/mushroom.png",
+          "size": 173,
+          "ext": ".png"
+        },
+        {
+          "path": "ui/panel.png",
+          "size": 283,
+          "ext": ".png"
+        },
+        {
+          "path": "ui/red.png",
+          "size": 277,
+          "ext": ".png"
+        },
+        {
+          "path": "ui/ribbon-left.png",
+          "size": 237,
+          "ext": ".png"
+        },
+        {
+          "path": "ui/ribbon-middle.png",
+          "size": 144,
+          "ext": ".png"
+        },
+        {
+          "path": "ui/ribbon-right.png",
+          "size": 236,
+          "ext": ".png"
+        },
+        {
+          "path": "ui/round1.png",
+          "size": 237,
+          "ext": ".png"
+        },
+        {
+          "path": "ui/sword.png",
+          "size": 190,
+          "ext": ".png"
+        },
+        {
+          "path": "ui/your-image.png",
+          "size": 235,
+          "ext": ".png"
         },
         {
           "path": "copper/arcanist/bubble/bubble.webp",
@@ -727,12 +867,12 @@
   },
   "stats": {
     "high": {
-      "count": 6,
-      "totalSize": 7573442
+      "count": 7,
+      "totalSize": 9738881
     },
     "medium": {
-      "count": 84,
-      "totalSize": 8813840
+      "count": 111,
+      "totalSize": 13113297
     },
     "low": {
       "count": 50,
