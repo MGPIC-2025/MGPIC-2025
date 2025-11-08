@@ -611,8 +611,11 @@ export function registerAllHandlers() {
     );
 
     if (!context.onPutMapBlock) {
+      log('[Handler] ⚠️ context.onPutMapBlock 不存在，无法创建地图块');
       return;
     }
+    
+    log('[Handler] ✓ context.onPutMapBlock 存在，开始创建地图块...');
 
     // 分帧创建地图块，每帧创建一部分，避免一次性创建256个造成卡顿
     const blocksPerFrame = 32; // 每帧创建32个块（256/32 = 8帧）

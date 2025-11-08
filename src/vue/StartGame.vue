@@ -253,23 +253,11 @@ async function loadCoppers() {
 async function startGame() {
   if (selectedIds.value.size !== 3) return;
   const ids = Array.from(selectedIds.value).map(id => String(id));
-  try {
-    if (!window.__ACTUAL_COPPER_IDS__) window.__ACTUAL_COPPER_IDS__ = [];
-    const message = JSON.stringify({ type: 'on_game_start', content: { ids } });
-
-    // 不等待eventloop完成，直接发送消息
-    // 因为broadcast_room_content会发送大量消息（225个地图块），会阻塞界面
-    eventloop(message).catch(e => {
-      log('[StartGame] eventloop执行失败', e);
-    });
-
-    // 立即关闭界面，让消息队列在后台处理
-    log('[StartGame] 游戏开始消息已发送，ID:', ids);
-    emit('confirm', { ids });
-  } catch (e) {
-    log('[StartGame] 发送开始游戏消息失败', e);
-    emit('confirm', { ids });
-  }
+  
+  window.__ACTUAL_COPPER_IDS__ = ids;
+  
+  log('[StartGame] 准备进入游戏，ID:', ids);
+  emit('confirm', { ids });
 }
 
 function close() {

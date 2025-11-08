@@ -168,13 +168,28 @@ const currentCopperId = computed(() => {
 });
 
 onMounted(async () => {
+  log('[GameScene] 组件挂载，初始化场景');
   initScene();
+  log('[GameScene] 场景初始化完成，设置消息队列');
   setupMessageQueue();
+  log('[GameScene] 消息队列设置完成');
 
   // 默认切换到EventLoop模式（隐藏测试模型）
   const { messageQueue } = await import('../messageQueue.js');
   if (messageQueue.sceneContext?.setTestMode) {
     messageQueue.sceneContext.setTestMode('eventloop');
+  }
+  
+  // 场景准备完成后，发送游戏开始消息
+  if (window.__ACTUAL_COPPER_IDS__) {
+    const ids = window.__ACTUAL_COPPER_IDS__;
+    log('[GameScene] 场景准备完成，发送游戏开始消息，ID:', ids);
+    const message = JSON.stringify({ type: 'on_game_start', content: { ids } });
+    eventloop(message).catch(e => {
+      log('[GameScene] 发送游戏开始消息失败', e);
+    });
+    // 清除标记
+    delete window.__ACTUAL_COPPER_IDS__;
   }
 
   // 添加键盘和鼠标事件监听

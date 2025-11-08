@@ -13,9 +13,10 @@ fn handle_on_game_start(ids : Array[Int]) -> Unit {
   first_room.blocks[0][7].occupant = Occupant::Copper(copper_2)
   first_room.blocks[0][8].occupant = Occupant::Copper(copper_3)
 
-  // 重新广播房间内容（包括地图块、敌人和铜偶）
-  // 前端的"已存在检查"会跳过重复的敌人，只创建新的铜偶
+  // 广播房间内容（地图块、敌人和铜偶）
+  // 由于 Map_::new 使用了 add_room_silent，这是唯一一次广播
   broadcast_room_content(first_room)
+  
   change_direction(copper_1.id, PositiveY)
   change_direction(copper_2.id, PositiveY)
   change_direction(copper_3.id, PositiveY)
