@@ -52,6 +52,8 @@ const isInActionMode = computed(() => props.actionMode !== null);
 
 // 操作模式描述
 const actionModeText = computed(() => {
+  if (props.actionMode === 'move') return '选择移动位置...';
+  if (props.actionMode === 'attack') return '选择攻击目标...';
   if (props.actionMode === 'extract') return '选择提取目标...';
   if (props.actionMode === 'transfer') return '选择传递目标...';
   return '';

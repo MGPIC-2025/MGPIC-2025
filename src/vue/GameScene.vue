@@ -917,6 +917,20 @@ function setupMessageQueue() {
     onMoveComplete: id => {
       if (!props.isGameMode) return;
 
+      // 先检查是否是建筑
+      const model = models.find(m => m.id === id);
+      if (model?.type === 'structure') {
+        log('[GameScene] 建筑移动完成，刷新建筑状态');
+        // 重置状态
+        currentActionMode.value = null;
+        
+        // 重新点击建筑刷新状态
+        setTimeout(async () => {
+          await handleClickStructure(id);
+        }, 300);
+        return;
+      }
+
       // 检查移动的是否是玩家的铜偶（而不是敌人）
       const isPlayerCopper = playerCoppers.value.some(
         copper => copper.id === id
@@ -936,7 +950,6 @@ function setupMessageQueue() {
       // 重新获取单位最新状态，然后判断是否切换
       setTimeout(async () => {
         // 判断是铜偶还是友方召唤物
-        const model = models.find(m => m.id === id);
         const isSummon = model?.type === 'summon';
 
         // 重新点击当前单位获取最新状态
@@ -1025,6 +1038,20 @@ function setupMessageQueue() {
     onAttackComplete: id => {
       if (!props.isGameMode) return;
 
+      // 先检查是否是建筑
+      const model = models.find(m => m.id === id);
+      if (model?.type === 'structure') {
+        log('[GameScene] 建筑攻击完成，刷新建筑状态');
+        // 重置状态
+        currentActionMode.value = null;
+        
+        // 重新点击建筑刷新状态
+        setTimeout(async () => {
+          await handleClickStructure(id);
+        }, 300);
+        return;
+      }
+
       // 检查攻击的是否是玩家的铜偶（而不是敌人）
       const isPlayerCopper = playerCoppers.value.some(
         copper => copper.id === id
@@ -1044,7 +1071,6 @@ function setupMessageQueue() {
       // 重新获取单位最新状态，然后判断是否切换
       setTimeout(async () => {
         // 判断是铜偶还是友方召唤物
-        const model = models.find(m => m.id === id);
         const isSummon = model?.type === 'summon';
 
         // 重新点击当前单位获取最新状态
@@ -1885,7 +1911,11 @@ function onSceneClick(event) {
     currentActionMode.value === 'attacking' ||
     currentActionMode.value === 'summoning' ||
     currentActionMode.value === 'building' ||
-    currentActionMode.value === 'transferring'
+    currentActionMode.value === 'transferring' ||
+    currentActionMode.value === 'structureMoving' ||
+    currentActionMode.value === 'structureAttacking' ||
+    currentActionMode.value === 'structureExtract' ||
+    currentActionMode.value === 'structureTransfer'
   ) {
     handleFloorClick(mouse);
     return;
@@ -1971,6 +2001,8 @@ async function handleFloorClick(mousePos) {
       attacking: 'attack',
       summoning: 'summon',
       building: 'summon', // 建造也使用 summon 类型的黄色方块
+      structureMoving: 'move', // 建筑移动使用移动范围的黄色方块
+      structureAttacking: 'attack', // 建筑攻击使用攻击范围的红色方块
       structureExtract: 'attack', // 提取使用攻击范围的红色方块
       structureTransfer: 'attack', // 传递使用攻击范围的红色方块
     }[currentActionMode.value];
@@ -1988,6 +2020,10 @@ async function handleFloorClick(mousePos) {
       await handleSummonApply(gridX, gridZ);
     } else if (currentActionMode.value === 'building') {
       await handleBuildApply(gridX, gridZ);
+    } else if (currentActionMode.value === 'structureMoving') {
+      await handleStructureMoveApply(gridX, gridZ);
+    } else if (currentActionMode.value === 'structureAttacking') {
+      await handleStructureAttackApply(gridX, gridZ);
     } else if (currentActionMode.value === 'structureExtract') {
       await handleStructureExtractApply(gridX, gridZ);
     } else if (currentActionMode.value === 'structureTransfer') {
@@ -2154,7 +2190,17 @@ function handleCloseSummonModal() {
 function handleStructurePanelCancel() {
   log('[GameScene] 建筑面板取消操作');
   
-  if (currentActionMode.value === 'structureExtract') {
+  if (currentActionMode.value === 'structureMoving') {
+    const message = JSON.stringify({ type: 'on_structure_move_end' });
+    eventloop(message).catch(e => {
+      log('[GameScene] 清除建筑移动范围失败', e);
+    });
+  } else if (currentActionMode.value === 'structureAttacking') {
+    const message = JSON.stringify({ type: 'on_structure_attack_end' });
+    eventloop(message).catch(e => {
+      log('[GameScene] 清除建筑攻击范围失败', e);
+    });
+  } else if (currentActionMode.value === 'structureExtract') {
     const message = JSON.stringify({ type: 'on_structure_extract_end' });
     eventloop(message).catch(e => {
       log('[GameScene] 清除建筑提取范围失败', e);
@@ -2188,12 +2234,12 @@ async function handleStructureAction(action) {
 
   switch (action.type) {
     case 'move':
-      // TODO: 实现建筑移动逻辑
-      log('[GameScene] 建筑移动功能尚未实现');
+      // 建筑移动（矿车专属）
+      await handleStructureMoveStart(structureId);
       break;
     case 'attack':
-      // TODO: 实现建筑攻击逻辑
-      log('[GameScene] 建筑攻击功能尚未实现');
+      // 建筑攻击（箭塔等防御建筑）
+      await handleStructureAttackStart(structureId);
       break;
     case 'transfer':
       // 建筑传递物品（传递给周围的铜偶/建筑）
@@ -2206,6 +2252,34 @@ async function handleStructureAction(action) {
     default:
       log('[GameScene] 未知建筑动作:', action.type);
   }
+}
+
+// 建筑开始移动
+async function handleStructureMoveStart(structureId) {
+  log(`[GameScene] 建筑 ${structureId} 开始移动`);
+  
+  const message = JSON.stringify({
+    type: 'on_structure_move_start',
+    content: { id: String(structureId) },
+  });
+  await eventloop(message);
+  
+  // 进入移动模式
+  currentActionMode.value = 'structureMoving';
+}
+
+// 建筑开始攻击
+async function handleStructureAttackStart(structureId) {
+  log(`[GameScene] 建筑 ${structureId} 开始攻击`);
+  
+  const message = JSON.stringify({
+    type: 'on_structure_attack_start',
+    content: { id: String(structureId) },
+  });
+  await eventloop(message);
+  
+  // 进入攻击模式
+  currentActionMode.value = 'structureAttacking';
 }
 
 // 建筑开始提取物品
@@ -2236,14 +2310,14 @@ async function handleStructureTransferStart(structureId) {
   currentActionMode.value = 'structureTransfer';
 }
 
-// 建筑应用提取物品
-async function handleStructureExtractApply(x, z) {
+// 建筑应用移动
+async function handleStructureMoveApply(x, z) {
   if (!selectedStructure.value) return;
   
-  log(`[GameScene] 建筑 ${selectedStructure.value.id} 从 (${x}, ${z}) 提取物品`);
+  log(`[GameScene] 建筑 ${selectedStructure.value.id} 移动到 (${x}, ${z})`);
   
   const message = JSON.stringify({
-    type: 'on_structure_extract_apply',
+    type: 'on_structure_move_apply',
     content: {
       id: String(selectedStructure.value.id),
       position: { x: String(x), y: String(z) },
@@ -2251,8 +2325,57 @@ async function handleStructureExtractApply(x, z) {
   });
   await eventloop(message);
   
+  // 移动完成，清除模式
+  currentActionMode.value = null;
+}
+
+// 建筑应用攻击
+async function handleStructureAttackApply(x, z) {
+  if (!selectedStructure.value) return;
+  
+  log(`[GameScene] 建筑 ${selectedStructure.value.id} 攻击 (${x}, ${z})`);
+  
+  const message = JSON.stringify({
+    type: 'on_structure_attack_apply',
+    content: {
+      id: String(selectedStructure.value.id),
+      position: { x: String(x), y: String(z) },
+    },
+  });
+  await eventloop(message);
+  
+  // 攻击完成，清除模式
+  currentActionMode.value = null;
+}
+
+// 建筑应用提取物品
+async function handleStructureExtractApply(x, z) {
+  if (!selectedStructure.value) return;
+  
+  log(`[GameScene] 建筑 ${selectedStructure.value.id} 从 (${x}, ${z}) 提取物品`);
+  
+  const structureId = selectedStructure.value.id;
+  
+  const message = JSON.stringify({
+    type: 'on_structure_extract_apply',
+    content: {
+      id: String(structureId),
+      position: { x: String(x), y: String(z) },
+    },
+  });
+  await eventloop(message);
+  
+  // 清除红色圈
+  const endMessage = JSON.stringify({ type: 'on_structure_extract_end' });
+  await eventloop(endMessage);
+  
   // 提取完成，清除模式
   currentActionMode.value = null;
+  
+  // 重新点击建筑刷新状态（延迟以确保后端状态已更新）
+  setTimeout(async () => {
+    await handleClickStructure(structureId);
+  }, 300);
 }
 
 // 建筑应用传递物品
@@ -2261,17 +2384,28 @@ async function handleStructureTransferApply(x, z) {
   
   log(`[GameScene] 建筑 ${selectedStructure.value.id} 向 (${x}, ${z}) 传递物品`);
   
+  const structureId = selectedStructure.value.id;
+  
   const message = JSON.stringify({
     type: 'on_structure_transfer_apply',
     content: {
-      id: String(selectedStructure.value.id),
+      id: String(structureId),
       position: { x: String(x), y: String(z) },
     },
   });
   await eventloop(message);
   
+  // 清除红色圈
+  const endMessage = JSON.stringify({ type: 'on_structure_transfer_end' });
+  await eventloop(endMessage);
+  
   // 传递完成，清除模式
   currentActionMode.value = null;
+  
+  // 重新点击建筑刷新状态（延迟以确保后端状态已更新）
+  setTimeout(async () => {
+    await handleClickStructure(structureId);
+  }, 300);
 }
 
 // 处理点击铜偶
@@ -2281,6 +2415,9 @@ async function handleClickCopper(copperId) {
   if (index !== -1) {
     currentCopperIndex.value = index;
   }
+
+  // 关闭建筑面板
+  selectedStructure.value = null;
 
   const message = JSON.stringify({
     type: 'on_click_copper',
@@ -2313,6 +2450,9 @@ async function handleClickEnemy(enemyId, isWildEnemy = false) {
       currentCopperIndex.value = index;
     }
   }
+
+  // 关闭建筑面板
+  selectedStructure.value = null;
 
   const message = JSON.stringify({
     type: 'on_click_enemy',
@@ -2636,7 +2776,13 @@ function endRound() {
       v-if="isGameMode && selectedStructure"
       :structure="selectedStructure"
       :resources="selectedStructureData?.resources || []"
-      :action-mode="currentActionMode === 'structureExtract' ? 'extract' : currentActionMode === 'structureTransfer' ? 'transfer' : null"
+      :action-mode="
+        currentActionMode === 'structureMoving' ? 'move' :
+        currentActionMode === 'structureAttacking' ? 'attack' :
+        currentActionMode === 'structureExtract' ? 'extract' :
+        currentActionMode === 'structureTransfer' ? 'transfer' :
+        null
+      "
       @close="closeStructurePanel"
       @action="handleStructureAction"
       @cancel="handleStructurePanelCancel"
