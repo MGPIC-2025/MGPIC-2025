@@ -1,6 +1,6 @@
 <script setup>
 import log from '../log.js';
-import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
+import { ref, computed, onMounted, onBeforeUnmount, watch } from 'vue';
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
@@ -36,7 +36,32 @@ const props = defineProps({
 });
 
 const container = ref(null);
-const emit = defineEmits(['back', 'toggle-music']);
+const emit = defineEmits(['back']);
+
+// 音乐播放相关
+const audioRef = ref(null);
+// 音乐文件路径：优先使用本地 assets 文件夹，如果不存在则使用 R2 CDN
+const musicUrl = import.meta.env.DEV 
+  ? '/assets/gamescene.mp3'  // 开发环境使用本地路径
+  : getAssetUrl('assets/gamescene.mp3');  // 生产环境使用 R2 CDN
+
+// 音效播放相关
+const moveSoundRef = ref(null);
+const moveEnemySoundRef = ref(null);
+const attackSoundRef = ref(null);
+const attackEnemySoundRef = ref(null);
+const moveSoundUrl = import.meta.env.DEV 
+  ? '/assets/move.mp3'
+  : getAssetUrl('assets/move.mp3');
+const moveEnemySoundUrl = import.meta.env.DEV 
+  ? '/assets/move_enemy.mp3'
+  : getAssetUrl('assets/move_enemy.mp3');
+const attackSoundUrl = import.meta.env.DEV 
+  ? '/assets/attack.mp3'
+  : getAssetUrl('assets/attack.mp3');
+const attackEnemySoundUrl = import.meta.env.DEV 
+  ? '/assets/attack_enemy.mp3'
+  : getAssetUrl('assets/attack_enemy.mp3');
 
 let scene, camera, renderer, controls;
 let models = [];
@@ -237,6 +262,55 @@ onMounted(async () => {
       }
     };
   }
+
+  // 自动播放音乐（如果音乐开关是开启的）
+  if (props.musicOn && audioRef.value) {
+    const tryPlay = () => {
+      if (audioRef.value.readyState >= 2) {
+        audioRef.value.play().then(() => {
+          log('[GameScene] 音乐播放成功');
+        }).catch(err => {
+          log('[GameScene] 自动播放失败（可能浏览器阻止）:', err);
+        });
+      } else {
+        const onCanPlay = () => {
+          audioRef.value.play().then(() => {
+            log('[GameScene] 音频加载完成，播放成功');
+          }).catch(err => {
+            log('[GameScene] 播放失败:', err);
+          });
+          audioRef.value.removeEventListener('canplay', onCanPlay);
+        };
+        audioRef.value.addEventListener('canplay', onCanPlay, { once: true });
+      }
+    };
+    
+    // 延迟一下确保音频元素已挂载
+    setTimeout(tryPlay, 200);
+  }
+});
+
+// 监听 musicOn 变化
+watch(() => props.musicOn, (newVal) => {
+  if (!audioRef.value) return;
+  
+  if (newVal) {
+    if (audioRef.value.readyState >= 2) {
+      audioRef.value.play().catch(err => {
+        log('[GameScene] 播放音乐失败:', err);
+      });
+    } else {
+      const playWhenReady = () => {
+        audioRef.value.play().catch(err => {
+          log('[GameScene] 播放音乐失败:', err);
+        });
+        audioRef.value.removeEventListener('canplay', playWhenReady);
+      };
+      audioRef.value.addEventListener('canplay', playWhenReady);
+    }
+  } else {
+    audioRef.value.pause();
+  }
 });
 
 onBeforeUnmount(() => {
@@ -249,6 +323,11 @@ onBeforeUnmount(() => {
   window.removeEventListener('mousedown', handleMouseDown);
   window.removeEventListener('mouseup', handleMouseUp);
   window.removeEventListener('mousemove', handleMouseMove);
+
+  // 停止音乐播放
+  if (audioRef.value) {
+    audioRef.value.pause();
+  }
 
   if (renderer) {
     renderer.dispose();
@@ -507,6 +586,9 @@ async function loadEnemyModel(enemyName, position, scale = 1.0) {
     return null;
   }
 }
+
+// 创建攻击特效函数（提取到外部作用域，以便在 handleAttackApply 中使用）
+let createAttackEffectFunc = null;
 
 function setupMessageQueue() {
   // 状态指示器存储
@@ -786,9 +868,11 @@ function setupMessageQueue() {
   };
 
   // 创建攻击特效（闪光）
-  const createAttackEffect = (attackerId, targetPosition) => {
+  createAttackEffectFunc = (attackerId, targetPosition) => {
     const attacker = models.find(m => m.id === attackerId);
     if (!attacker) return;
+
+    // 注意：攻击音效在 handleAttackApply 中播放，这里只处理视觉特效
 
     // 攻击者闪光 - 遍历所有材质
     const originalEmissives = new Map();
@@ -912,7 +996,7 @@ function setupMessageQueue() {
     },
     highlightSelectedCopper,
     floorBlocks,
-    createAttackEffect, // 攻击特效
+    createAttackEffect: createAttackEffectFunc, // 攻击特效
     // 移动完成后的回调
     onMoveComplete: id => {
       if (!props.isGameMode) return;
@@ -1739,6 +1823,17 @@ function setupMessageQueue() {
     animateModelMove: (model, targetPosition, onComplete) => {
       if (!model || !model.object) return;
 
+      // 播放移动音效
+      const isEnemy = model.type === 'enemy';
+      const soundRef = isEnemy ? moveEnemySoundRef.value : moveSoundRef.value;
+      if (soundRef) {
+        // 重置播放位置并播放
+        soundRef.currentTime = 0;
+        soundRef.play().catch(err => {
+          log(`[GameScene] 播放移动音效失败 (${isEnemy ? '敌人' : '铜偶'}):`, err);
+        });
+      }
+
       model.isMoving = true;
       const startPosition = model.object.position.clone();
       const target = new THREE.Vector3(
@@ -2067,6 +2162,26 @@ async function handleAttackApply(x, z) {
   log(
     `[GameScene] 请求攻击位置: (${x}, ${z}), 单位类型=${isOwnedEnemy ? '友方召唤物' : '铜偶'}, 事件=${eventType}`
   );
+
+  // 立即播放攻击音效和特效（在发送消息前）
+  const attackerId = selectedCopper.value.id;
+  const attacker = models.find(m => m.id === attackerId);
+  if (attacker) {
+    // 播放攻击音效
+    const isEnemy = attacker.type === 'enemy';
+    const soundRef = isEnemy ? attackEnemySoundRef.value : attackSoundRef.value;
+    if (soundRef) {
+      soundRef.currentTime = 0;
+      soundRef.play().catch(err => {
+        log(`[GameScene] 播放攻击音效失败 (${isEnemy ? '敌人' : '铜偶'}):`, err);
+      });
+    }
+
+    // 调用攻击特效
+    if (createAttackEffectFunc) {
+      createAttackEffectFunc(attackerId, [x, z]);
+    }
+  }
 
   const message = JSON.stringify({
     type: eventType,
@@ -2695,59 +2810,6 @@ function endRound() {
   <div class="game-scene">
     <div ref="container" class="scene-container"></div>
 
-    <!-- 音乐控制按钮 -->
-    <button
-      class="music-btn"
-      @click="emit('toggle-music')"
-      :title="musicOn ? '关闭音乐' : '开启音乐'"
-    >
-      <svg
-        v-if="musicOn"
-        width="24"
-        height="24"
-        viewBox="0 0 24 24"
-        fill="none"
-        xmlns="http://www.w3.org/2000/svg"
-      >
-        <path
-          d="M9 18V5L21 3V16"
-          stroke="#ffffff"
-          stroke-width="2"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-        />
-        <circle cx="6" cy="18" r="3" stroke="#ffffff" stroke-width="2" />
-        <circle cx="18" cy="16" r="3" stroke="#ffffff" stroke-width="2" />
-      </svg>
-      <svg
-        v-else
-        width="24"
-        height="24"
-        viewBox="0 0 24 24"
-        fill="none"
-        xmlns="http://www.w3.org/2000/svg"
-      >
-        <path
-          d="M9 18V5L21 3V16"
-          stroke="#ffffff"
-          stroke-width="2"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-        />
-        <circle cx="6" cy="18" r="3" stroke="#ffffff" stroke-width="2" />
-        <circle cx="18" cy="16" r="3" stroke="#ffffff" stroke-width="2" />
-        <line
-          x1="2"
-          y1="2"
-          x2="22"
-          y2="22"
-          stroke="#ffffff"
-          stroke-width="2"
-          stroke-linecap="round"
-        />
-      </svg>
-    </button>
-
     <!-- 回合系统 -->
     <TurnSystem
       v-if="isGameMode"
@@ -2835,6 +2897,34 @@ function endRound() {
         </p>
       </div>
     </div>
+    <audio
+      ref="audioRef"
+      :src="musicUrl"
+      loop
+      preload="auto"
+    ></audio>
+    <!-- 移动音效 -->
+    <audio
+      ref="moveSoundRef"
+      :src="moveSoundUrl"
+      preload="auto"
+    ></audio>
+    <audio
+      ref="moveEnemySoundRef"
+      :src="moveEnemySoundUrl"
+      preload="auto"
+    ></audio>
+    <!-- 攻击音效 -->
+    <audio
+      ref="attackSoundRef"
+      :src="attackSoundUrl"
+      preload="auto"
+    ></audio>
+    <audio
+      ref="attackEnemySoundRef"
+      :src="attackEnemySoundUrl"
+      preload="auto"
+    ></audio>
   </div>
 </template>
 
@@ -2849,29 +2939,6 @@ function endRound() {
 .scene-container {
   width: 100%;
   height: 100%;
-}
-
-.music-btn {
-  position: fixed;
-  top: 24px;
-  right: 24px;
-  width: 56px;
-  height: 56px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 12px;
-  background: rgba(58, 37, 25, 0.9);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  cursor: pointer;
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
-  z-index: 50000;
-  transition: all 0.2s ease;
-}
-
-.music-btn:hover {
-  background: rgba(47, 30, 20, 0.95);
-  transform: scale(1.05);
 }
 
 .info-panel {
