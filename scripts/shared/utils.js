@@ -56,6 +56,8 @@ const MIME_TYPES = {
   'jpeg': 'image/jpeg',
   'gif': 'image/gif',
   'svg': 'image/svg+xml',
+  'ico': 'image/x-icon',
+  'mp3': 'audio/mpeg',
   'js': 'application/javascript',
   'mjs': 'application/javascript',
   'css': 'text/css',

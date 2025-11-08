@@ -12,6 +12,7 @@ export const UPLOAD_CONFIG = {
     'equipment',        // 装备图标
     'resource',         // 游戏资源
     'frontend_resource', // 前端资源
+    'ui',               // UI 资源（图标、音频等）
     'logo.glb'         // Logo 模型文件
   ],
   
@@ -23,7 +24,7 @@ export const UPLOAD_CONFIG = {
   // 文件类型过滤
   fileTypes: {
     // 允许的文件扩展名
-    allowed: ['.glb', '.webp', '.png', '.jpg', '.jpeg', '.js', '.css', '.json'],
+    allowed: ['.glb', '.webp', '.png', '.jpg', '.jpeg', '.js', '.css', '.json', '.ico', '.mp3'],
     // 排除的文件扩展名
     blocked: ['.tmp', '.temp', '.log', '.DS_Store', 'Thumbs.db']
   },
