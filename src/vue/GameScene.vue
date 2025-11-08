@@ -28,10 +28,14 @@ const props = defineProps({
     type: Boolean,
     default: false, // false = 测试模式，true = 游戏模式
   },
+  musicOn: {
+    type: Boolean,
+    default: true,
+  },
 });
 
 const container = ref(null);
-const emit = defineEmits(['back']);
+const emit = defineEmits(['back', 'toggle-music']);
 
 let scene, camera, renderer, controls;
 let models = [];
@@ -2257,6 +2261,59 @@ function endRound() {
   <div class="game-scene">
     <div ref="container" class="scene-container"></div>
 
+    <!-- 音乐控制按钮 -->
+    <button
+      class="music-btn"
+      @click="emit('toggle-music')"
+      :title="musicOn ? '关闭音乐' : '开启音乐'"
+    >
+      <svg
+        v-if="musicOn"
+        width="24"
+        height="24"
+        viewBox="0 0 24 24"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <path
+          d="M9 18V5L21 3V16"
+          stroke="#ffffff"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        />
+        <circle cx="6" cy="18" r="3" stroke="#ffffff" stroke-width="2" />
+        <circle cx="18" cy="16" r="3" stroke="#ffffff" stroke-width="2" />
+      </svg>
+      <svg
+        v-else
+        width="24"
+        height="24"
+        viewBox="0 0 24 24"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <path
+          d="M9 18V5L21 3V16"
+          stroke="#ffffff"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        />
+        <circle cx="6" cy="18" r="3" stroke="#ffffff" stroke-width="2" />
+        <circle cx="18" cy="16" r="3" stroke="#ffffff" stroke-width="2" />
+        <line
+          x1="2"
+          y1="2"
+          x2="22"
+          y2="22"
+          stroke="#ffffff"
+          stroke-width="2"
+          stroke-linecap="round"
+        />
+      </svg>
+    </button>
+
     <!-- 回合系统 -->
     <TurnSystem
       v-if="isGameMode"
@@ -2341,6 +2398,29 @@ function endRound() {
 .scene-container {
   width: 100%;
   height: 100%;
+}
+
+.music-btn {
+  position: fixed;
+  top: 24px;
+  right: 24px;
+  width: 56px;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  background: rgba(58, 37, 25, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  cursor: pointer;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
+  z-index: 50000;
+  transition: all 0.2s ease;
+}
+
+.music-btn:hover {
+  background: rgba(47, 30, 20, 0.95);
+  transform: scale(1.05);
 }
 
 .info-panel {

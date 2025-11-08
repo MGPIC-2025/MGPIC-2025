@@ -61,6 +61,38 @@ function onStartMenuStarted() {
     },
     5 * 60 * 1000
   ); // 5分钟
+  
+  // 用户点击"开始"按钮时自动播放音乐
+  nextTick(() => {
+    if (!audioRef.value || musicOn.value) return;
+    
+    const tryPlay = () => {
+      if (audioRef.value.readyState >= 2) {
+        audioRef.value.play().then(() => {
+          musicOn.value = true;
+          log('[App] 用户首次交互，自动播放音乐成功');
+        }).catch(err => {
+          log('[App] 自动播放失败（可能浏览器阻止）:', err);
+          musicOn.value = false;
+        });
+      } else {
+        log('[App] 等待音频加载...');
+        const onCanPlay = () => {
+          audioRef.value.play().then(() => {
+            musicOn.value = true;
+            log('[App] 音频加载完成，播放成功');
+          }).catch(err => {
+            log('[App] 播放失败:', err);
+            musicOn.value = false;
+          });
+          audioRef.value.removeEventListener('canplay', onCanPlay);
+        };
+        audioRef.value.addEventListener('canplay', onCanPlay, { once: true });
+      }
+    };
+    
+    tryPlay();
+  });
 }
 
 function closeOverlay() {
@@ -76,6 +108,40 @@ function handleGameStart(params) {
   // 跳转到游戏场景
   showGameScene.value = true;
   log('[App] 已切换到游戏场景');
+  
+  // 进入游戏时自动播放音乐（利用用户点击"开始游戏"的交互）
+  nextTick(() => {
+    if (!audioRef.value || musicOn.value) return;
+    
+    const tryPlay = () => {
+      if (audioRef.value.readyState >= 2) {
+        // 音频已加载足够数据
+        audioRef.value.play().then(() => {
+          musicOn.value = true;
+          log('[App] 进入游戏，自动播放音乐成功');
+        }).catch(err => {
+          log('[App] 自动播放失败:', err);
+          musicOn.value = false;
+        });
+      } else {
+        // 等待音频加载
+        log('[App] 等待音频加载完成后播放...');
+        const onCanPlay = () => {
+          audioRef.value.play().then(() => {
+            musicOn.value = true;
+            log('[App] 音频加载完成，播放成功');
+          }).catch(err => {
+            log('[App] 播放失败:', err);
+            musicOn.value = false;
+          });
+          audioRef.value.removeEventListener('canplay', onCanPlay);
+        };
+        audioRef.value.addEventListener('canplay', onCanPlay, { once: true });
+      }
+    };
+    
+    tryPlay();
+  });
 }
 
 function closeGameScene() {
@@ -157,21 +223,42 @@ function goBack() {
 }
 
 // 设置：音乐/存档交互占位
-const musicOn = ref(true);
+const musicOn = ref(false); // 默认关闭，等待用户交互
 const fileInput = ref(null);
 const audioRef = ref(null);
 const musicUrl = getAssetUrl('ui/铜偶的探险.mp3');
+const audioLoaded = ref(false);
 
 function onToggleMusic() {
+  if (!audioRef.value) {
+    log('[App] 音频元素未初始化');
+    return;
+  }
+
   musicOn.value = !musicOn.value;
-  if (audioRef.value) {
-    if (musicOn.value) {
+  
+  if (musicOn.value) {
+    // 确保音频已加载
+    if (audioRef.value.readyState >= 2) {
+      // HAVE_CURRENT_DATA or higher
       audioRef.value.play().catch(err => {
-        console.log('播放音乐失败:', err);
+        log('[App] 播放音乐失败:', err);
+        musicOn.value = false;
       });
     } else {
-      audioRef.value.pause();
+      // 等待加载完成后播放
+      log('[App] 等待音频加载...');
+      const playWhenReady = () => {
+        audioRef.value.play().catch(err => {
+          log('[App] 播放音乐失败:', err);
+          musicOn.value = false;
+        });
+        audioRef.value.removeEventListener('canplay', playWhenReady);
+      };
+      audioRef.value.addEventListener('canplay', playWhenReady);
     }
+  } else {
+    audioRef.value.pause();
   }
 }
 function onDownloadSave() {
@@ -211,13 +298,16 @@ onMounted(() => {
   info_subscribe(message => {
     // Messages are handled by messageQueue
   });
-  // 首次启动默认开启音乐，尝试自动播放
+  
+  // 监听音频加载状态
   nextTick(() => {
-    if (musicOn.value && audioRef.value) {
-      audioRef.value.play().catch(err => {
-        // 浏览器可能阻止自动播放，需要用户交互后才能播放
-        // 这会在用户首次点击时自动播放
-        console.log('自动播放音乐失败（需要用户交互）:', err);
+    if (audioRef.value) {
+      audioRef.value.addEventListener('canplaythrough', () => {
+        audioLoaded.value = true;
+        log('[App] 音频加载完成，可以播放');
+      });
+      audioRef.value.addEventListener('error', (e) => {
+        log('[App] 音频加载失败:', e);
       });
     }
   });
@@ -243,7 +333,9 @@ onBeforeUnmount(() => {
     <GameScene
       v-if="showGameScene"
       :isGameMode="true"
+      :music-on="musicOn"
       @back="closeGameScene"
+      @toggle-music="onToggleMusic"
     />
 
     <!-- 主界面 -->
@@ -257,8 +349,10 @@ onBeforeUnmount(() => {
       />
       <TopLeftPanel
         v-if="!showStartMenu"
+        :music-on="musicOn"
         @back="goBack"
         @open-settings="openSettings"
+        @toggle-music="onToggleMusic"
       />
       <Hall
         @startGame="openOverlay('start')"
@@ -273,7 +367,12 @@ onBeforeUnmount(() => {
       >
         <template v-if="overlay === 'warehouse'">
           <div style="position: relative; width: 100%; height: 100%">
-            <TopLeftPanel @back="goBack" @open-settings="openSettings" />
+            <TopLeftPanel 
+              :music-on="musicOn"
+              @back="goBack" 
+              @open-settings="openSettings"
+              @toggle-music="onToggleMusic"
+            />
             <Warehouse ref="warehouseRef" />
           </div>
         </template>

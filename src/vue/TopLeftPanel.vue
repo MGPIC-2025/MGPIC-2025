@@ -1,5 +1,12 @@
 <script setup>
-const emit = defineEmits(['back', 'open-settings']);
+defineProps({
+  musicOn: {
+    type: Boolean,
+    default: true,
+  },
+});
+
+const emit = defineEmits(['back', 'open-settings', 'toggle-music']);
 </script>
 
 <template>
@@ -21,6 +28,60 @@ const emit = defineEmits(['back', 'open-settings']);
         />
       </svg>
       <span class="sr-only">返回</span>
+    </button>
+    <button
+      class="btn"
+      @click="$emit('toggle-music')"
+      :title="musicOn ? '关闭音乐' : '开启音乐'"
+    >
+      <svg
+        v-if="musicOn"
+        width="24"
+        height="24"
+        viewBox="0 0 24 24"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <!-- 音乐播放图标 -->
+        <path
+          d="M9 18V5L21 3V16"
+          stroke="#ffffff"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        />
+        <circle cx="6" cy="18" r="3" stroke="#ffffff" stroke-width="2" />
+        <circle cx="18" cy="16" r="3" stroke="#ffffff" stroke-width="2" />
+      </svg>
+      <svg
+        v-else
+        width="24"
+        height="24"
+        viewBox="0 0 24 24"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <!-- 音乐关闭图标 -->
+        <path
+          d="M9 18V5L21 3V16"
+          stroke="#ffffff"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        />
+        <circle cx="6" cy="18" r="3" stroke="#ffffff" stroke-width="2" />
+        <circle cx="18" cy="16" r="3" stroke="#ffffff" stroke-width="2" />
+        <line
+          x1="2"
+          y1="2"
+          x2="22"
+          y2="22"
+          stroke="#ffffff"
+          stroke-width="2"
+          stroke-linecap="round"
+        />
+      </svg>
+      <span class="sr-only">{{ musicOn ? '关闭音乐' : '开启音乐' }}</span>
     </button>
     <button class="btn" @click="$emit('open-settings')" title="设置">
       <svg
