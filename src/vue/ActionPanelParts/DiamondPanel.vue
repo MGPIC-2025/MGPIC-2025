@@ -2,6 +2,12 @@
 import { ref, onMounted } from 'vue';
 import { getAssetUrl } from '../../utils/resourceLoader.js';
 
+// 边框资源（返回完整的url()格式）
+const borderBlueSrc = `url('${getAssetUrl('ui/border-blue.png')}')`;
+const borderGreenSrc = `url('${getAssetUrl('ui/border-green.png')}')`;
+const borderOrangeRedSrc = `url('${getAssetUrl('ui/border-orange-red.png')}')`;
+
+
 const props = defineProps({
   copperInfo: {
     type: Object,
@@ -182,21 +188,21 @@ onMounted(async () => {
 
 .diamond.border-blue {
   border-width: var(--border-blue-slice, 8px);
-  border-image-source: url('/assets/border-blue.png');
+  border-image-source: v-bind(borderBlueSrc);
   border-image-slice: var(--border-blue-slice, 8) fill;
   border-image-width: var(--border-blue-slice, 8);
 }
 
 .diamond.border-green {
   border-width: var(--border-green-slice, 8px);
-  border-image-source: url('/assets/border-green.png');
+  border-image-source: v-bind(borderGreenSrc);
   border-image-slice: var(--border-green-slice, 8) fill;
   border-image-width: var(--border-green-slice, 8);
 }
 
 .diamond.border-orange-red {
   border-width: var(--border-orange-red-slice, 8px);
-  border-image-source: url('/assets/border-orange-red.png');
+  border-image-source: v-bind(borderOrangeRedSrc);
   border-image-slice: var(--border-orange-red-slice, 8) fill;
   border-image-width: var(--border-orange-red-slice, 8);
 }

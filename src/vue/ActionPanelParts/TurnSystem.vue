@@ -23,9 +23,17 @@ const emit = defineEmits(['nextCopper', 'endRound', 'selectCopper']);
 
 const turnSystemRef = ref(null);
 
-// 图片资源路径
+// 图片资源路径（<img>标签使用原始URL，CSS需要url()包裹）
 const choiceImgSrc = getAssetUrl('ui/choice.png');
 const choiceActiveImgSrc = getAssetUrl('ui/choice-active.png');
+// CSS background-image和border-image-source需要url()包裹
+const ribbonLeftSrc = `url('${getAssetUrl('ui/ribbon-left.png')}')`;
+const ribbonMiddleSrc = `url('${getAssetUrl('ui/ribbon-middle.png')}')`;
+const ribbonRightSrc = `url('${getAssetUrl('ui/ribbon-right.png')}')`;
+const panelSrc = `url('${getAssetUrl('ui/panel.png')}')`;
+const round1Src = `url('${getAssetUrl('ui/round1.png')}')`;
+const currentCupperSrc = `url('${getAssetUrl('ui/currentcupper.png')}')`;
+const btnSrc = `url('${getAssetUrl('ui/btn.png')}')`;
 
 const currentCopperInfo = computed(() => {
   if (!props.currentCopperId) return null;
@@ -251,10 +259,10 @@ onMounted(async () => {
   background-size: 100% 100%;
 }
 .ribbon-cap.left {
-  background-image: url('/assets/ribbon-left.png');
+  background-image: v-bind(ribbonLeftSrc);
 }
 .ribbon-cap.right {
-  background-image: url('/assets/ribbon-right.png');
+  background-image: v-bind(ribbonRightSrc);
 }
 .ribbon-fill {
   min-width: 80px;
@@ -264,7 +272,7 @@ onMounted(async () => {
   letter-spacing: 2px;
   text-align: center;
   line-height: 48px;
-  background-image: url('/assets/ribbon-middle.png');
+  background-image: v-bind(ribbonMiddleSrc);
   background-repeat: repeat-x;
   background-size: auto 100%;
   background-origin: border-box;
@@ -277,7 +285,7 @@ onMounted(async () => {
   box-sizing: border-box;
   border-style: solid;
   border-width: var(--panel-slice, 8px);
-  border-image-source: url('/assets/panel.png');
+  border-image-source: v-bind(panelSrc);
   border-image-slice: var(--panel-slice, 8) fill;
   border-image-width: var(--panel-slice, 8);
   border-image-outset: 0;
@@ -319,7 +327,7 @@ onMounted(async () => {
   box-sizing: border-box;
   border-style: solid;
   border-width: var(--round-slice, 8px);
-  border-image-source: url('/assets/round1.png');
+  border-image-source: v-bind(round1Src);
   border-image-slice: var(--round-slice, 8) fill;
   border-image-width: var(--round-slice, 8);
   border-image-outset: 0;
@@ -341,7 +349,7 @@ onMounted(async () => {
   box-sizing: border-box;
   border-style: solid;
   border-width: var(--current-slice, var(--round-slice, 8px));
-  border-image-source: url('/assets/currentcupper.png');
+  border-image-source: v-bind(currentCupperSrc);
   border-image-slice: var(--current-slice, var(--round-slice, 8)) fill;
   border-image-width: var(--current-slice, var(--round-slice, 8));
   border-image-outset: 0;
@@ -423,7 +431,7 @@ onMounted(async () => {
   border-style: solid;
   box-sizing: border-box;
   border-width: var(--btn-slice, 11px);
-  border-image-source: url('/assets/btn.png');
+  border-image-source: v-bind(btnSrc);
   border-image-slice: var(--btn-slice, 11) fill;
   border-image-width: var(--btn-slice, 11);
   border-image-outset: 0;

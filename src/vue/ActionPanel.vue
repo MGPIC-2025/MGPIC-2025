@@ -34,11 +34,12 @@ const props = defineProps({
 
 const emit = defineEmits(['close', 'action', 'selectCopper']);
 
-// UI资源URL
-const swordImgSrc = computed(() => getAssetUrl('ui/sword.png'));
-const redPanelBg = computed(() => getAssetUrl('ui/red.png'));
-const bootImgSrc = computed(() => getAssetUrl('ui/boot.png'));
-const greenPanelBg = computed(() => getAssetUrl('ui/green.png'));
+// UI资源URL（CSS background-image需要url()包裹）
+const swordImgSrc = computed(() => `url('${getAssetUrl('ui/sword.png')}')`);
+const redPanelBg = computed(() => `url('${getAssetUrl('ui/red.png')}')`);
+const bootImgSrc = computed(() => `url('${getAssetUrl('ui/boot.png')}')`);
+const greenPanelBg = computed(() => `url('${getAssetUrl('ui/green.png')}')`);
+
 
 // 三角操作面板已独立为组件 TriPanel
 

@@ -13,9 +13,12 @@ const props = defineProps({
   },
 });
 
-// 血条边框资源
+// 血条边框资源（<img>标签使用原始URL，CSS使用url()包裹）
 const bloodBorderLeftSrc = getAssetUrl('ui/blood-border-left.png');
 const bloodBorderRightSrc = getAssetUrl('ui/blood-border-right.png');
+// CSS background-image需要url()包裹
+const bloodBorderMiddleSrc = `url('${getAssetUrl('ui/blood-border-middle.png')}')`;
+const bloodBarSrc = `url('${getAssetUrl('ui/blood-bar.png')}')`;
 
 const hpPercentage = computed(() => {
   if (!props.maxHp || props.maxHp === 0) return 0;
@@ -101,7 +104,7 @@ const hpText = computed(() => {
 .health-bar__border-middle {
   flex: 1;
   min-width: 0;
-  background-image: url('../../../assets/blood-border-middle.png');
+  background-image: v-bind(bloodBorderMiddleSrc);
   background-repeat: repeat-x;
   background-size: auto 100%;
   background-position: left center;
@@ -115,7 +118,7 @@ const hpText = computed(() => {
   top: 0;
   bottom: 0;
   height: 100%;
-  background-image: url('../../../assets/blood-bar.png');
+  background-image: v-bind(bloodBarSrc);
   background-repeat: no-repeat;
   background-size: 100% 100%;
   background-position: left center;
