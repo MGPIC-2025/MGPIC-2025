@@ -19,7 +19,6 @@ import {
   getCopperTypeFolder,
 } from '../utils/copperMapping.js';
 import { getStructureEnglishName } from '../utils/structureMapping.js';
-import TestPanel from './TestPanel.vue';
 import ActionPanel from './ActionPanel.vue';
 import TurnSystem from './ActionPanelParts/TurnSystem.vue';
 import SummonModal from './ActionPanelParts/SummonModal.vue';
@@ -188,7 +187,7 @@ onMounted(async () => {
     window.setCameraFocus = (distance = 8, height = 6) => {
       window.cameraFocusDistance = distance;
       window.cameraFocusHeight = height;
-      log(`[TestScene] 相机聚焦参数已更新: 距离=${distance}, 高度=${height}`);
+      log(`[GameScene] 相机聚焦参数已更新: 距离=${distance}, 高度=${height}`);
     };
     window.resetCamera = () => {
       camera.position.set(0, 10, 15);
@@ -197,11 +196,11 @@ onMounted(async () => {
       pitch = camera.rotation.x;
       focusState.focusPosition = null;
       focusState.focusTarget = null;
-      log('[TestScene] 相机已重置');
+      log('[GameScene] 相机已重置');
     };
     window.toggleAutoFocus = () => {
       window.disableAutoFocus = !window.disableAutoFocus;
-      log(`[TestScene] 自动聚焦已${window.disableAutoFocus ? '禁用' : '启用'}`);
+      log(`[GameScene] 自动聚焦已${window.disableAutoFocus ? '禁用' : '启用'}`);
       if (window.disableAutoFocus) {
         focusState.focusPosition = null;
         focusState.focusTarget = null;
@@ -279,9 +278,9 @@ function initScene() {
 
   // 创建测试用的立方体（用于后端测试，ID=1和2）
   createTestUnits();
-  log('[TestScene] 场景初始化完成');
-  log('[TestScene] - 蓝/红立方体(ID=1,2)用于"后端测试"');
-  log('[TestScene] - EventLoop测试会动态创建新模型');
+    log('[GameScene] 场景初始化完成');
+    log('[GameScene] - 蓝/红立方体(ID=1,2)用于"后端测试"');
+    log('[GameScene] - EventLoop测试会动态创建新模型');
 
   // 窗口大小变化
   window.addEventListener('resize', onWindowResize);
@@ -317,7 +316,7 @@ function createTestUnits() {
   });
 
   log(
-    '[TestScene] 创建了测试单位:',
+    '[GameScene] 创建了测试单位:',
     models.map(m => `ID=${m.id}`)
   );
 
@@ -332,7 +331,7 @@ async function loadGLTFModel(copperType, copperName, position, scale = 1.0) {
   try {
     // 使用全局模型缓存管理器
     const cachedModel = await modelCache.loadModel(modelUrl, true);
-    log(`[TestScene] 从缓存加载铜偶模型: ${copperName}`);
+    log(`[GameScene] 从缓存加载铜偶模型: ${copperName}`);
 
     // 深度克隆模型实例，避免多个单位共享同一个模型对象和材质
     const modelInstance = cachedModel.clone(true);
@@ -370,10 +369,10 @@ async function loadGLTFModel(copperType, copperName, position, scale = 1.0) {
     // 调整Y位置使模型底部对齐地面
     group.position.y = -scaledBox.min.y;
 
-    log(`[TestScene] 铜偶模型加载成功: ${copperName}, URL: ${modelUrl}`);
+    log(`[GameScene] 铜偶模型加载成功: ${copperName}, URL: ${modelUrl}`);
     return group;
   } catch (e) {
-    log(`[TestScene] 模型加载失败: ${copperName}`, e);
+    log(`[GameScene] 模型加载失败: ${copperName}`, e);
     return null;
   }
 }
@@ -388,7 +387,7 @@ async function loadModelFromUrl(
   try {
     // 使用全局模型缓存管理器
     const cachedModel = await modelCache.loadModel(modelUrl, true);
-    log(`[TestScene] 从缓存加载模型: ${name}, url=${modelUrl}`);
+    log(`[GameScene] 从缓存加载模型: ${name}, url=${modelUrl}`);
 
     // 深度克隆模型实例，避免多个单位共享同一个模型对象和材质
     const modelInstance = cachedModel.clone(true);
@@ -418,7 +417,7 @@ async function loadModelFromUrl(
 
     return group;
   } catch (error) {
-    log(`[TestScene] 加载模型失败: ${name}, url=${modelUrl}, error=${error}`);
+    log(`[GameScene] 加载模型失败: ${name}, url=${modelUrl}, error=${error}`);
     return null;
   }
 }
@@ -429,7 +428,7 @@ async function loadEnemyModel(enemyName, position, scale = 1.0) {
   try {
     // 使用全局模型缓存管理器
     const cachedModel = await modelCache.loadModel(modelUrl, true);
-    log(`[TestScene] 从缓存加载敌人模型: ${enemyName}`);
+    log(`[GameScene] 从缓存加载敌人模型: ${enemyName}`);
 
     // 深度克隆模型实例，避免多个单位共享同一个模型对象和材质
     const modelInstance = cachedModel.clone(true);
@@ -471,10 +470,10 @@ async function loadEnemyModel(enemyName, position, scale = 1.0) {
     pointLight.position.set(0, size.y * scale * 0.8, 0);
     group.add(pointLight);
 
-    log(`[TestScene] 敌人模型加载成功: ${enemyName}, URL: ${modelUrl}`);
+    log(`[GameScene] 敌人模型加载成功: ${enemyName}, URL: ${modelUrl}`);
     return group;
   } catch (e) {
-    log(`[TestScene] 敌人模型加载失败: ${enemyName}`, e);
+    log(`[GameScene] 敌人模型加载失败: ${enemyName}`, e);
     return null;
   }
 }
@@ -679,7 +678,7 @@ function setupMessageQueue() {
             : model.type === 'copper'
               ? '铜偶'
               : '敌人';
-        log(`[TestScene] 高亮${unitType}: ${model.name} (ID=${copperId})`);
+        log(`[GameScene] 高亮${unitType}: ${model.name} (ID=${copperId})`);
       }
     } else {
       selectedCopperId = null;
@@ -724,7 +723,7 @@ function setupMessageQueue() {
     const key = `${position[0]},${position[1]}`;
     const block = floorBlocks.get(key);
     log(
-      `[TestScene] 尝试清除地板块: 坐标=${position}, key=${key}, 找到=${!!block}, 总数=${
+      `[GameScene] 尝试清除地板块: 坐标=${position}, key=${key}, 找到=${!!block}, 总数=${
         floorBlocks.size
       }`
     );
@@ -734,10 +733,10 @@ function setupMessageQueue() {
       if (block.geometry) block.geometry.dispose();
       if (block.material) block.material.dispose();
       floorBlocks.delete(key);
-      log(`[TestScene] 已清除地板块: ${key}, 剩余=${floorBlocks.size}`);
+      log(`[GameScene] 已清除地板块: ${key}, 剩余=${floorBlocks.size}`);
     } else {
       log(
-        `[TestScene] 未找到地板块: ${key}, 现有keys:`,
+        `[GameScene] 未找到地板块: ${key}, 现有keys:`,
         Array.from(floorBlocks.keys())
       );
     }
@@ -754,7 +753,7 @@ function setupMessageQueue() {
       }
     });
     if (count > 0) {
-      log(`[TestScene] 清除了${count}个${type}地板块`);
+      log(`[GameScene] 清除了${count}个${type}地板块`);
     }
   };
 
@@ -852,7 +851,7 @@ function setupMessageQueue() {
 
     animateEffect();
     log(
-      `[TestScene] 攻击特效: 攻击者ID=${attackerId} → 目标位置${targetPosition}`
+      `[GameScene] 攻击特效: 攻击者ID=${attackerId} → 目标位置${targetPosition}`
     );
   };
 
@@ -872,7 +871,7 @@ function setupMessageQueue() {
       // 使用后端返回的攻击目标状态
       hasAttackTargets.value = has_attack_targets || false;
       log(
-        `[TestScene] 更新铜偶信息: ID=${copper.id}, has_attack_targets=${hasAttackTargets.value}`
+        `[GameScene] 更新铜偶信息: ID=${copper.id}, has_attack_targets=${hasAttackTargets.value}`
       );
     },
     highlightSelectedCopper,
@@ -887,11 +886,11 @@ function setupMessageQueue() {
         copper => copper.id === id
       );
       if (!isPlayerCopper) {
-        log('[TestScene] 敌人移动完成，不做处理');
+        log('[GameScene] 敌人移动完成，不做处理');
         return;
       }
 
-      log('[TestScene] 移动完成，准备切换铜偶');
+      log('[GameScene] 移动完成，准备切换铜偶');
       // 重置状态
       currentActionMode.value = null;
       if (copperActionPanelRef.value) {
@@ -918,7 +917,7 @@ function setupMessageQueue() {
             selectedCopperResources.value &&
             selectedCopperResources.value.length > 0
           ) {
-            log('[TestScene] 检测到地面物品，不自动跳转');
+            log('[GameScene] 检测到地面物品，不自动跳转');
             return;
           }
           tryNextCopper();
@@ -927,20 +926,20 @@ function setupMessageQueue() {
     },
     // 合成结果回调
     onCraftResult: (success, message) => {
-      log(`[TestScene] 合成结果: ${success ? '成功' : '失败'} - ${message}`);
+      log(`[GameScene] 合成结果: ${success ? '成功' : '失败'} - ${message}`);
       // TODO: 可以添加UI提示
       alert(message);
     },
     // 资源不足回调
     onResourceNotEnough: message => {
-      log(`[TestScene] 资源不足: ${message}`);
+      log(`[GameScene] 资源不足: ${message}`);
       alert(`❌ ${message}\n\n召唤需要消耗 1 个心源火花 (SpiritalSpark)`);
       // 清除召唤模式
       currentActionMode.value = null;
     },
     // 召唤失败回调
     onSummonFailed: message => {
-      log(`[TestScene] 召唤失败: ${message}`);
+      log(`[GameScene] 召唤失败: ${message}`);
       alert(`❌ ${message}`);
       // 清除召唤模式
       currentActionMode.value = null;
@@ -949,14 +948,14 @@ function setupMessageQueue() {
     },
     // 显示召唤菜单回调
     onShowSummonMenu: contents => {
-      log(`[TestScene] 收到敌人列表:`, contents);
+      log(`[GameScene] 收到敌人列表:`, contents);
       enemyList.value = contents || [];
     },
     // 移除铜偶（死亡时从列表中移除）
     onRemoveCopper: id => {
       const index = playerCoppers.value.findIndex(c => c.id === id);
       if (index > -1) {
-        log(`[TestScene] 移除死亡铜偶: ID=${id}`);
+        log(`[GameScene] 移除死亡铜偶: ID=${id}`);
         playerCoppers.value.splice(index, 1);
 
         // 如果当前选中的是死亡铜偶，清除选中状态
@@ -982,11 +981,11 @@ function setupMessageQueue() {
         copper => copper.id === id
       );
       if (!isPlayerCopper) {
-        log('[TestScene] 敌人攻击完成，不做处理');
+        log('[GameScene] 敌人攻击完成，不做处理');
         return;
       }
 
-      log('[TestScene] 攻击完成，准备切换铜偶');
+      log('[GameScene] 攻击完成，准备切换铜偶');
       // 重置状态
       currentActionMode.value = null;
       if (copperActionPanelRef.value) {
@@ -1013,7 +1012,7 @@ function setupMessageQueue() {
             selectedCopperResources.value &&
             selectedCopperResources.value.length > 0
           ) {
-            log('[TestScene] 检测到地面物品，不自动跳转');
+            log('[GameScene] 检测到地面物品，不自动跳转');
             return;
           }
           tryNextCopper();
@@ -1023,7 +1022,7 @@ function setupMessageQueue() {
     onSetMoveBlock: position => {
       const key = `${position[0]},${position[1]}`;
       createOrUpdateFloorBlock(position, 0x44ff44, 'move');
-      log(`[TestScene] 显示移动范围: 坐标=${position}, key=${key}`);
+      log(`[GameScene] 显示移动范围: 坐标=${position}, key=${key}`);
     },
     onSetAttackBlock: position => {
       // 检查是否是传递模式（通过 currentActionMode 判断）
@@ -1061,36 +1060,36 @@ function setupMessageQueue() {
               position: position,
             });
             log(
-              `[TestScene] 找到传递目标: ${targetCopper.name || targetCopper.id} (ID=${targetCopper.id}), 总目标数=${transferTargets.value.length}`
+              `[GameScene] 找到传递目标: ${targetCopper.name || targetCopper.id} (ID=${targetCopper.id}), 总目标数=${transferTargets.value.length}`
             );
           }
         } else {
-          log(`[TestScene] 传递位置 ${position} 未找到对应铜偶`);
+          log(`[GameScene] 传递位置 ${position} 未找到对应铜偶`);
         }
       } else {
         // 攻击模式
         createOrUpdateFloorBlock(position, 0xff4444, 'attack');
         hasAttackTargets.value = true; // 有攻击范围说明有目标
-        log(`[TestScene] 显示攻击范围: ${position}`);
+        log(`[GameScene] 显示攻击范围: ${position}`);
       }
     },
     onSetCanSummonBlock: position => {
       // 显示召唤范围（黄色）
       const key = `${position[0]},${position[1]}`;
       createOrUpdateFloorBlock(position, 0xffff00, 'summon');
-      log(`[TestScene] 显示召唤范围: 坐标=${position}, key=${key}`);
+      log(`[GameScene] 显示召唤范围: 坐标=${position}, key=${key}`);
     },
     onClearBlock: position => {
       clearFloorBlock(position);
     },
     // 从后端消息创建铜偶模型
     onSetCopper: async (_id, position, copper) => {
-      log(`[TestScene] 创建铜偶模型: id=${copper.id}, pos=${position}`);
+      log(`[GameScene] 创建铜偶模型: id=${copper.id}, pos=${position}`);
 
       // 检查是否已存在
       const existing = models.find(m => m.id === copper.id);
       if (existing) {
-        log(`[TestScene] 铜偶ID=${copper.id}已存在，跳过`);
+        log(`[GameScene] 铜偶ID=${copper.id}已存在，跳过`);
         return;
       }
 
@@ -1104,12 +1103,12 @@ function setupMessageQueue() {
         const isFirstCopper = playerCoppers.value.length === 0;
         if (!playerCoppers.value.find(c => c.id === copper.id)) {
           playerCoppers.value.push(copperData);
-          log(`[TestScene] 添加玩家铜偶: ${copperData.name}`);
+          log(`[GameScene] 添加玩家铜偶: ${copperData.name}`);
 
           // 如果是第一个铜偶，自动点击显示动作面板
           if (isFirstCopper) {
             setTimeout(() => {
-              log(`[TestScene] 自动点击第一个铜偶: ${copperData.name}`);
+              log(`[GameScene] 自动点击第一个铜偶: ${copperData.name}`);
               handleClickCopper(copper.id);
             }, 500);
           }
@@ -1150,7 +1149,7 @@ function setupMessageQueue() {
         // 转换为R2 CDN URL
         const cdnModelUrl = getAssetUrl(modelUrl);
         log(
-          `[TestScene] 召唤物：使用敌人模型URL加载: ${modelUrl} -> ${cdnModelUrl}`
+          `[GameScene] 召唤物：使用敌人模型URL加载: ${modelUrl} -> ${cdnModelUrl}`
         );
         obj = await loadModelFromUrl(
           cdnModelUrl,
@@ -1180,7 +1179,7 @@ function setupMessageQueue() {
         const typeFolder = getCopperTypeFolder(copperType);
 
         log(
-          `[TestScene] 铜偶信息: 中文名=${copperChineseName}, 英文名=${copperName}, type=${copperType}, typeFolder=${typeFolder}`
+          `[GameScene] 铜偶信息: 中文名=${copperChineseName}, 英文名=${copperName}, type=${copperType}, typeFolder=${typeFolder}`
         );
 
         // 尝试加载GLTF模型（传入文件夹名称和模型名称）
@@ -1189,7 +1188,7 @@ function setupMessageQueue() {
 
       // 如果模型加载失败，创建备用立方体
       if (!obj) {
-        log(`[TestScene] 使用备用立方体代替模型: ${copperChineseName}`);
+        log(`[GameScene] 使用备用立方体代替模型: ${copperChineseName}`);
         const geometry = new THREE.BoxGeometry(0.8, 0.8, 0.8);
         let color = 0x4488ff;
 
@@ -1229,20 +1228,20 @@ function setupMessageQueue() {
       };
       models.push(modelData);
 
-      log(`[TestScene] 铜偶创建成功: ${modelData.name} (ID=${copper.id})`);
+      log(`[GameScene] 铜偶创建成功: ${modelData.name} (ID=${copper.id})`);
     },
     onSetEnemy: async (id, position, enemy) => {
       // 使用后端传递的实际 enemy.id
       const actualId = enemy.id;
       const isOwned = enemy.owned || false; // 是否为友方召唤物
       log(
-        `[TestScene] 创建敌人模型: id=${actualId}, pos=${position}, owned=${isOwned}`
+        `[GameScene] 创建敌人模型: id=${actualId}, pos=${position}, owned=${isOwned}`
       );
 
       // 检查是否已存在
       const existing = models.find(m => m.id === actualId);
       if (existing) {
-        log(`[TestScene] 敌人ID=${actualId}已存在，跳过`);
+        log(`[GameScene] 敌人ID=${actualId}已存在，跳过`);
         return;
       }
 
@@ -1271,7 +1270,7 @@ function setupMessageQueue() {
 
       // 如果模型加载失败，创建备用立方体
       if (!obj) {
-        log(`[TestScene] 使用备用立方体代替敌人模型: ${enemyName}`);
+        log(`[GameScene] 使用备用立方体代替敌人模型: ${enemyName}`);
         const geometry = new THREE.BoxGeometry(0.8, 0.8, 0.8);
         const material = new THREE.MeshStandardMaterial({
           color: isOwned ? 0x4444ff : 0xff0000,
@@ -1287,7 +1286,7 @@ function setupMessageQueue() {
         const pointLight = new THREE.PointLight(0x4444ff, 2.5, 12);
         pointLight.position.set(0, size.y * modelScale * 0.8, 0);
         obj.add(pointLight);
-        log(`[TestScene] 友方召唤物添加蓝色光源: ${enemyName}`);
+        log(`[GameScene] 友方召唤物添加蓝色光源: ${enemyName}`);
       }
 
       obj.userData.modelId = actualId; // 设置ID以便点击检测
@@ -1311,7 +1310,7 @@ function setupMessageQueue() {
           enemy.enemy_base.health
         );
         log(
-          `[TestScene] 创建血条: ${enemyName} (${enemy.now_health}/${enemy.enemy_base.health})`
+          `[GameScene] 创建血条: ${enemyName} (${enemy.now_health}/${enemy.enemy_base.health})`
         );
       }
 
@@ -1324,23 +1323,23 @@ function setupMessageQueue() {
           enemy: enemy, // 保存完整的enemy数据
         });
         log(
-          `[TestScene] 友方召唤物添加到操控列表: ${enemyName} (ID=${actualId})`
+          `[GameScene] 友方召唤物添加到操控列表: ${enemyName} (ID=${actualId})`
         );
       }
 
       log(
-        `[TestScene] 敌人创建成功: ${enemy.enemy_base?.enemy_type || actualId}, owned=${isOwned}`
+        `[GameScene] 敌人创建成功: ${enemy.enemy_base?.enemy_type || actualId}, owned=${isOwned}`
       );
     },
     onSetMaterial: async (id, position, material) => {
       log(
-        `[TestScene] 创建矿物: id=${id}, pos=${position}, name=${material.material_base?.name}`
+        `[GameScene] 创建矿物: id=${id}, pos=${position}, name=${material.material_base?.name}`
       );
 
       // 检查是否已存在
       const existing = models.find(m => m.id === id);
       if (existing) {
-        log(`[TestScene] 矿物ID=${id}已存在，跳过`);
+        log(`[GameScene] 矿物ID=${id}已存在，跳过`);
         return;
       }
 
@@ -1348,7 +1347,7 @@ function setupMessageQueue() {
       const rawModelUrl = material.material_base?.model_url;
 
       if (!rawModelUrl) {
-        log(`[TestScene] 矿物model_url为空，创建占位立方体`);
+        log(`[GameScene] 矿物model_url为空，创建占位立方体`);
         const geometry = new THREE.BoxGeometry(0.5, 0.5, 0.5);
         const placeholderMaterial = new THREE.MeshStandardMaterial({
           color: 0xffaa00,
@@ -1385,9 +1384,9 @@ function setupMessageQueue() {
         group.position.y = -scaledBox.min.y;
 
         obj = group;
-        log(`[TestScene] 矿物模型加载成功: ${materialName}, URL: ${modelUrl}`);
+        log(`[GameScene] 矿物模型加载成功: ${materialName}, URL: ${modelUrl}`);
       } catch (e) {
-        log(`[TestScene] 矿物模型加载失败: ${materialName}`, e);
+        log(`[GameScene] 矿物模型加载失败: ${materialName}`, e);
 
         // 创建占位立方体
         const geometry = new THREE.BoxGeometry(0.5, 0.5, 0.5);
@@ -1410,15 +1409,15 @@ function setupMessageQueue() {
         type: 'material',
       });
 
-      log(`[TestScene] 矿物创建成功: ${materialName}`);
+      log(`[GameScene] 矿物创建成功: ${materialName}`);
     },
     onSetStructure: async (id, position, structure) => {
-      log(`[TestScene] 创建建筑: id=${id}, pos=${position}`);
+      log(`[GameScene] 创建建筑: id=${id}, pos=${position}`);
 
       // 检查是否已存在
       const existing = models.find(m => m.id === id);
       if (existing) {
-        log(`[TestScene] 建筑ID=${id}已存在，跳过`);
+        log(`[GameScene] 建筑ID=${id}已存在，跳过`);
         return;
       }
 
@@ -1443,9 +1442,9 @@ function setupMessageQueue() {
         group.position.y = -scaledBox.min.y;
 
         obj = group;
-        log(`[TestScene] 建筑模型加载成功: ${structureName}, URL: ${modelUrl}`);
+        log(`[GameScene] 建筑模型加载成功: ${structureName}, URL: ${modelUrl}`);
       } catch (e) {
-        log(`[TestScene] 建筑模型加载失败: ${structureName}`, e);
+        log(`[GameScene] 建筑模型加载失败: ${structureName}`, e);
 
         // 创建占位立方体
         const geometry = new THREE.BoxGeometry(0.9, 1.2, 0.9);
@@ -1468,7 +1467,7 @@ function setupMessageQueue() {
         type: 'structure',
       });
 
-      log(`[TestScene] 建筑创建成功: ${structureName}`);
+      log(`[GameScene] 建筑创建成功: ${structureName}`);
     },
     onPutResourceMarker: position => {
       const key = `${position[0]},${position[1]}`;
@@ -1555,7 +1554,7 @@ function setupMessageQueue() {
       }
     },
     onDisplayCanMove: (unitId, canMove) => {
-      log(`[TestScene] 显示可移动状态: id=${unitId}, show=${canMove}`);
+      log(`[GameScene] 显示可移动状态: id=${unitId}, show=${canMove}`);
       createIndicator(unitId, 'move', canMove);
 
       // 如果是当前选中的铜偶，同步更新状态（创建新对象触发响应式）
@@ -1564,11 +1563,11 @@ function setupMessageQueue() {
           ...selectedCopper.value,
           can_move: canMove,
         };
-        log(`[TestScene] 同步更新selectedCopper.can_move=${canMove}`);
+        log(`[GameScene] 同步更新selectedCopper.can_move=${canMove}`);
       }
     },
     onDisplayCanAttack: (unitId, canAttack) => {
-      log(`[TestScene] 显示可攻击状态: id=${unitId}, show=${canAttack}`);
+      log(`[GameScene] 显示可攻击状态: id=${unitId}, show=${canAttack}`);
       createIndicator(unitId, 'attack', canAttack);
 
       // 如果是当前选中的铜偶，同步更新状态（创建新对象触发响应式）
@@ -1577,11 +1576,11 @@ function setupMessageQueue() {
           ...selectedCopper.value,
           can_attack: canAttack,
         };
-        log(`[TestScene] 同步更新selectedCopper.can_attack=${canAttack}`);
+        log(`[GameScene] 同步更新selectedCopper.can_attack=${canAttack}`);
       }
     },
     onDisplayCanSummon: (unitId, canSummon) => {
-      log(`[TestScene] 显示可召唤状态: id=${unitId}, show=${canSummon}`);
+      log(`[GameScene] 显示可召唤状态: id=${unitId}, show=${canSummon}`);
       createIndicator(unitId, 'summon', canSummon);
 
       // 如果是当前选中的铜偶，同步更新状态（创建新对象触发响应式）
@@ -1590,11 +1589,11 @@ function setupMessageQueue() {
           ...selectedCopper.value,
           can_summon: canSummon,
         };
-        log(`[TestScene] 同步更新selectedCopper.can_summon=${canSummon}`);
+        log(`[GameScene] 同步更新selectedCopper.can_summon=${canSummon}`);
       }
     },
     onClearState: unitId => {
-      log(`[TestScene] 清除状态: id=${unitId}`);
+      log(`[GameScene] 清除状态: id=${unitId}`);
       // 清除该单位的所有指示器
       if (stateIndicators.has(unitId)) {
         const indicators = stateIndicators.get(unitId);
@@ -1620,15 +1619,15 @@ function setupMessageQueue() {
       }
     },
     onUpdateHealth: (unitId, nowHealth, maxHealth) => {
-      log(`[TestScene] 更新血量: id=${unitId}, hp=${nowHealth}/${maxHealth}`);
+      log(`[GameScene] 更新血量: id=${unitId}, hp=${nowHealth}/${maxHealth}`);
       createOrUpdateHealthBar(unitId, nowHealth, maxHealth);
     },
     onRemoveHealthBar: unitId => {
-      log(`[TestScene] 移除血条: id=${unitId}`);
+      log(`[GameScene] 移除血条: id=${unitId}`);
       removeHealthBar(unitId);
     },
     onPutMapBlock: position => {
-      // log(`[TestScene] 放置地图块: position=${position}`)  // 日志太多，已注释
+      // log(`[GameScene] 放置地图块: position=${position}`)  // 日志太多，已注释
       const key = `${position[0]},${position[1]}`;
 
       // 如果已存在，先移除
@@ -1695,7 +1694,7 @@ function setupMessageQueue() {
     //  模式切换：控制测试模型和EventLoop模型的显示
     setTestMode: mode => {
       log(
-        `[TestScene] 切换到${
+        `[GameScene] 切换到${
           mode === 'backend' ? '后端测试' : 'EventLoop测试'
         }模式`
       );
@@ -1711,14 +1710,14 @@ function setupMessageQueue() {
       });
 
       log(
-        `[TestScene] 已${mode === 'backend' ? '显示' : '隐藏'}测试模型，${
+        `[GameScene] 已${mode === 'backend' ? '显示' : '隐藏'}测试模型，${
           mode === 'eventloop' ? '显示' : '隐藏'
         }EventLoop模型`
       );
     },
   });
 
-  log('[TestScene] 消息队列已配置');
+  log('[GameScene] 消息队列已配置');
 }
 
 function focusOnModelFunc(modelObject, camera, controls) {
@@ -1797,7 +1796,7 @@ function animate() {
     // 当接近目标位置时，清除聚焦状态
     const distance = camera.position.distanceTo(focusState.focusPosition);
     if (distance < 0.5) {
-      log('[TestScene] 相机聚焦完成');
+      log('[GameScene] 相机聚焦完成');
       focusState.focusPosition = null;
       focusState.focusTarget = null;
     }
@@ -1863,7 +1862,7 @@ function onSceneClick(event) {
         enemy: '野生敌人',
       };
       const unitType = unitTypeMap[model?.type] || '未知单位';
-      log(`[TestScene] 点击${unitType}，ID:`, modelId);
+      log(`[GameScene] 点击${unitType}，ID:`, modelId);
 
       // 根据单位类型分别处理
       if (model?.type === 'summon' || model?.type === 'enemy') {
@@ -1894,7 +1893,7 @@ async function handleFloorClick(mousePos) {
     const gridX = Math.round(intersectPoint.x);
     const gridZ = Math.round(intersectPoint.z);
 
-    log(`[TestScene] 点击地板: (${gridX}, ${gridZ})`);
+    log(`[GameScene] 点击地板: (${gridX}, ${gridZ})`);
 
     if (currentActionMode.value === 'moving') {
       await handleMoveApply(gridX, gridZ);
@@ -1915,7 +1914,7 @@ async function handleMoveApply(x, z) {
   const eventType = isOwnedEnemy ? 'on_enemy_move_apply' : 'on_move_apply';
 
   log(
-    `[TestScene] 请求移动到: (${x}, ${z}), 单位类型=${isOwnedEnemy ? '友方召唤物' : '铜偶'}, 事件=${eventType}`
+    `[GameScene] 请求移动到: (${x}, ${z}), 单位类型=${isOwnedEnemy ? '友方召唤物' : '铜偶'}, 事件=${eventType}`
   );
 
   const message = JSON.stringify({
@@ -1939,7 +1938,7 @@ async function handleAttackApply(x, z) {
   const eventType = isOwnedEnemy ? 'on_enemy_attack_apply' : 'on_attack_apply';
 
   log(
-    `[TestScene] 请求攻击位置: (${x}, ${z}), 单位类型=${isOwnedEnemy ? '友方召唤物' : '铜偶'}, 事件=${eventType}`
+    `[GameScene] 请求攻击位置: (${x}, ${z}), 单位类型=${isOwnedEnemy ? '友方召唤物' : '铜偶'}, 事件=${eventType}`
   );
 
   const message = JSON.stringify({
@@ -1958,7 +1957,7 @@ async function handleAttackApply(x, z) {
 async function handleSummonApply(x, z) {
   if (!selectedCopper.value) return;
 
-  log(`[TestScene] 选择召唤位置: (${x}, ${z})`);
+  log(`[GameScene] 选择召唤位置: (${x}, ${z})`);
 
   // 保存召唤位置
   summonPosition.value = [x, z];
@@ -1981,7 +1980,7 @@ async function handleSummonConfirm(enemyName) {
   if (!selectedCopper.value || !summonPosition.value) return;
 
   const [x, z] = summonPosition.value;
-  log(`[TestScene] 确认召唤 ${enemyName} 到位置: (${x}, ${z})`);
+  log(`[GameScene] 确认召唤 ${enemyName} 到位置: (${x}, ${z})`);
 
   try {
     const message = JSON.stringify({
@@ -1994,7 +1993,7 @@ async function handleSummonConfirm(enemyName) {
     });
     await eventloop(message);
   } catch (error) {
-    log('[TestScene] 召唤失败:', error);
+    log('[GameScene] 召唤失败:', error);
   } finally {
     // 无论成功还是失败，都清理UI
     // 关闭召唤菜单
@@ -2014,7 +2013,7 @@ async function handleSummonConfirm(enemyName) {
       const endMessage = JSON.stringify({ type: 'on_summon_end' });
       await eventloop(endMessage);
     } catch (error) {
-      log('[TestScene] 清除召唤范围失败:', error);
+      log('[GameScene] 清除召唤范围失败:', error);
     }
   }
 }
@@ -2028,7 +2027,7 @@ function handleCloseSummonModal() {
   // 发送召唤结束消息，清除黄色方块
   const endMessage = JSON.stringify({ type: 'on_summon_end' });
   eventloop(endMessage).catch(e => {
-    log('[TestScene] 清除召唤范围失败', e);
+    log('[GameScene] 清除召唤范围失败', e);
   });
 }
 
@@ -2073,7 +2072,7 @@ function closeCopperPanel() {
 
 // 处理铜偶操作
 function handleCopperAction(action) {
-  log('[TestScene] 铜偶操作:', action);
+  log('[GameScene] 铜偶操作:', action);
 
   if (action.type === 'moveStart') {
     currentActionMode.value = 'moving';
@@ -2100,7 +2099,7 @@ function handleCopperAction(action) {
     if (mode === 'transferring') {
       const message = JSON.stringify({ type: 'on_transfer_end' });
       eventloop(message).catch(e => {
-        log('[TestScene] 清除传递范围失败', e);
+        log('[GameScene] 清除传递范围失败', e);
       });
       // 清空传递目标
       transferTargetPositions.value = [];
@@ -2108,7 +2107,7 @@ function handleCopperAction(action) {
     } else if (mode === 'summoning') {
       const message = JSON.stringify({ type: 'on_summon_end' });
       eventloop(message).catch(e => {
-        log('[TestScene] 清除召唤范围失败', e);
+        log('[GameScene] 清除召唤范围失败', e);
       });
       // 关闭召唤菜单
       showSummonModal.value = false;
@@ -2116,7 +2115,7 @@ function handleCopperAction(action) {
     }
     currentActionMode.value = null;
   } else if (action.type === 'wait') {
-    log('[TestScene] 铜偶选择等待，跳转到下一个');
+    log('[GameScene] 铜偶选择等待，跳转到下一个');
     // 跳转到下一个铜偶
     nextCopper();
   }
@@ -2133,7 +2132,7 @@ function tryNextCopper() {
     const canSummon = selectedCopper.value.can_summon;
 
     log(
-      `[TestScene] 检查铜偶状态: ID=${selectedCopper.value.id}, can_move=${canMove}, can_attack=${canAttack}, can_summon=${canSummon}, hasAttackTargets=${hasAttackTargets.value}`
+      `[GameScene] 检查铜偶状态: ID=${selectedCopper.value.id}, can_move=${canMove}, can_attack=${canAttack}, can_summon=${canSummon}, hasAttackTargets=${hasAttackTargets.value}`
     );
 
     // 实际可执行的操作：
@@ -2144,12 +2143,12 @@ function tryNextCopper() {
       canMove || (canAttack && hasAttackTargets.value) || canSummon;
 
     if (hasValidActions) {
-      log('[TestScene] 当前铜偶还能操作，不切换');
+      log('[GameScene] 当前铜偶还能操作，不切换');
       return;
     }
   }
 
-  log('[TestScene] 当前铜偶不能操作，切换到下一个');
+  log('[GameScene] 当前铜偶不能操作，切换到下一个');
   // 当前铜偶不能操作了，尝试切换到下一个
   nextCopper();
 }
@@ -2174,7 +2173,7 @@ async function nextCopper() {
     const nextCopper = playerCoppers.value[currentCopperIndex.value];
 
     log(
-      `[TestScene] 检查铜偶: ${nextCopper.name || nextCopper.id} (尝试 ${
+      `[GameScene] 检查铜偶: ${nextCopper.name || nextCopper.id} (尝试 ${
         attempts + 1
       }/${maxAttempts})`
     );
@@ -2210,11 +2209,11 @@ async function nextCopper() {
       canMove || (canAttack && hasAttackTargets.value) || canSummon;
 
     log(
-      `[TestScene] 铜偶 ${nextCopper.name}: can_move=${canMove}, can_attack=${canAttack}, can_summon=${canSummon}, hasTargets=${hasAttackTargets.value}, valid=${hasValidActions}`
+      `[GameScene] 铜偶 ${nextCopper.name}: can_move=${canMove}, can_attack=${canAttack}, can_summon=${canSummon}, hasTargets=${hasAttackTargets.value}, valid=${hasValidActions}`
     );
 
     if (selectedCopper.value && hasValidActions) {
-      log(`[TestScene] 找到可操作的铜偶: ${nextCopper.name || nextCopper.id}`);
+      log(`[GameScene] 找到可操作的铜偶: ${nextCopper.name || nextCopper.id}`);
       return; // 找到可操作的铜偶，停止
     }
 
@@ -2222,12 +2221,12 @@ async function nextCopper() {
   }
 
   // 所有铜偶都不能操作了
-  log('[TestScene] 所有铜偶都不能操作，回合可以结束');
+  log('[GameScene] 所有铜偶都不能操作，回合可以结束');
   selectedCopper.value = null;
 
   // 提示玩家可以结束回合
   if (props.isGameMode) {
-    log('[TestScene] 提示：所有铜偶都已完成操作，可以点击"结束回合"按钮');
+    log('[GameScene] 提示：所有铜偶都已完成操作，可以点击"结束回合"按钮');
   }
 }
 
@@ -2241,13 +2240,13 @@ function endRound() {
   // 重置所有铜偶的turnDone状态
   playerCoppers.value.forEach(c => (c.turnDone = false));
 
-  log(`[TestScene] 进入回合 ${currentRound.value}`);
+  log(`[GameScene] 进入回合 ${currentRound.value}`);
 
   // 新回合开始，自动点击第一个铜偶显示动作面板
   if (playerCoppers.value.length > 0) {
     setTimeout(() => {
       const firstCopper = playerCoppers.value[0];
-      log(`[TestScene] 新回合开始，自动点击第一个铜偶: ${firstCopper.name}`);
+      log(`[GameScene] 新回合开始，自动点击第一个铜偶: ${firstCopper.name}`);
       handleClickCopper(firstCopper.id);
     }, 500);
   }
@@ -2255,13 +2254,10 @@ function endRound() {
 </script>
 
 <template>
-  <div class="test-scene">
+  <div class="game-scene">
     <div ref="container" class="scene-container"></div>
 
-    <!-- 测试面板（仅测试模式显示） -->
-    <TestPanel v-if="!isGameMode" />
-
-    <!-- 回合系统（仅游戏模式显示） -->
+    <!-- 回合系统 -->
     <TurnSystem
       v-if="isGameMode"
       :currentCopperId="currentCopperId"
@@ -2335,7 +2331,7 @@ function endRound() {
 </template>
 
 <style scoped>
-.test-scene {
+.game-scene {
   position: fixed;
   inset: 0;
   background: #000;

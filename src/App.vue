@@ -6,8 +6,7 @@ import Warehouse from './vue/Warehouse.vue';
 import TopLeftPanel from './vue/TopLeftPanel.vue';
 import StartMenu from './vue/StartMenu.vue';
 import StartGame from './vue/StartGame.vue';
-import TestPanel from './vue/TestPanel.vue';
-import TestScene from './vue/TestScene.vue';
+import GameScene from './vue/GameScene.vue';
 import { getAssetUrl } from './utils/resourceLoader.js';
 
 // 导入glue.js以触发消息处理器注册
@@ -21,8 +20,7 @@ const warehouseRef = ref(null);
 const overlayHistory = ref([]);
 const currentPuppetIndex = ref(0);
 const showStartMenu = ref(true);
-const showTestScene = ref(false);
-const isInGameMode = ref(false); // 控制是游戏模式还是测试模式
+const showGameScene = ref(false); // 控制游戏场景显示
 const destroyStartMenu = ref(false); // 控制是否完全销毁StartMenu以释放内存
 let startMenuDestroyTimer = null;
 
@@ -44,13 +42,6 @@ function openOverlay(type) {
   }
   window.__START_MENU_PAUSE__ && window.__START_MENU_PAUSE__();
   isPaused.value = true;
-}
-
-function closeTestScene() {
-  showTestScene.value = false;
-  isInGameMode.value = false; // 重置游戏模式
-  // 从测试场景返回时，保持在大厅状态
-  // 不需要恢复StartMenu的渲染，因为应该停留在大厅
 }
 
 function onStartMenuStarted() {
@@ -82,10 +73,14 @@ function closeOverlay() {
 function handleGameStart(params) {
   log('[App] 游戏开始，铜偶ID:', params.ids);
   closeOverlay();
-  // 跳转到游戏场景（游戏模式）
-  isInGameMode.value = true;
-  showTestScene.value = true;
-  log('[App] 已切换到游戏场景（游戏模式）');
+  // 跳转到游戏场景
+  showGameScene.value = true;
+  log('[App] 已切换到游戏场景');
+}
+
+function closeGameScene() {
+  showGameScene.value = false;
+  // 从游戏场景返回时，保持在大厅状态
 }
 
 function openSettings() {
@@ -244,15 +239,15 @@ onBeforeUnmount(() => {
 
 <template>
   <div class="stage">
-    <!-- 3D游戏/测试场景 - 使用v-if完全销毁以节省资源 -->
-    <TestScene
-      v-if="showTestScene"
-      :isGameMode="isInGameMode"
-      @back="closeTestScene"
+    <!-- 3D游戏场景 - 使用v-if完全销毁以节省资源 -->
+    <GameScene
+      v-if="showGameScene"
+      :isGameMode="true"
+      @back="closeGameScene"
     />
 
     <!-- 主界面 -->
-    <template v-if="!showTestScene">
+    <template v-if="!showGameScene">
       <!-- StartMenu: 隐藏时保留5分钟，之后销毁以释放内存 -->
       <StartMenu
         v-if="!destroyStartMenu"
@@ -264,15 +259,6 @@ onBeforeUnmount(() => {
         v-if="!showStartMenu"
         @back="goBack"
         @open-settings="openSettings"
-      />
-      <TestPanel
-        v-if="!showStartMenu"
-        @enter-scene="
-          () => {
-            isInGameMode = false;
-            showTestScene = true;
-          }
-        "
       />
       <Hall
         @startGame="openOverlay('start')"
