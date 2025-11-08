@@ -11,11 +11,29 @@ import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
 
 const emit = defineEmits(['confirm', 'close']);
 
+const props = defineProps({
+  musicOn: {
+    type: Boolean,
+    default: true,
+  },
+  paused: {
+    type: Boolean,
+    default: false,
+  },
+});
+
 const loading = ref(true);
 const error = ref('');
 const copperList = ref([]);
 const selectedIds = ref(new Set());
 const previewContainer = ref(null);
+
+// 音乐播放相关
+const audioRef = ref(null);
+// 音乐文件路径：优先使用本地 assets 文件夹，如果不存在则使用 R2 CDN
+const musicUrl = import.meta.env.DEV 
+  ? '/assets/startgame.mp3'  // 开发环境使用本地路径
+  : getAssetUrl('assets/startgame.mp3');  // 生产环境使用 R2 CDN
 
 let scene, camera, renderer, controls;
 let gltfLoader;
@@ -279,10 +297,91 @@ onMounted(() => {
   setTimeout(() => {
     init3DScene();
   }, 100);
+
+  // 自动播放音乐（如果音乐开关是开启的且未暂停）
+  if (props.musicOn && !props.paused && audioRef.value) {
+    const tryPlay = () => {
+      if (audioRef.value.readyState >= 2) {
+        audioRef.value.play().then(() => {
+          log('[StartGame] 音乐播放成功');
+        }).catch(err => {
+          log('[StartGame] 自动播放失败（可能浏览器阻止）:', err);
+        });
+      } else {
+        const onCanPlay = () => {
+          audioRef.value.play().then(() => {
+            log('[StartGame] 音频加载完成，播放成功');
+          }).catch(err => {
+            log('[StartGame] 播放失败:', err);
+          });
+          audioRef.value.removeEventListener('canplay', onCanPlay);
+        };
+        audioRef.value.addEventListener('canplay', onCanPlay, { once: true });
+      }
+    };
+    
+    // 延迟一下确保音频元素已挂载
+    setTimeout(tryPlay, 200);
+  }
+});
+
+// 监听 musicOn 变化
+watch(() => props.musicOn, (newVal) => {
+  if (!audioRef.value) return;
+  
+  if (newVal && !props.paused) {
+    if (audioRef.value.readyState >= 2) {
+      audioRef.value.play().catch(err => {
+        log('[StartGame] 播放音乐失败:', err);
+      });
+    } else {
+      const playWhenReady = () => {
+        audioRef.value.play().catch(err => {
+          log('[StartGame] 播放音乐失败:', err);
+        });
+        audioRef.value.removeEventListener('canplay', playWhenReady);
+      };
+      audioRef.value.addEventListener('canplay', playWhenReady);
+    }
+  } else {
+    audioRef.value.pause();
+  }
+});
+
+// 监听 paused 变化（当游戏场景打开时暂停 StartGame 音乐）
+watch(() => props.paused, (newVal) => {
+  if (!audioRef.value) return;
+  
+  if (newVal) {
+    // 暂停音乐
+    audioRef.value.pause();
+    log('[StartGame] 音乐已暂停（游戏场景打开）');
+  } else if (props.musicOn) {
+    // 恢复播放（如果音乐开关是开启的）
+    if (audioRef.value.readyState >= 2) {
+      audioRef.value.play().catch(err => {
+        log('[StartGame] 恢复播放失败:', err);
+      });
+    } else {
+      const playWhenReady = () => {
+        audioRef.value.play().catch(err => {
+          log('[StartGame] 恢复播放失败:', err);
+        });
+        audioRef.value.removeEventListener('canplay', playWhenReady);
+      };
+      audioRef.value.addEventListener('canplay', playWhenReady);
+    }
+    log('[StartGame] 音乐已恢复播放');
+  }
 });
 
 onBeforeUnmount(() => {
   window.removeEventListener('resize', onWindowResize);
+
+  // 停止音乐播放
+  if (audioRef.value) {
+    audioRef.value.pause();
+  }
 
   // 清理3D资源
   loadedModels.forEach(obj => {
@@ -368,6 +467,12 @@ onBeforeUnmount(() => {
         <button class="btn" @click="close">返回</button>
       </div>
     </div>
+    <audio
+      ref="audioRef"
+      :src="musicUrl"
+      loop
+      preload="auto"
+    ></audio>
   </div>
 </template>
 
