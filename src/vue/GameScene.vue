@@ -1891,11 +1891,11 @@ function onSceneClick(event) {
     return;
   }
 
-  // 检测可点击单位（铜偶、友方召唤物、野生敌人）
+  // 检测可点击单位（铜偶、友方召唤物、野生敌人、建筑）
   const clickableObjects = models
     .filter(
       m =>
-        (m.type === 'copper' || m.type === 'summon' || m.type === 'enemy') &&
+        (m.type === 'copper' || m.type === 'summon' || m.type === 'enemy' || m.type === 'structure') &&
         m.object
     )
     .map(m => m.object);
@@ -1971,6 +1971,8 @@ async function handleFloorClick(mousePos) {
       attacking: 'attack',
       summoning: 'summon',
       building: 'summon', // 建造也使用 summon 类型的黄色方块
+      structureExtract: 'attack', // 提取使用攻击范围的红色方块
+      structureTransfer: 'attack', // 传递使用攻击范围的红色方块
     }[currentActionMode.value];
 
     if (block.userData.type !== expectedType) {
@@ -1986,6 +1988,10 @@ async function handleFloorClick(mousePos) {
       await handleSummonApply(gridX, gridZ);
     } else if (currentActionMode.value === 'building') {
       await handleBuildApply(gridX, gridZ);
+    } else if (currentActionMode.value === 'structureExtract') {
+      await handleStructureExtractApply(gridX, gridZ);
+    } else if (currentActionMode.value === 'structureTransfer') {
+      await handleStructureTransferApply(gridX, gridZ);
     }
   }
 }
@@ -2144,8 +2150,30 @@ function handleCloseSummonModal() {
   });
 }
 
+// 处理建筑面板取消操作
+function handleStructurePanelCancel() {
+  log('[GameScene] 建筑面板取消操作');
+  
+  if (currentActionMode.value === 'structureExtract') {
+    const message = JSON.stringify({ type: 'on_structure_extract_end' });
+    eventloop(message).catch(e => {
+      log('[GameScene] 清除建筑提取范围失败', e);
+    });
+  } else if (currentActionMode.value === 'structureTransfer') {
+    const message = JSON.stringify({ type: 'on_structure_transfer_end' });
+    eventloop(message).catch(e => {
+      log('[GameScene] 清除建筑传递范围失败', e);
+    });
+  }
+  
+  currentActionMode.value = null;
+}
+
 // 关闭建筑面板
 function closeStructurePanel() {
+  // 如果正在进行建筑的 extract/transfer 操作，需要清理
+  handleStructurePanelCancel();
+  
   selectedStructure.value = null;
   selectedStructureData.value = null;
   log('[GameScene] 关闭建筑面板');
@@ -2168,16 +2196,82 @@ async function handleStructureAction(action) {
       log('[GameScene] 建筑攻击功能尚未实现');
       break;
     case 'transfer':
-      // TODO: 实现建筑传递逻辑
-      log('[GameScene] 建筑传递功能尚未实现');
+      // 建筑传递物品（传递给周围的铜偶/建筑）
+      await handleStructureTransferStart(structureId);
       break;
     case 'extract':
-      // TODO: 实现建筑提取逻辑
-      log('[GameScene] 建筑提取功能尚未实现');
+      // 建筑提取物品（从周围的铜偶/建筑提取到自己）
+      await handleStructureExtractStart(structureId);
       break;
     default:
       log('[GameScene] 未知建筑动作:', action.type);
   }
+}
+
+// 建筑开始提取物品
+async function handleStructureExtractStart(structureId) {
+  log(`[GameScene] 建筑 ${structureId} 开始提取物品`);
+  
+  const message = JSON.stringify({
+    type: 'on_structure_extract_start',
+    content: { id: String(structureId) },
+  });
+  await eventloop(message);
+  
+  // 进入提取模式
+  currentActionMode.value = 'structureExtract';
+}
+
+// 建筑开始传递物品
+async function handleStructureTransferStart(structureId) {
+  log(`[GameScene] 建筑 ${structureId} 开始传递物品`);
+  
+  const message = JSON.stringify({
+    type: 'on_structure_transfer_start',
+    content: { id: String(structureId) },
+  });
+  await eventloop(message);
+  
+  // 进入传递模式
+  currentActionMode.value = 'structureTransfer';
+}
+
+// 建筑应用提取物品
+async function handleStructureExtractApply(x, z) {
+  if (!selectedStructure.value) return;
+  
+  log(`[GameScene] 建筑 ${selectedStructure.value.id} 从 (${x}, ${z}) 提取物品`);
+  
+  const message = JSON.stringify({
+    type: 'on_structure_extract_apply',
+    content: {
+      id: String(selectedStructure.value.id),
+      position: { x: String(x), y: String(z) },
+    },
+  });
+  await eventloop(message);
+  
+  // 提取完成，清除模式
+  currentActionMode.value = null;
+}
+
+// 建筑应用传递物品
+async function handleStructureTransferApply(x, z) {
+  if (!selectedStructure.value) return;
+  
+  log(`[GameScene] 建筑 ${selectedStructure.value.id} 向 (${x}, ${z}) 传递物品`);
+  
+  const message = JSON.stringify({
+    type: 'on_structure_transfer_apply',
+    content: {
+      id: String(selectedStructure.value.id),
+      position: { x: String(x), y: String(z) },
+    },
+  });
+  await eventloop(message);
+  
+  // 传递完成，清除模式
+  currentActionMode.value = null;
 }
 
 // 处理点击铜偶
@@ -2542,8 +2636,10 @@ function endRound() {
       v-if="isGameMode && selectedStructure"
       :structure="selectedStructure"
       :resources="selectedStructureData?.resources || []"
+      :action-mode="currentActionMode === 'structureExtract' ? 'extract' : currentActionMode === 'structureTransfer' ? 'transfer' : null"
       @close="closeStructurePanel"
       @action="handleStructureAction"
+      @cancel="handleStructurePanelCancel"
     />
 
     <!-- 提示信息（仅测试模式显示） -->
