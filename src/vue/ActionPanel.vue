@@ -8,6 +8,7 @@ import DiamondPanel from './ActionPanelParts/DiamondPanel.vue';
 import InventoryModal from './ActionPanelParts/InventoryModal.vue';
 import HealthBar from './ActionPanelParts/HealthBar.vue';
 import TriPanel from './ActionPanelParts/TriPanel.vue';
+import BuildModal from './ActionPanelParts/BuildModal.vue';
 
 const props = defineProps({
   copper: {
@@ -51,6 +52,9 @@ const actionMode = ref(null); // 'moving' = 等待选择移动位置, 'attacking
 const showInventory = ref(false);
 // 当前传递的物品索引
 const transferringItemIndex = ref(null);
+// 建造弹窗状态
+const showBuildModal = ref(false);
+const structureList = ref([]);
 
 // 铜偶背包物品
 const inventoryItems = computed(() => {
@@ -148,6 +152,48 @@ async function handleSummon() {
   panelMode.value = 'minimized';
   actionMode.value = 'summoning';
   emit('action', { type: 'summonStart', copperId: copperInfo.value.id });
+}
+
+async function handleBuild() {
+  log('[ActionPanel] 建造按钮点击', {
+    copperId: copperInfo.value.id,
+    name: copperInfo.value.name,
+  });
+  
+  // 发送事件给父组件，让父组件来显示建造菜单
+  emit('action', {
+    type: 'buildRequest',
+    copperId: copperInfo.value.id,
+  });
+}
+
+// 由父组件调用的函数，用于显示建造菜单
+function showBuildMenu(structures) {
+  log('[ActionPanel] 显示建造菜单，共', structures?.length || 0, '个建筑');
+  structureList.value = structures || [];
+  showBuildModal.value = true;
+}
+
+async function handleBuildConfirm(structureName) {
+  log('[ActionPanel] 确认建造:', structureName);
+  // 先关闭弹窗
+  showBuildModal.value = false;
+  
+  // 请求建造范围（通知后端选择的建筑类型，显示黄色方块）
+  const startMessage = JSON.stringify({
+    type: 'on_structure_build_start',
+    content: { id: String(copperInfo.value.id), name: structureName },
+  });
+  await eventloop(startMessage);
+  
+  // 最小化面板，进入建造模式
+  panelMode.value = 'minimized';
+  actionMode.value = 'building';
+  emit('action', {
+    type: 'buildStart',
+    copperId: copperInfo.value.id,
+    structureName: structureName,
+  });
 }
 
 function handleInventory() {
@@ -350,8 +396,8 @@ async function handleSelectCopper(copperId) {
   }
 }
 
-// 暴露方法给父组件（不再暴露 restore）
-defineExpose({ cancelAction, handleSelectCopper });
+// 暴露方法给父组件
+defineExpose({ cancelAction, handleSelectCopper, showBuildMenu });
 </script>
 
 <template>
@@ -395,9 +441,11 @@ defineExpose({ cancelAction, handleSelectCopper });
                   ? '选择攻击目标...'
                   : actionMode === 'summoning'
                     ? '选择召唤位置...'
-                    : actionMode === 'transferring'
-                      ? '选择传递目标...'
-                      : ''
+                    : actionMode === 'building'
+                      ? '选择建造位置...'
+                      : actionMode === 'transferring'
+                        ? '选择传递目标...'
+                        : ''
             }}
           </span>
         </div>
@@ -447,10 +495,12 @@ defineExpose({ cancelAction, handleSelectCopper });
       :can-move="copperInfo?.canMove !== false"
       :can-attack="copperInfo?.canAttack !== false"
       :can-summon="copperInfo?.canSummon !== false"
+      :can-build="true"
       @move="handleMove"
       @wait="handleWait"
       @attack="handleAttack"
       @summon="handleSummon"
+      @build="handleBuild"
     />
 
     <!-- 野生敌人提示 -->
@@ -471,6 +521,15 @@ defineExpose({ cancelAction, handleSelectCopper });
     @drop="handleInventoryDrop"
     @transfer="handleInventoryTransfer"
     @transfer-to="handleTransferTo"
+  />
+
+  <!-- 建造弹窗 -->
+  <BuildModal
+    :visible="showBuildModal"
+    :copper-name="copperInfo?.name || '未知铜偶'"
+    :structure-list="structureList"
+    @close="showBuildModal = false"
+    @build="handleBuildConfirm"
   />
 </template>
 

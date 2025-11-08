@@ -5,15 +5,17 @@ const props = defineProps({
   canMove: { type: Boolean, default: true },
   canAttack: { type: Boolean, default: true },
   canSummon: { type: Boolean, default: false },
+  canBuild: { type: Boolean, default: true }, // 所有铜偶都能建造
 });
 
-const emit = defineEmits(['move', 'wait', 'attack', 'summon']);
+const emit = defineEmits(['move', 'wait', 'attack', 'summon', 'build']);
 
 const hexSrc = getAssetUrl('ui/your-image.png');
 const moveIconSrc = getAssetUrl('ui/boot.png');
 const waitIconSrc = getAssetUrl('ui/mushroom.png');
 const attackIconSrc = getAssetUrl('ui/sword.png');
 const summonIconSrc = getAssetUrl('ui/currentcupper.png'); // 使用现有资源作为召唤图标
+const buildIconSrc = getAssetUrl('ui/panel.png'); // 使用面板图标作为建造图标
 
 function onMove() {
   if (!props.canMove) return;
@@ -33,11 +35,17 @@ function onSummon() {
   if (!props.canSummon) return;
   emit('summon');
 }
+
+function onBuild() {
+  if (!props.canBuild) return;
+  emit('build');
+}
 </script>
 
 <template>
   <div class="tri-panel">
-    <div class="tri" aria-label="三角排列图像">
+    <div class="diamond" aria-label="菱形操作面板">
+      <!-- 上：移动 -->
       <div
         class="hex top"
         :title="canMove ? '移动' : '本回合已移动'"
@@ -45,15 +53,16 @@ function onSummon() {
         @click="onMove"
       >
         <img class="hex-bg" :src="hexSrc" alt="六边形背景" />
-        <img class="hex-icon" :src="waitIconSrc" alt="移动图标（蘑菇）" />
+        <img class="hex-icon" :src="waitIconSrc" alt="移动图标" />
       </div>
 
+      <!-- 左：等待 -->
       <div class="hex left" title="等待" @click="onWait">
         <img class="hex-bg" :src="hexSrc" alt="六边形背景" />
-        <img class="hex-icon" :src="moveIconSrc" alt="等待图标（靴子）" />
+        <img class="hex-icon" :src="moveIconSrc" alt="等待图标" />
       </div>
 
-      <!-- 根据是否能召唤显示不同的按钮 -->
+      <!-- 右：根据是否能召唤显示召唤或攻击 -->
       <div
         v-if="canSummon"
         class="hex right"
@@ -72,7 +81,18 @@ function onSummon() {
         @click="onAttack"
       >
         <img class="hex-bg" :src="hexSrc" alt="六边形背景" />
-        <img class="hex-icon" :src="attackIconSrc" alt="攻击图标（剑）" />
+        <img class="hex-icon" :src="attackIconSrc" alt="攻击图标" />
+      </div>
+
+      <!-- 下：建造 -->
+      <div
+        class="hex bottom"
+        :title="canBuild ? '建造' : '无法建造'"
+        :class="{ 'is-locked': canBuild === false }"
+        @click="onBuild"
+      >
+        <img class="hex-bg" :src="hexSrc" alt="六边形背景" />
+        <img class="hex-icon" :src="buildIconSrc" alt="建造图标" />
       </div>
     </div>
   </div>
@@ -99,10 +119,10 @@ function onSummon() {
     --size: 80px;
   }
 }
-.tri {
+.diamond {
   display: grid;
   grid-template-columns: repeat(3, max-content);
-  grid-template-rows: repeat(2, max-content);
+  grid-template-rows: repeat(3, max-content);
   gap: var(--gap);
   align-items: center;
   justify-items: center;
@@ -154,6 +174,10 @@ function onSummon() {
   grid-column: 3;
   grid-row: 2;
 }
+.bottom {
+  grid-column: 2;
+  grid-row: 3;
+}
 .top {
   transform: translateY(var(--topDropY));
 }
@@ -163,7 +187,10 @@ function onSummon() {
 .right {
   transform: translate(calc(-1 * var(--overlapX)), calc(-1 * var(--overlapY)));
 }
-.hex:is(.top, .left, .right):hover {
+.bottom {
+  transform: translateY(calc(-1 * var(--overlapY) * 2));
+}
+.hex:is(.top, .left, .right, .bottom):hover {
   filter: brightness(1.08);
 }
 .is-locked {
@@ -179,6 +206,9 @@ function onSummon() {
 }
 .hex.right:hover:not(.is-locked) {
   animation: float-right 1200ms ease-in-out infinite;
+}
+.hex.bottom:hover:not(.is-locked) {
+  animation: float-bottom 1200ms ease-in-out infinite;
 }
 @keyframes float-top {
   0% {
@@ -221,6 +251,17 @@ function onSummon() {
   100% {
     transform: translate(calc(-1 * var(--overlapX)), calc(-1 * var(--overlapY)))
       scale(1);
+  }
+}
+@keyframes float-bottom {
+  0% {
+    transform: translateY(calc(-1 * var(--overlapY) * 2)) scale(1);
+  }
+  50% {
+    transform: translateY(calc(-1 * var(--overlapY) * 2 + 2px)) scale(1.06);
+  }
+  100% {
+    transform: translateY(calc(-1 * var(--overlapY) * 2)) scale(1);
   }
 }
 </style>

@@ -560,11 +560,15 @@ fn handle_on_structure_build_apply(
     map.add_occupant(position, Occupant::Structure(structure))
     set_structure(structure, structure.id, position)
     structure.update_move_and_attack_and_summon_status()
+    // 建造成功，清理黄色方块
+    handle_on_structure_build_end()
   } else {
     @global_msg.msg_info.broadcast({
       type_msg: "resource_not_enough",
       content: ({ "message": "资源不足" } : Json).stringify(),
     })
+    // 建造失败，也要清理黄色方块
+    handle_on_structure_build_end()
   }
 }
 

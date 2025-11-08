@@ -4,10 +4,10 @@
 
 const LOG_LEVEL = 'debug';
 
-function log(message) {
+function log(...args) {
   switch (LOG_LEVEL) {
     case 'debug':
-      console.log(message);
+      console.log(...args);
       break;
     case 'release':
       break;

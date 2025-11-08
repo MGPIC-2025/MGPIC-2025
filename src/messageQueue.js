@@ -59,6 +59,7 @@ class MessageQueue {
           // 性能优化：完全关闭处理消息日志，避免阻塞主线程
           // 如需调试，可临时启用
           // console.log("[MessageQueue] 处理消息:", type_msg);
+          
           const data = JSON.parse(content);
 
           // 对于简单的消息类型（如put_map_block），同步处理，不使用await
@@ -78,6 +79,7 @@ class MessageQueue {
       } catch (error) {
         log('[MessageQueue] 处理消息失败:', error);
         log('[MessageQueue] 错误详情:', error.message);
+        log('[MessageQueue] 错误堆栈:', error.stack);
       }
     }
 
@@ -187,6 +189,30 @@ export function registerAllHandlers() {
       // 显示信息面板
       if (context.onShowCopperInfo) {
         context.onShowCopperInfo(copperLikeData, resources, has_attack_targets);
+      }
+    }
+  );
+
+  // handle_on_click_structure: 当建筑被点击时，后端返回建筑信息
+  messageQueue.registerHandler(
+    'handle_on_click_structure',
+    async (data, context) => {
+      const { structure, resources } = data;
+      const isOwned = structure.owned || false;
+      const structureType = isOwned ? '玩家建筑' : '中立建筑';
+
+      log(
+        `[Handler] 点击${structureType}: ${
+          structure.structure_base?.name || 'Unknown'
+        } (ID=${structure.id})`
+      );
+      log(
+        `[Handler] 建筑状态: HP=${structure.now_health}/${structure.structure_base.health}, 可移动=${structure.can_move}, 可攻击=${structure.can_attack}, owned=${structure.owned}, 有储物空间=${structure.structure_base.has_storage}`
+      );
+
+      // 显示建筑信息
+      if (context.onShowStructureInfo) {
+        context.onShowStructureInfo(structure, resources);
       }
     }
   );
@@ -793,10 +819,31 @@ export function registerAllHandlers() {
 
   // resource_not_enough: 资源不足
   messageQueue.registerHandler('resource_not_enough', (data, context) => {
-    log('[Handler] 资源不足:', data.message || data);
+    let message = '资源不足';
+    
+    // 如果有详细的缺少资源信息，生成详细提示
+    if (data.missing && Array.isArray(data.missing) && data.missing.length > 0) {
+      const resourceNames = {
+        HeartCrystalDust: '心晶尘',
+        RecallGear: '回响齿轮',
+        SpiritalSpark: '灵性火花',
+        RefinedCopper: '精炼铜锭',
+        ResonantCrystal: '共鸣星晶'
+      };
+      
+      const missingList = data.missing.map(item => {
+        const name = resourceNames[item.type] || item.type;
+        const shortage = item.needed - item.current;
+        return `${name} (缺少 ${shortage})`;
+      }).join('、');
+      
+      message = `资源不足: ${missingList}`;
+    }
+    
+    log('[Handler] 资源不足:', message);
     // TODO: 显示资源不足提示给玩家
     if (context.onResourceNotEnough) {
-      context.onResourceNotEnough(data.message || '资源不足');
+      context.onResourceNotEnough(message);
     }
   });
 
@@ -822,6 +869,27 @@ export function registerAllHandlers() {
     // TODO: 显示敌人选择菜单
     if (context.onShowSummonMenu) {
       context.onShowSummonMenu(contents);
+    }
+  });
+
+  // get_structure_menu: 获取建筑建造菜单（返回可建造的建筑列表）
+  messageQueue.registerHandler('get_structure_menu', (data, context) => {
+    const { contents } = data;
+    
+    if (!contents || contents.length === 0) {
+      log('[Handler] ⚠️ 建筑列表为空');
+      return;
+    }
+    
+    // 过滤掉充能线圈（玩家不能建造）
+    const filteredContents = contents.filter(structure => {
+      return structure.name !== '充能线圈';
+    });
+    
+    log('[Handler] 收到建造菜单，共', filteredContents.length, '个建筑');
+    
+    if (context.onShowStructureMenu) {
+      context.onShowStructureMenu(filteredContents);
     }
   });
 

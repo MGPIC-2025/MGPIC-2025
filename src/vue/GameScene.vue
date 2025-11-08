@@ -22,6 +22,7 @@ import { getStructureEnglishName } from '../utils/structureMapping.js';
 import ActionPanel from './ActionPanel.vue';
 import TurnSystem from './ActionPanelParts/TurnSystem.vue';
 import SummonModal from './ActionPanelParts/SummonModal.vue';
+import StructurePanel from './StructurePanel.vue';
 
 const props = defineProps({
   isGameMode: {
@@ -46,6 +47,9 @@ let gltfLoader = null;
 
 // 血条管理（全局作用域，供 animate() 访问）
 const healthBars = new Map(); // { unitId: { container: Group, background: Mesh, foreground: Mesh } }
+
+// 地板块缓存（用于显示移动/攻击/建造范围）
+const floorBlocks = new Map(); // key: "x,y", value: THREE.Mesh
 
 // 更新所有血条位置（在动画循环中调用）
 function updateHealthBarsPosition() {
@@ -150,16 +154,23 @@ const hasAttackTargets = ref(false); // 是否有可攻击的目标
 const transferTargetPositions = ref([]); // 存储传递位置
 const transferTargets = ref([]); // 存储可传递的铜偶列表
 
+// 选中的建筑信息
+const selectedStructure = ref(null);
+const selectedStructureData = ref(null); // 存储完整的建筑数据（包括后端数据）
+
 // 召唤系统相关
 const showSummonModal = ref(false); // 是否显示召唤菜单
 const summonPosition = ref(null); // 召唤位置
 const enemyList = ref([]); // 可召唤的敌人列表
 
+// 建造系统相关
+const currentBuildingName = ref(null); // 当前选择要建造的建筑名称
+
 // 回合系统
 const currentRound = ref(1);
 const playerCoppers = ref([]); // 玩家的铜偶列表
 const currentCopperIndex = ref(0);
-const currentActionMode = ref(null); // 'moving' | 'attacking' | 'transferring' | 'summoning' | null
+const currentActionMode = ref(null); // 'moving' | 'attacking' | 'transferring' | 'summoning' | 'building' | null
 
 const currentCopperId = computed(() => {
   if (playerCoppers.value.length === 0) return null;
@@ -655,9 +666,7 @@ function setupMessageQueue() {
   }
 
   // updateHealthBarsPosition 已在外部作用域定义
-
-  // 创建地板块缓存（用于显示移动/攻击范围）
-  const floorBlocks = new Map(); // key: "x,y", value: THREE.Mesh
+  // floorBlocks 已在外部作用域定义
 
   // 高亮选中的铜偶
   let selectedCopperId = null;
@@ -893,6 +902,14 @@ function setupMessageQueue() {
         `[GameScene] 更新铜偶信息: ID=${copper.id}, has_attack_targets=${hasAttackTargets.value}`
       );
     },
+    // 显示建筑信息
+    onShowStructureInfo: (structure, resources) => {
+      selectedStructure.value = structure;
+      selectedStructureData.value = { structure, resources };
+      log(
+        `[GameScene] 更新建筑信息: ID=${structure.id}, 名称=${structure.structure_base?.name}, 血量=${structure.now_health}/${structure.structure_base.health}`
+      );
+    },
     highlightSelectedCopper,
     floorBlocks,
     createAttackEffect, // 攻击特效
@@ -952,9 +969,12 @@ function setupMessageQueue() {
     // 资源不足回调
     onResourceNotEnough: message => {
       log(`[GameScene] 资源不足: ${message}`);
-      alert(`❌ ${message}\n\n召唤需要消耗 1 个心源火花 (SpiritalSpark)`);
-      // 清除召唤模式
+      alert(`❌ ${message}`);
+      // 清除所有操作模式
       currentActionMode.value = null;
+      currentBuildingName.value = null;
+      showSummonModal.value = false;
+      summonPosition.value = null;
     },
     // 召唤失败回调
     onSummonFailed: message => {
@@ -969,6 +989,16 @@ function setupMessageQueue() {
     onShowSummonMenu: contents => {
       log(`[GameScene] 收到敌人列表:`, contents);
       enemyList.value = contents || [];
+    },
+    // 显示建造菜单回调
+    onShowStructureMenu: contents => {
+      log(`[GameScene] 收到建造菜单，共`, contents?.length || 0, '个建筑');
+      // 调用 ActionPanel 的 showBuildMenu 方法
+      if (copperActionPanelRef.value?.showBuildMenu) {
+        copperActionPanelRef.value.showBuildMenu(contents || []);
+      } else {
+        log(`[GameScene] ⚠️ copperActionPanelRef.value.showBuildMenu 不存在`);
+      }
     },
     // 移除铜偶（死亡时从列表中移除）
     onRemoveCopper: id => {
@@ -1487,6 +1517,12 @@ function setupMessageQueue() {
       });
 
       log(`[GameScene] 建筑创建成功: ${structureName}`);
+      
+      // 创建建筑血条（如果有血量信息）
+      if (structure.now_health !== undefined && structure.structure_base?.health) {
+        createOrUpdateHealthBar(id, structure.now_health, structure.structure_base.health);
+        log(`[GameScene] 创建建筑血条: ${structureName} (${structure.now_health}/${structure.structure_base.health})`);
+      }
     },
     onPutResourceMarker: position => {
       const key = `${position[0]},${position[1]}`;
@@ -1843,11 +1879,12 @@ function onSceneClick(event) {
   // 更新射线
   raycaster.setFromCamera(mouse, camera);
 
-  // 如果在移动/攻击/召唤模式，检测地板点击
+  // 如果在移动/攻击/召唤/建造模式，检测地板点击
   if (
     currentActionMode.value === 'moving' ||
     currentActionMode.value === 'attacking' ||
     currentActionMode.value === 'summoning' ||
+    currentActionMode.value === 'building' ||
     currentActionMode.value === 'transferring'
   ) {
     handleFloorClick(mouse);
@@ -1879,6 +1916,7 @@ function onSceneClick(event) {
         copper: '铜偶',
         summon: '友方召唤物',
         enemy: '野生敌人',
+        structure: '建筑',
       };
       const unitType = unitTypeMap[model?.type] || '未知单位';
       log(`[GameScene] 点击${unitType}，ID:`, modelId);
@@ -1887,13 +1925,17 @@ function onSceneClick(event) {
       if (model?.type === 'summon' || model?.type === 'enemy') {
         // 友方召唤物和野生敌人都调用handleClickEnemy
         handleClickEnemy(modelId, model?.type === 'enemy');
+      } else if (model?.type === 'structure') {
+        // 建筑点击处理
+        handleClickStructure(modelId);
       } else {
         handleClickCopper(modelId);
       }
     }
   } else {
-    // 点击空白处，关闭面板
+    // 点击空白处，关闭所有面板
     selectedCopper.value = null;
+    selectedStructure.value = null;
   }
 }
 
@@ -1914,12 +1956,36 @@ async function handleFloorClick(mousePos) {
 
     log(`[GameScene] 点击地板: (${gridX}, ${gridZ})`);
 
+    // 检查点击的位置是否在允许的范围内（有黄色方块标记）
+    const key = `${gridX},${gridZ}`;
+    const block = floorBlocks.get(key);
+    
+    if (!block) {
+      log(`[GameScene] 点击位置 (${gridX}, ${gridZ}) 不在允许范围内，忽略`);
+      return;
+    }
+
+    // 验证地板块类型与当前操作模式匹配
+    const expectedType = {
+      moving: 'move',
+      attacking: 'attack',
+      summoning: 'summon',
+      building: 'summon', // 建造也使用 summon 类型的黄色方块
+    }[currentActionMode.value];
+
+    if (block.userData.type !== expectedType) {
+      log(`[GameScene] 地板块类型不匹配: expected=${expectedType}, actual=${block.userData.type}`);
+      return;
+    }
+
     if (currentActionMode.value === 'moving') {
       await handleMoveApply(gridX, gridZ);
     } else if (currentActionMode.value === 'attacking') {
       await handleAttackApply(gridX, gridZ);
     } else if (currentActionMode.value === 'summoning') {
       await handleSummonApply(gridX, gridZ);
+    } else if (currentActionMode.value === 'building') {
+      await handleBuildApply(gridX, gridZ);
     }
   }
 }
@@ -1994,6 +2060,34 @@ async function handleSummonApply(x, z) {
   showSummonModal.value = true;
 }
 
+// 执行建造（点击地面时）
+async function handleBuildApply(x, z) {
+  if (!selectedCopper.value || !currentBuildingName.value) return;
+
+  log(
+    `[GameScene] 请求建造 ${currentBuildingName.value} 到位置: (${x}, ${z})`
+  );
+
+  const message = JSON.stringify({
+    type: 'on_structure_build_apply',
+    content: {
+      id: String(selectedCopper.value.id),
+      position: { x: String(x), y: String(z) },
+      name: currentBuildingName.value,
+    },
+  });
+  await eventloop(message);
+
+  // 建造完成，清除建造模式（后端会自动清理黄色方块）
+  currentActionMode.value = null;
+  currentBuildingName.value = null;
+  
+  // 重置 ActionPanel 的状态
+  if (copperActionPanelRef.value) {
+    copperActionPanelRef.value.cancelAction();
+  }
+}
+
 // 确认召唤（从菜单选择敌人后）
 async function handleSummonConfirm(enemyName) {
   if (!selectedCopper.value || !summonPosition.value) return;
@@ -2050,6 +2144,42 @@ function handleCloseSummonModal() {
   });
 }
 
+// 关闭建筑面板
+function closeStructurePanel() {
+  selectedStructure.value = null;
+  selectedStructureData.value = null;
+  log('[GameScene] 关闭建筑面板');
+}
+
+// 处理建筑动作
+async function handleStructureAction(action) {
+  if (!selectedStructure.value) return;
+
+  const structureId = selectedStructure.value.id;
+  log(`[GameScene] 建筑动作: ${action.type}, ID=${structureId}`);
+
+  switch (action.type) {
+    case 'move':
+      // TODO: 实现建筑移动逻辑
+      log('[GameScene] 建筑移动功能尚未实现');
+      break;
+    case 'attack':
+      // TODO: 实现建筑攻击逻辑
+      log('[GameScene] 建筑攻击功能尚未实现');
+      break;
+    case 'transfer':
+      // TODO: 实现建筑传递逻辑
+      log('[GameScene] 建筑传递功能尚未实现');
+      break;
+    case 'extract':
+      // TODO: 实现建筑提取逻辑
+      log('[GameScene] 建筑提取功能尚未实现');
+      break;
+    default:
+      log('[GameScene] 未知建筑动作:', action.type);
+  }
+}
+
 // 处理点击铜偶
 async function handleClickCopper(copperId) {
   // 更新当前铜偶索引，以便 TurnSystem 正确显示名称
@@ -2061,6 +2191,21 @@ async function handleClickCopper(copperId) {
   const message = JSON.stringify({
     type: 'on_click_copper',
     content: { id: String(copperId) },
+  });
+  await eventloop(message);
+}
+
+// 处理点击建筑
+async function handleClickStructure(structureId) {
+  log(`[GameScene] 点击建筑: ID=${structureId}`);
+  
+  // 关闭铜偶面板
+  selectedCopper.value = null;
+  
+  // 发送点击建筑消息到后端
+  const message = JSON.stringify({
+    type: 'on_click_structure',
+    content: { id: String(structureId) },
   });
   await eventloop(message);
 }
@@ -2090,7 +2235,7 @@ function closeCopperPanel() {
 }
 
 // 处理铜偶操作
-function handleCopperAction(action) {
+async function handleCopperAction(action) {
   log('[GameScene] 铜偶操作:', action);
 
   if (action.type === 'moveStart') {
@@ -2099,6 +2244,17 @@ function handleCopperAction(action) {
     currentActionMode.value = 'attacking';
   } else if (action.type === 'summonStart') {
     currentActionMode.value = 'summoning';
+  } else if (action.type === 'buildRequest') {
+    // 请求建造菜单
+    log('[GameScene] 请求建造菜单');
+    const message = JSON.stringify({
+      type: 'on_get_structure_menu',
+    });
+    await eventloop(message);
+    // 等待消息处理完成，菜单会通过 onShowStructureMenu 回调显示
+  } else if (action.type === 'buildStart') {
+    currentActionMode.value = 'building';
+    currentBuildingName.value = action.structureName || null;
   } else if (
     action.type === 'transferring' ||
     action.type === 'transferStart'
@@ -2115,7 +2271,17 @@ function handleCopperAction(action) {
   } else if (action.type === 'cancel') {
     // 根据当前模式调用对应的 end 函数清除范围显示
     const mode = currentActionMode.value;
-    if (mode === 'transferring') {
+    if (mode === 'moving') {
+      const message = JSON.stringify({ type: 'on_move_end' });
+      eventloop(message).catch(e => {
+        log('[GameScene] 清除移动范围失败', e);
+      });
+    } else if (mode === 'attacking') {
+      const message = JSON.stringify({ type: 'on_attack_end' });
+      eventloop(message).catch(e => {
+        log('[GameScene] 清除攻击范围失败', e);
+      });
+    } else if (mode === 'transferring') {
       const message = JSON.stringify({ type: 'on_transfer_end' });
       eventloop(message).catch(e => {
         log('[GameScene] 清除传递范围失败', e);
@@ -2130,6 +2296,13 @@ function handleCopperAction(action) {
       });
       // 关闭召唤菜单
       showSummonModal.value = false;
+    } else if (mode === 'building') {
+      const message = JSON.stringify({ type: 'on_structure_build_end' });
+      eventloop(message).catch(e => {
+        log('[GameScene] 清除建造范围失败', e);
+      });
+      // 清除建造状态
+      currentBuildingName.value = null;
       summonPosition.value = null;
     }
     currentActionMode.value = null;
@@ -2362,6 +2535,15 @@ function endRound() {
       :position="summonPosition"
       @close="handleCloseSummonModal"
       @summon="handleSummonConfirm"
+    />
+
+    <!-- 建筑详情面板（仅游戏模式显示） -->
+    <StructurePanel
+      v-if="isGameMode && selectedStructure"
+      :structure="selectedStructure"
+      :resources="selectedStructureData?.resources || []"
+      @close="closeStructurePanel"
+      @action="handleStructureAction"
     />
 
     <!-- 提示信息（仅测试模式显示） -->
