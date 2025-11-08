@@ -6,6 +6,7 @@ import log from '../log.js';
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
+import { loadResourceWithCache } from './resourceLoader.js';
 
 // 全局缓存实例
 class ModelCacheManager {
@@ -74,10 +75,23 @@ class ModelCacheManager {
       log(`[ModelCache] 从GLTF缓存加载: ${url}`);
       gltf = this.gltfCache.get(url);
     } else {
-      // 从网络加载
-      log(`[ModelCache] 从网络加载: ${url}`);
+      // 从Cache Storage或网络加载
       try {
-        gltf = await this.gltfLoader.loadAsync(url);
+        // 使用 Cache Storage API 加载模型文件
+        const response = await loadResourceWithCache(url);
+        const arrayBuffer = await response.arrayBuffer();
+        
+        log(`[ModelCache] 解析GLTF模型: ${url}`);
+        
+        // 使用 GLTFLoader.parse 解析 ArrayBuffer
+        gltf = await new Promise((resolve, reject) => {
+          this.gltfLoader.parse(
+            arrayBuffer,
+            '', // 基础路径
+            (parsed) => resolve(parsed),
+            (error) => reject(error)
+          );
+        });
 
         // 缓存GLTF对象
         this.cacheGLTF(url, gltf);
