@@ -2365,11 +2365,7 @@ async function handleStructureExtractApply(x, z) {
   });
   await eventloop(message);
   
-  // 清除红色圈
-  const endMessage = JSON.stringify({ type: 'on_structure_extract_end' });
-  await eventloop(endMessage);
-  
-  // 提取完成，清除模式
+  // 提取完成，清除模式（后端会自动清除红色圈）
   currentActionMode.value = null;
   
   // 重新点击建筑刷新状态（延迟以确保后端状态已更新）
@@ -2395,11 +2391,7 @@ async function handleStructureTransferApply(x, z) {
   });
   await eventloop(message);
   
-  // 清除红色圈
-  const endMessage = JSON.stringify({ type: 'on_structure_transfer_end' });
-  await eventloop(endMessage);
-  
-  // 传递完成，清除模式
+  // 传递完成，清除模式（后端会自动清除红色圈）
   currentActionMode.value = null;
   
   // 重新点击建筑刷新状态（延迟以确保后端状态已更新）

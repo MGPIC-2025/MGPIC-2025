@@ -2,6 +2,7 @@
 import log from '../log.js';
 import { ref, computed, watch, nextTick } from 'vue';
 import { getAssetUrl } from '../utils/resourceLoader.js';
+import { getItemName } from '../utils/resourceMeta.js';
 
 const props = defineProps({
   structure: {
@@ -119,7 +120,7 @@ function handleClose() {
         <div class="structure-panel__storage-label">储物空间</div>
         <div class="structure-panel__storage-content">
           <div v-if="storage" class="structure-panel__storage-item">
-            <span class="structure-panel__storage-name">{{ storage.name || '资源' }}</span>
+            <span class="structure-panel__storage-name">{{ getItemName(storage) }}</span>
             <span class="structure-panel__storage-count">x{{ storage.count || 0 }}</span>
           </div>
           <div v-else class="structure-panel__storage-empty">空</div>

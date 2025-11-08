@@ -148,7 +148,6 @@ fn Structure::get_can_extract(
     let self_item = structure.storage
     if map.is_occupy(position) {
       if map.get_occupant(position) is Structure(structure) &&
-        structure.owned == false &&
         structure.storage is Some(item) &&
         item.item_type is Resource(resource_type) &&
         item.count > 0 &&
