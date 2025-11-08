@@ -202,13 +202,19 @@ fn BattleCopper::get_structure_build_position(
       battle_copper.position.1 + offset_.1,
     )
     if is_drill {
+      // 矿钻：需要在矿物上建造
+      // is_occupy 在超出范围时返回 false，所以是安全的
       if map.is_occupy(position) &&
         map.force_get_map_block(position).occupant is Material(_) {
         result.push(position)
       }
-    } else if !map.is_occupy(position) &&
-      map.force_get_map_block(position).resources.is_empty() {
-      result.push(position)
+    } else {
+      // 普通建筑：需要空地且没有资源
+      // 先用 is_occupy_or_out_of_map 检查是否安全访问
+      if !map.is_occupy_or_out_of_map(position) &&
+        map.force_get_map_block(position).resources.is_empty() {
+        result.push(position)
+      }
     }
   }
   result
