@@ -16,7 +16,6 @@ fn handle_on_game_start(ids : Array[Int]) -> Unit {
   // 广播房间内容（地图块、敌人和铜偶）
   // 由于 Map_::new 使用了 add_room_silent，这是唯一一次广播
   broadcast_room_content(first_room)
-  
   change_direction(copper_1.id, PositiveY)
   change_direction(copper_2.id, PositiveY)
   change_direction(copper_3.id, PositiveY)
@@ -35,6 +34,7 @@ fn handle_game_round_pass() -> Unit {
   reset_states()
   enemy_ai()
   animate_reset()
+  resource_gen()
   summon_enemy_while_game_round_pass()
 }
 
@@ -211,6 +211,19 @@ fn enemy_ai() -> Unit {
           enemy.position = next_position
           map.add_occupant(enemy.position, Occupant::Enemy(enemy))
         }
+      }
+    }
+  }
+}
+
+///|
+fn resource_gen() -> Unit {
+  for structure in structure_map.values() {
+    if structure.structure_base.name == "心源矿钻" {
+      structure.storage = match structure.storage {
+        Some(item) => Some({ item_type: item.item_type, count: item.count + 2 })
+        None =>
+          Some(Item::new(Resource(structure.resource_type.unwrap()), count=2))
       }
     }
   }
