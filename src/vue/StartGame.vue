@@ -396,13 +396,21 @@ onBeforeUnmount(() => {
     controls.dispose();
   }
 });
+
+// 背景图片路径（CSS border-image 需要 url() 包裹）
+const panel1Src = `url('/assets/panel1.png')`;
+const panel3Src = `url('/assets/panel3.png')`;
+const panel6Src = `url('/assets/panel6.png')`;
+const panel8Src = `url('/assets/panel8.png')`;
+const panel9Src = `url('/assets/panel9.png')`;
+const panel10Src = `url('/assets/panel10.png')`;
 </script>
 
 <template>
   <div class="startgame-modal">
     <div class="card">
       <div class="card__header">
-        <div class="card__title">开始游戏 · Start Game</div>
+        <div class="card__title">开始游戏</div>
         <button class="card__close" @click="close" aria-label="关闭">✕</button>
       </div>
 
@@ -425,9 +433,6 @@ onBeforeUnmount(() => {
               <div class="item__meta">
                 <div class="item__name">{{ c.name }}</div>
                 <div class="item__level">Lv. {{ c.level }}</div>
-              </div>
-              <div class="item__tick">
-                {{ selectedIds.has(c.id) ? '✓' : '' }}
               </div>
             </div>
           </div>
@@ -490,9 +495,16 @@ onBeforeUnmount(() => {
 .card {
   width: min(95vw, 1000px);
   height: min(90vh, 700px);
-  background: #3a2519;
-  color: #fff;
-  border-radius: 12px;
+  box-sizing: border-box;
+  border-style: solid;
+  border-width: 12px;
+  border-image-source: v-bind(panel1Src);
+  border-image-slice: 8 fill;
+  border-image-width: 12px;
+  border-image-outset: 0;
+  border-image-repeat: stretch;
+  background-color: transparent;
+  color: #1a0f00;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
   overflow: hidden;
   display: flex;
@@ -505,15 +517,23 @@ onBeforeUnmount(() => {
   align-items: center;
   justify-content: space-between;
   padding: 0 12px 0 16px;
-  background: #2b1a11;
-  border-bottom: 1px solid #4b2e1f;
+  box-sizing: border-box;
+  border-style: solid;
+  border-width: 12px;
+  border-image-source: v-bind(panel3Src);
+  border-image-slice: 8 fill;
+  border-image-width: 12px;
+  border-image-outset: 0;
+  border-image-repeat: stretch;
+  background-color: transparent;
   flex-shrink: 0;
 }
 
 .card__title {
   font-size: 18px;
   font-weight: 800;
-  color: #fff;
+  color: #fff3ef;
+  letter-spacing: 2px;
 }
 
 .card__close {
@@ -523,11 +543,12 @@ onBeforeUnmount(() => {
   background: #4b2e1f;
   border: 1px solid #5a3525;
   cursor: pointer;
-  color: #fff;
+  color: #fff3ef;
   font-size: 20px;
   display: flex;
   align-items: center;
   justify-content: center;
+  font-weight: 900;
 }
 .card__close:hover {
   background: #5a3525;
@@ -551,8 +572,15 @@ onBeforeUnmount(() => {
 
 .preview {
   width: 400px;
-  background: #2b1a11;
-  border-left: 1px solid #4b2e1f;
+  box-sizing: border-box;
+  border-style: solid;
+  border-width: 12px;
+  border-image-source: v-bind(panel9Src);
+  border-image-slice: 8 fill;
+  border-image-width: 12px;
+  border-image-outset: 0;
+  border-image-repeat: stretch;
+  background-color: transparent;
   display: flex;
   flex-direction: column;
   flex-shrink: 0;
@@ -561,8 +589,9 @@ onBeforeUnmount(() => {
 .preview__title {
   padding: 12px 16px;
   font-size: 14px;
-  font-weight: 700;
-  color: #ffd700;
+  font-weight: 900;
+  color: #6a4931;
+  letter-spacing: 2px;
   border-bottom: 1px solid #4b2e1f;
 }
 
@@ -588,46 +617,70 @@ onBeforeUnmount(() => {
 
 .preview__empty {
   text-align: center;
-  color: #888;
+  color: #6a4931;
   padding: 20px;
   font-size: 14px;
+  font-weight: 900;
+  letter-spacing: 2px;
 }
 
 .preview__names {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   gap: 8px;
+  justify-content: space-around;
 }
 
 .preview__name {
   font-size: 13px;
-  color: #fff;
-  padding: 8px 12px;
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: 6px;
+  color: #6a4931;
+  padding: 8px 6px;
+  box-sizing: border-box;
+  border-style: solid;
+  border-width: 8px;
+  border-image-source: v-bind(panel10Src);
+  border-image-slice: 8 fill;
+  border-image-width: 8px;
+  border-image-outset: 0;
+  border-image-repeat: stretch;
+  background-color: transparent;
   display: flex;
-  align-items: flex-start;
-  gap: 8px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 6px;
   line-height: 1.5;
+  width: 50px;
+  min-height: 100px;
+  font-weight: 900;
+  letter-spacing: 2px;
 }
 
 .preview__name-number {
   flex-shrink: 0;
-  width: 20px;
-  color: #ffd700;
-  font-weight: 700;
+  color: #6a4931;
+  font-weight: 900;
+  letter-spacing: 2px;
+  writing-mode: horizontal-tb;
 }
 
 .preview__name-text {
   flex: 1;
   word-wrap: break-word;
   overflow-wrap: break-word;
+  writing-mode: vertical-rl;
+  text-orientation: upright;
+  color: #6a4931;
+  font-weight: 900;
+  letter-spacing: 2px;
 }
 
 .loading {
   padding: 20px;
   text-align: center;
-  color: #ccc;
+  color: #6a4931;
+  font-weight: 900;
+  letter-spacing: 2px;
 }
 
 .error {
@@ -651,10 +704,16 @@ onBeforeUnmount(() => {
   flex-direction: column;
   gap: 6px;
   padding: 8px;
-  border: 1px solid #4b2e1f;
-  border-radius: 10px;
+  box-sizing: border-box;
+  border-style: solid;
+  border-width: 12px;
+  border-image-source: v-bind(panel6Src);
+  border-image-slice: 8 fill;
+  border-image-width: 12px;
+  border-image-outset: 0;
+  border-image-repeat: stretch;
+  background-color: transparent;
   cursor: pointer;
-  background: #4b2e1f;
   transition:
     transform 0.1s ease,
     box-shadow 0.1s ease;
@@ -666,13 +725,13 @@ onBeforeUnmount(() => {
 }
 
 .item--selected {
+  border-image-source: v-bind(panel8Src);
   box-shadow: 0 0 0 2px #f59e0b inset;
-  background: rgba(245, 158, 11, 0.1);
 }
 
 .item__img {
   width: 100%;
-  aspect-ratio: 1 / 1;
+  aspect-ratio: 1.2 / 1.5;
   border-radius: 8px;
   overflow: hidden;
   background: #2b1a11;
@@ -693,21 +752,24 @@ onBeforeUnmount(() => {
   align-items: center;
   justify-content: space-between;
   font-size: 12px;
-  color: #ccc;
+  color: #6a4931;
 }
 
 .item__name {
-  font-weight: 700;
+  font-weight: 900;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
   max-width: 90px;
-  color: #fff;
+  color: #6a4931;
+  letter-spacing: 2px;
 }
 
 .item__level {
   opacity: 0.8;
-  color: #ccc;
+  color: #6a4931;
+  font-weight: 900;
+  letter-spacing: 1px;
 }
 
 .item__tick {
@@ -723,7 +785,9 @@ onBeforeUnmount(() => {
 .hint {
   margin-top: 4px;
   font-size: 12px;
-  color: #ccc;
+  color: #6a4931;
+  font-weight: 900;
+  letter-spacing: 1px;
 }
 
 .card__footer {
@@ -742,7 +806,9 @@ onBeforeUnmount(() => {
   border: 1px solid #4b2e1f;
   background: #4b2e1f;
   cursor: pointer;
-  color: #fff;
+  color: #fff3ef;
+  font-weight: 900;
+  letter-spacing: 2px;
 }
 
 .btn:hover {
@@ -751,10 +817,11 @@ onBeforeUnmount(() => {
 
 .btn--primary {
   background: #f59e0b;
-  color: #2b1a11;
+  color: #fef7f5;
   border-color: #f59e0b;
   box-shadow: 0 6px 16px rgba(245, 158, 11, 0.3);
-  font-weight: 700;
+  font-weight: 900;
+  letter-spacing: 2px;
 }
 
 .btn--primary:hover {

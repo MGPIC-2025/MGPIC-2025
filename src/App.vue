@@ -242,7 +242,7 @@ onBeforeUnmount(() => {
       />
       <Hall
         :music-on="musicOn"
-        :paused="overlay === 'start' || showGameScene"
+        :paused="overlay === 'start' || overlay === 'warehouse' || showGameScene"
         @startGame="openOverlay('start')"
         @openWarehouse="openOverlay('warehouse')"
         @openTutorial="openOverlay('tutorial')"
@@ -262,7 +262,10 @@ onBeforeUnmount(() => {
               @open-settings="openSettings"
               @toggle-music="onToggleMusic"
             />
-            <Warehouse ref="warehouseRef" />
+            <Warehouse 
+              ref="warehouseRef"
+              :music-on="musicOn"
+            />
           </div>
         </template>
         <template v-else-if="overlay === 'start'">
@@ -329,34 +332,6 @@ onBeforeUnmount(() => {
           </button>
         </div>
         <div class="settings__content">
-          <button class="settings__item" @click="onToggleMusic">
-            <span class="settings__icon">
-              <svg
-                width="44"
-                height="44"
-                viewBox="0 0 24 24"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  d="M9 18V5l10-2v9"
-                  stroke="#fff"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                />
-                <path
-                  d="M9 18a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm10-6a3 3 0 1 1-6 0"
-                  stroke="#fff"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                />
-              </svg>
-            </span>
-            <span class="settings__label">音乐</span>
-            <span class="settings__state">{{ musicOn ? '开' : '关' }}</span>
-          </button>
-
           <button class="settings__item" @click="onDownloadSave">
             <span class="settings__icon">
               <svg

@@ -45,21 +45,21 @@ function onBuild() {
 <template>
   <div class="tri-panel">
     <div class="diamond" aria-label="菱形操作面板">
-      <!-- 上：移动 -->
+      <!-- 上：等待 -->
+      <div class="hex top" title="等待" @click="onWait">
+        <img class="hex-bg" :src="hexSrc" alt="六边形背景" />
+        <img class="hex-icon" :src="moveIconSrc" alt="等待图标" />
+      </div>
+
+      <!-- 左：移动 -->
       <div
-        class="hex top"
+        class="hex left"
         :title="canMove ? '移动' : '本回合已移动'"
         :class="{ 'is-locked': canMove === false }"
         @click="onMove"
       >
         <img class="hex-bg" :src="hexSrc" alt="六边形背景" />
         <img class="hex-icon" :src="waitIconSrc" alt="移动图标" />
-      </div>
-
-      <!-- 左：等待 -->
-      <div class="hex left" title="等待" @click="onWait">
-        <img class="hex-bg" :src="hexSrc" alt="六边形背景" />
-        <img class="hex-icon" :src="moveIconSrc" alt="等待图标" />
       </div>
 
       <!-- 右：根据是否能召唤显示召唤或攻击 -->
@@ -92,7 +92,7 @@ function onBuild() {
         @click="onBuild"
       >
         <img class="hex-bg" :src="hexSrc" alt="六边形背景" />
-        <img class="hex-icon" :src="buildIconSrc" alt="建造图标" />
+        <img class="hex-icon" src="/assets/build.png" alt="建造图标" />
       </div>
     </div>
   </div>

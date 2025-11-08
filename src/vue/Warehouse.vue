@@ -1,6 +1,6 @@
 <script setup>
 import log from '../log.js';
-import { ref, onMounted, defineExpose, nextTick } from 'vue';
+import { ref, onMounted, onBeforeUnmount, watch, defineExpose, nextTick } from 'vue';
 import { getAssetUrl } from '../utils/resourceLoader.js';
 import { RESOURCE_META } from '../utils/resourceMeta.js';
 import DrawScreen from './DrawScreen.vue';
@@ -11,6 +11,13 @@ import {
   upgrade_copper,
   info_subscribe,
 } from '../glue.js';
+
+const props = defineProps({
+  musicOn: {
+    type: Boolean,
+    default: true,
+  },
+});
 
 // 统一的资源键顺序与元信息
 const ORDERED_RESOURCE_KEYS = [
@@ -177,6 +184,60 @@ onMounted(() => {
   } catch (_) {
     /* ignore */
   }
+
+  // 自动播放音乐（如果音乐开关是开启的）
+  if (props.musicOn && audioRef.value) {
+    const tryPlay = () => {
+      if (audioRef.value.readyState >= 2) {
+        audioRef.value.play().then(() => {
+          log('[Warehouse] 音乐播放成功');
+        }).catch(err => {
+          log('[Warehouse] 自动播放失败（可能浏览器阻止）:', err);
+        });
+      } else {
+        const onCanPlay = () => {
+          audioRef.value.play().then(() => {
+            log('[Warehouse] 音频加载完成，播放成功');
+          }).catch(err => {
+            log('[Warehouse] 播放失败:', err);
+          });
+          audioRef.value.removeEventListener('canplay', onCanPlay);
+        };
+        audioRef.value.addEventListener('canplay', onCanPlay, { once: true });
+      }
+    };
+    setTimeout(tryPlay, 200);
+  }
+});
+
+// 监听 musicOn 变化
+watch(() => props.musicOn, (newVal) => {
+  if (!audioRef.value) return;
+  
+  if (newVal) {
+    if (audioRef.value.readyState >= 2) {
+      audioRef.value.play().catch(err => {
+        log('[Warehouse] 播放音乐失败:', err);
+      });
+    } else {
+      const playWhenReady = () => {
+        audioRef.value.play().catch(err => {
+          log('[Warehouse] 播放音乐失败:', err);
+        });
+        audioRef.value.removeEventListener('canplay', playWhenReady);
+      };
+      audioRef.value.addEventListener('canplay', playWhenReady);
+    }
+  } else {
+    audioRef.value.pause();
+  }
+});
+
+onBeforeUnmount(() => {
+  // 停止音乐播放
+  if (audioRef.value) {
+    audioRef.value.pause();
+  }
 });
 
 const puppets = ref([]);
@@ -336,7 +397,17 @@ async function upgradeSelected() {
   } catch (_) {}
 }
 
-// 3D 渲染已抽离到 PuppetModelView 组件
+
+// 背景图片路径（CSS border-image 需要 url() 包裹）
+const panel3Src = `url('/assets/panel3.png')`;
+const panel4Src = `url('/assets/panel4.png')`;
+const panel5Src = `url('/assets/panel5.png')`;
+
+// 音乐播放相关
+const audioRef = ref(null);
+const musicUrl = import.meta.env.DEV 
+  ? '/assets/warehouse.mp3'  // 开发环境使用本地路径
+  : getAssetUrl('assets/warehouse.mp3');  // 生产环境使用 R2 CDN
 </script>
 
 <template>
@@ -488,8 +559,20 @@ async function upgradeSelected() {
                         :alt="item.name"
                         class="equipment-icon"
                       />
+                      <img
+                        v-else-if="item.locked"
+                        src="/assets/lock.png"
+                        alt="未解锁"
+                        class="equipment-icon"
+                      />
+                      <img
+                        v-else-if="item.icon === '＋'"
+                        src="/assets/jia.png"
+                        alt="空槽"
+                        class="equipment-icon"
+                      />
                       <span v-else class="equipment-icon">{{
-                        item.locked ? '🔒' : item.icon
+                        item.icon
                       }}</span>
                     </div>
                   </div>
@@ -532,6 +615,12 @@ async function upgradeSelected() {
 
             <div class="puppet-detail__upgrade">
               <div class="upgrade-cost">
+                <img
+                  v-if="selectedPuppet.level < 5"
+                  :src="RESOURCE_META.SpiritalSpark.icon"
+                  alt="灵性火花"
+                  class="cost-icon-img"
+                />
                 <span class="cost-amount">{{
                   selectedPuppet.level >= 5
                     ? '已满级'
@@ -543,7 +632,7 @@ async function upgradeSelected() {
                 @click="upgradeSelected"
                 :disabled="selectedPuppet?.level >= 5"
               >
-                <span class="upgrade-icon">⏫</span>
+                <img src="/assets/upgrade.png" class="upgrade-icon" alt="升级" />
               </button>
             </div>
           </div>
@@ -555,6 +644,12 @@ async function upgradeSelected() {
     </div>
 
     <DrawScreen v-if="showDrawScreen" @draw="onGachaResult" />
+    <audio
+      ref="audioRef"
+      :src="musicUrl"
+      loop
+      preload="auto"
+    ></audio>
   </div>
 </template>
 
@@ -563,32 +658,47 @@ async function upgradeSelected() {
   position: absolute;
   inset: 0;
   background: #a7a7a7;
-  color: #fff;
+  color: #1a0f00;
   display: flex;
   flex-direction: column;
 }
 .warehouse__resources {
   height: 80px;
   background: #a7a7a7;
+  background-image: url('/assets/panel1.png');
+  background-size: 110% 100%;
+  background-position: center;
+  background-repeat: no-repeat;
+  image-rendering: pixelated;
+  image-rendering: -moz-crisp-edges;
+  image-rendering: crisp-edges;
   display: flex;
   align-items: center;
   gap: 32px;
   padding: 0 40px;
-  margin-left: 120px;
+  margin-left: auto;
+  margin-right: 90px;
   margin-top: 20px;
 }
 .resource-item {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 14px;
   background: #3a2519;
-  padding: 16px 24px;
+  background-image: url('/assets/panel2.png');
+  background-size: 100% 100%;
+  background-position: center;
+  background-repeat: no-repeat;
+  image-rendering: pixelated;
+  image-rendering: -moz-crisp-edges;
+  image-rendering: crisp-edges;
+  padding: 10px 16px;
   border-radius: 12px;
-  min-width: 160px;
+  min-width: 100px;
 }
 .resource-icon {
-  width: 48px;
-  height: 48px;
+  width: 30px;
+  height: 30px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -599,41 +709,73 @@ async function upgradeSelected() {
   object-fit: contain;
 }
 .resource-value {
-  font-size: 24px;
-  font-weight: 700;
-  color: #fff;
+  font-size: 14px;
+  font-weight: 900;
+  letter-spacing: 2px;
+  color: #6a4931;
 }
 .warehouse__main {
   flex: 1;
   display: flex;
+  align-items: stretch;
   margin-top: 20px;
   min-height: 0;
 }
 .warehouse__sidebar {
   width: 70%;
-  background: #3a2519;
+  box-sizing: border-box;
+  border-style: solid;
+  border-width: 12px;
+  border-image-source: v-bind(panel3Src);
+  border-image-slice: 8 fill;
+  border-image-width: 12px;
+  border-image-outset: 0;
+  border-image-repeat: stretch;
+  background-color: transparent;
   padding: 20px;
   display: flex;
   flex-direction: column;
   overflow: hidden;
   min-height: 0;
-  border-radius: 12px;
+  margin-left: 20px;
+  margin-bottom: 20px;
+  margin-right: 0;
 }
 .warehouse__title {
-  font-size: 24px;
+  font-size: 14px;
   font-weight: 900;
+  letter-spacing: 2px;
   margin-bottom: 20px;
-  color: #fff;
+  color: #6a4931;
+  display: inline-block;
+  width: fit-content;
+  background-image: url('/assets/panel2.png');
+  background-size: 100% 100%;
+  background-position: center;
+  background-repeat: no-repeat;
+  image-rendering: pixelated;
+  image-rendering: -moz-crisp-edges;
+  image-rendering: crisp-edges;
+  padding: 15px 25px;
 }
 .puppet-list {
   display: flex;
   flex-wrap: wrap;
-  gap: 4px;
+  gap: clamp(1px, 0.08vw, 1px);
   overflow-y: auto;
   flex: 1;
-  padding-right: 8px;
   min-height: 0;
   -webkit-overflow-scrolling: touch;
+  box-sizing: border-box;
+  border-style: solid;
+  border-width: 12px;
+  border-image-source: v-bind(panel5Src);
+  border-image-slice: 8 fill;
+  border-image-width: 12px;
+  border-image-outset: 0;
+  border-image-repeat: stretch;
+  background-color: transparent;
+  padding: 12px 20px 12px 12px;
 }
 .puppet-card {
   position: relative;
@@ -656,7 +798,7 @@ async function upgradeSelected() {
   border: 2px solid #f59e0b;
 }
 .puppet-card--add {
-  background: #3a2519;
+  background: #f0d9b5;
   border: 2px dashed #666;
   display: flex;
   flex-direction: column;
@@ -675,8 +817,9 @@ async function upgradeSelected() {
   align-items: center;
   justify-content: center;
   font-size: 14px;
-  font-weight: 700;
-  color: #fff;
+  font-weight: 900;
+  letter-spacing: 2px;
+  color: #fff3ef;
   z-index: 2;
 }
 .puppet-card__image {
@@ -705,43 +848,59 @@ async function upgradeSelected() {
   z-index: 2;
 }
 .puppet-card__name {
-  font-size: 16px;
-  font-weight: 700;
+  font-size: 14px;
+  font-weight: 900;
+  letter-spacing: 2px;
   margin-bottom: 4px;
-  color: #fff;
+  color: #fff3ef;
 }
 .puppet-card__level {
   font-size: 14px;
-  color: #ccc;
+  font-weight: 900;
+  letter-spacing: 2px;
+  color: #fff3ef;
 }
 .puppet-card__add-icon {
   font-size: 48px;
-  color: #999;
+  color: #6a4931;
   margin-bottom: 8px;
 }
 .puppet-card__add-text {
-  font-size: 16px;
-  color: #999;
+  font-size: 14px;
+  font-weight: 900;
+  letter-spacing: 2px;
+  color: #6a4931;
 }
 .warehouse__detail {
   width: 30%;
-  background: #3a2519;
-  margin: 20px;
-  border-radius: 12px;
+  box-sizing: border-box;
+  border-style: solid;
+  border-width: 12px;
+  border-image-source: v-bind(panel4Src);
+  border-image-slice: 8 fill;
+  border-image-width: 12px;
+  border-image-outset: 0;
+  border-image-repeat: stretch;
+  background-color: transparent;
+  margin-left: 0;
+  margin-right: 20px;
+  margin-top: 0;
+  margin-bottom: 20px;
   display: flex;
   flex-direction: column;
   overflow-y: auto;
-  max-height: calc(100vh - 140px);
 }
 .warehouse__placeholder {
   text-align: center;
-  color: #ccc;
-  font-size: 18px;
+  color: #6a4931;
+  font-size: 14px;
+  font-weight: 900;
+  letter-spacing: 2px;
   padding: 40px;
 }
 .puppet-detail {
   padding: 20px;
-  color: #fff;
+  color: #1a0f00;
   min-height: 100%;
   display: flex;
   flex-direction: column;
@@ -750,9 +909,10 @@ async function upgradeSelected() {
   margin-bottom: 20px;
 }
 .puppet-detail__name {
-  font-size: 28px;
+  font-size: 14px;
   font-weight: 900;
-  color: #fff;
+  letter-spacing: 2px;
+  color: #6a4931;
   margin: 0;
 }
 .puppet-detail__content {
@@ -767,7 +927,7 @@ async function upgradeSelected() {
 }
 .puppet-detail__model {
   position: relative;
-  background: #4b2e1f;
+  background: #f0d9b5;
   border-radius: 8px;
   width: 200px;
   height: 200px;
@@ -794,9 +954,11 @@ async function upgradeSelected() {
 }
 .puppet-detail__description {
   flex: 1;
-  color: #ccc;
+  color: #6a4931;
   font-size: 12px;
-  line-height: 1.6;
+  font-weight: 900;
+  letter-spacing: 0.3px;
+  line-height: 1.3;
 }
 .puppet-detail__stats {
   flex: 1;
@@ -815,12 +977,15 @@ async function upgradeSelected() {
   align-items: center;
 }
 .stat-label {
-  color: #ccc;
+  color: #6a4931;
   font-size: 14px;
+  font-weight: 900;
+  letter-spacing: 2px;
 }
 .stat-value {
-  color: #fff;
-  font-weight: 600;
+  color: #1a0f00;
+  font-weight: 900;
+  letter-spacing: 2px;
 }
 .stat-bonus {
   color: #4ade80;
@@ -830,9 +995,10 @@ async function upgradeSelected() {
   flex: 0 0 96px;
 }
 .section-title {
-  color: #fff;
-  font-size: 16px;
-  font-weight: 700;
+  color: #6a4931;
+  font-size: 14px;
+  font-weight: 900;
+  letter-spacing: 2px;
   margin: 0;
   padding: 0;
 }
@@ -853,7 +1019,7 @@ async function upgradeSelected() {
   overflow: hidden;
 }
 .equipment-slot--empty {
-  background: #2b1a11;
+  background: #f0d9b5;
   border: 1px solid #666;
 }
 .equipment-slot--locked {
@@ -864,6 +1030,15 @@ async function upgradeSelected() {
 .equipment-icon {
   font-size: 28px;
 }
+.equipment-slot img.equipment-icon {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+  image-rendering: pixelated;
+  image-rendering: -moz-crisp-edges;
+  image-rendering: crisp-edges;
+}
 .equipment-slot img {
   width: 100%;
   height: 100%;
@@ -871,7 +1046,7 @@ async function upgradeSelected() {
   display: block;
 }
 .skill-info {
-  background: #4b2e1f;
+  background: #f0d9b5;
   padding: 16px;
   border-radius: 10px;
   display: flex;
@@ -880,19 +1055,24 @@ async function upgradeSelected() {
   gap: 16px;
 }
 .skill-name {
-  color: #fff;
-  font-weight: 700;
-  font-size: 20px;
+  color: #6a4931;
+  font-weight: 900;
+  letter-spacing: 2px;
+  font-size: 14px;
   margin-bottom: 6px;
 }
 .skill-cooldown {
-  color: #ccc;
+  color: #1a0f00;
   font-size: 14px;
+  font-weight: 900;
+  letter-spacing: 2px;
   margin-bottom: 10px;
 }
 .skill-effect {
-  color: #ccc;
+  color: #1a0f00;
   font-size: 14px;
+  font-weight: 900;
+  letter-spacing: 2px;
   line-height: 1.5;
   margin-bottom: 8px;
 }
@@ -919,14 +1099,15 @@ async function upgradeSelected() {
   align-items: center;
   justify-content: space-between;
   margin-top: auto;
-  padding-top: 0px;
+  padding-top: 20px;
 }
 .upgrade-cost {
   display: flex;
   align-items: center;
   gap: 8px;
-  color: #fbbf24;
-  font-weight: 600;
+  color: #6a4931;
+  font-weight: 900;
+  letter-spacing: 2px;
 }
 .cost-icon {
   font-size: 18px;
@@ -938,22 +1119,26 @@ async function upgradeSelected() {
   display: inline-block;
 }
 .upgrade-btn {
-  width: 50px;
-  height: 50px;
-  background: #4b2e1f;
+  background: transparent;
   border: none;
-  border-radius: 50%;
+  padding: 0;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
 }
 .upgrade-btn:hover {
-  background: #5a3525;
+  background: transparent;
+  opacity: 0.8;
 }
 .upgrade-icon {
-  font-size: 20px;
-  color: #fff;
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
+  display: block;
+  image-rendering: pixelated;
+  image-rendering: -moz-crisp-edges;
+  image-rendering: crisp-edges;
 }
 .draw-result {
   position: fixed;
@@ -966,7 +1151,7 @@ async function upgradeSelected() {
 }
 .draw-result__panel {
   background: #3a2519;
-  color: #fff;
+  color: #fff3ef;
   padding: 20px 28px;
   border-radius: 12px;
   text-align: center;
@@ -1018,8 +1203,9 @@ async function upgradeSelected() {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  color: #3a2519;
-  font-weight: 800;
+  color: #1a0f00;
+  font-weight: 900;
+  letter-spacing: 2px;
 }
 .result-card.flipped .result-card__back {
   transform: rotateY(0deg);
@@ -1082,5 +1268,29 @@ async function upgradeSelected() {
   transition:
     opacity 150ms ease,
     transform 150ms ease;
+}
+
+/* 自定义滚动条样式 - 纯半透明棕色轨道 */
+.puppet-list::-webkit-scrollbar,
+.warehouse__detail::-webkit-scrollbar {
+  width: 24px;
+}
+
+.puppet-list::-webkit-scrollbar-track,
+.warehouse__detail::-webkit-scrollbar-track {
+  background: rgba(106, 73, 49, 0.3);
+}
+
+.puppet-list::-webkit-scrollbar-thumb,
+.warehouse__detail::-webkit-scrollbar-thumb {
+  background: rgba(106, 73, 49, 0.5);
+  cursor: pointer;
+}
+
+/* Firefox 滚动条样式 */
+.puppet-list,
+.warehouse__detail {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(106, 73, 49, 0.5) rgba(106, 73, 49, 0.3);
 }
 </style>
