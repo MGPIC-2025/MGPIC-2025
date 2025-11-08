@@ -259,7 +259,8 @@ onMounted(() => {
 
   if (!scene && canvasRef.value) {
     scene = new THREE.Scene();
-    scene.background = new THREE.Color('#a0a0a0');
+    // 设置透明背景，让背景图片显示
+    scene.background = null;
 
     camera = new THREE.PerspectiveCamera(50, 1.333, 0.1, 1000);
     camera.position.set(-3.655, 0.2, -0.006);
@@ -267,10 +268,12 @@ onMounted(() => {
 
     renderer = new THREE.WebGLRenderer({
       antialias: true,
+      alpha: true, // 启用透明背景
       canvas: canvasRef.value,
     });
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.setPixelRatio(window.devicePixelRatio);
+    renderer.setClearColor(0x000000, 0); // 透明清除颜色
 
     window.addEventListener('resize', handleResize);
     renderLoop();
@@ -305,13 +308,14 @@ onBeforeUnmount(() => {
 
 <template>
   <div class="startmenu">
-    <canvas ref="canvasRef" class="startmenu__canvas" />
-
-    <!-- 背景图片覆盖层（仅用于预览效果） - 暂时禁用以避免CORS阻塞 -->
-    <!-- <div
+    <!-- 背景图片层（最底层） -->
+    <div
       class="startmenu__bg"
       :style="{ backgroundImage: `url('${startBg}')` }"
-    /> -->
+    />
+    
+    <!-- 3D Canvas 层（透明背景，显示 Logo） -->
+    <canvas ref="canvasRef" class="startmenu__canvas" />
 
     <div
       class="startmenu-ui"
@@ -362,13 +366,7 @@ onBeforeUnmount(() => {
   position: fixed;
   inset: 0;
   z-index: 10001;
-  background: #a0a0a0;
-}
-.startmenu__canvas {
-  width: 100%;
-  height: 100%;
-  display: block;
-  background: #a0a0a0;
+  background: #000;
 }
 
 .startmenu__bg {
@@ -377,8 +375,19 @@ onBeforeUnmount(() => {
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
-  filter: brightness(0.9);
-  z-index: 9999; /* 低于UI按钮（10000），高于canvas */
+  filter: brightness(0.85);
+  z-index: 1; /* 最底层 */
+  pointer-events: none;
+}
+
+.startmenu__canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  background: transparent; /* 透明背景，让背景图片透过 */
+  z-index: 2; /* 在背景图片上面 */
   pointer-events: none;
 }
 
@@ -396,7 +405,7 @@ onBeforeUnmount(() => {
   left: 50%;
   top: 72%;
   transform: translate(-50%, -50%);
-  z-index: 10000;
+  z-index: 3; /* 在 canvas 和背景之上 */
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -461,7 +470,7 @@ onBeforeUnmount(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 10002;
+  z-index: 4; /* 在所有内容之上 */
 }
 .settings-local__card {
   width: min(90vw, 520px);
