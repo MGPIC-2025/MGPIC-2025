@@ -30,6 +30,9 @@ const bgTutorial = ref(getAssetUrl('frontend_resource/Tutorial.webp'));
 // 使用 Vite 的静态资源导入方式
 const bgHall = ref(getAssetUrl('ui/Gemini_Generated_Image_gtrehogtrehogtre (1).png'));
 
+// 添加图片加载完成状态
+const imagesLoaded = ref(false);
+
 onMounted(async () => {
   try {
     if (window.getCacheStatus) {
@@ -61,8 +64,16 @@ onMounted(async () => {
           })
       )
     );
+    
+    // 短暂延迟后显示按钮，确保CSS已应用背景图
+    setTimeout(() => {
+      imagesLoaded.value = true;
+      log('Hall界面图片加载完成，显示UI');
+    }, 100);
   } catch (error) {
     log('背景图片预加载过程中出现错误:', error?.message || error);
+    // 即使出错也显示UI
+    imagesLoaded.value = true;
   }
 });
 </script>
@@ -70,7 +81,7 @@ onMounted(async () => {
 <template>
   <div class="hall-container">
     <div class="hall-bg" :style="{ backgroundImage: `url('${bgHall}')` }"></div>
-    <div class="menu">
+    <div class="menu" :class="{ 'menu--loaded': imagesLoaded }">
       <button
         class="tile tile--start"
         :style="{ backgroundImage: `url('${bgStart}')` }"
@@ -154,6 +165,12 @@ onMounted(async () => {
   transform-style: preserve-3d;
   perspective: 900px;
   z-index: 1;
+  opacity: 0;
+  transition: opacity 0.5s ease-in-out;
+}
+
+.menu--loaded {
+  opacity: 1;
 }
 .tile {
   position: relative;
