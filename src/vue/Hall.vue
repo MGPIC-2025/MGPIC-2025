@@ -28,12 +28,7 @@ const bgWarehouse = ref(getAssetUrl('frontend_resource/copper_warehouse.webp'));
 const bgWiki = ref(getAssetUrl('frontend_resource/game_wiki.webp'));
 const bgTutorial = ref(getAssetUrl('frontend_resource/Tutorial.webp'));
 // 使用 Vite 的静态资源导入方式
-const bgHall = ref(
-  new URL(
-    '../../assets/Gemini_Generated_Image_gtrehogtrehogtre (1).png',
-    import.meta.url
-  ).href
-);
+const bgHall = ref(getAssetUrl('ui/Gemini_Generated_Image_gtrehogtrehogtre (1).png'));
 
 onMounted(async () => {
   try {

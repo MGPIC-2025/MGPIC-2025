@@ -3,6 +3,7 @@ import log from '../log.js';
 import { ref, computed } from 'vue';
 import { eventloop } from '../glue.js';
 import { getItemName } from '../utils/resourceMeta.js';
+import { getAssetUrl } from '../utils/resourceLoader.js';
 import DiamondPanel from './ActionPanelParts/DiamondPanel.vue';
 import InventoryModal from './ActionPanelParts/InventoryModal.vue';
 import HealthBar from './ActionPanelParts/HealthBar.vue';

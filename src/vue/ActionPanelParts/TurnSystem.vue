@@ -2,6 +2,7 @@
 import log from '../../log.js';
 import { computed, onMounted, ref } from 'vue';
 import { eventloop } from '../../glue.js';
+import { getAssetUrl } from '../../utils/resourceLoader.js';
 
 const props = defineProps({
   currentCopperId: {
@@ -21,6 +22,10 @@ const props = defineProps({
 const emit = defineEmits(['nextCopper', 'endRound', 'selectCopper']);
 
 const turnSystemRef = ref(null);
+
+// 图片资源路径
+const choiceImgSrc = getAssetUrl('ui/choice.png');
+const choiceActiveImgSrc = getAssetUrl('ui/choice-active.png');
 
 const currentCopperInfo = computed(() => {
   if (!props.currentCopperId) return null;
@@ -74,9 +79,9 @@ onMounted(async () => {
   }
   try {
     const [panelImg, btnImg, currentImg] = await Promise.all([
-      loadImage('/assets/panel.png'),
-      loadImage('/assets/btn.png'),
-      loadImage('/assets/currentcupper.png'),
+      loadImage(getAssetUrl('ui/panel.png')),
+      loadImage(getAssetUrl('ui/btn.png')),
+      loadImage(getAssetUrl('ui/currentcupper.png')),
     ]);
     const panelSlice = Math.max(4, Math.round(panelImg.naturalHeight / 4));
     const btnSlice = Math.max(3, Math.round(btnImg.naturalHeight / 3));
@@ -160,11 +165,11 @@ onMounted(async () => {
               :alt="copper.name || `Character ${copper.id}`"
               :src="
                 copper.id === currentCopperId
-                  ? '/assets/choice-active.png'
-                  : '/assets/choice.png'
+                  ? choiceActiveImgSrc
+                  : choiceImgSrc
               "
-              data-default-src="/assets/choice.png"
-              data-selected-src="/assets/choice-active.png"
+              :data-default-src="choiceImgSrc"
+              :data-selected-src="choiceActiveImgSrc"
             />
           </button>
         </section>

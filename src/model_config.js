@@ -1,9 +1,10 @@
 import { setModelConfig } from './model.js';
+import { getAssetUrl } from './utils/resourceLoader.js';
 
 function initModel() {
   // 🗺️ 设置模型配置（示例）
   // 你可以为每个不同的模型文件设置不同的参数
-  setModelConfig('variant', './assets/enemy/variant/variant.glb', {
+  setModelConfig('variant', getAssetUrl('enemy/variant/variant.glb'), {
     initialX: 2, // 初始位置X = 2
     initialY: 2, // 初始位置Y = 0
     initialZ: 3, // 初始位置Z = -3
@@ -16,7 +17,7 @@ function initModel() {
     lightPosZ: 0, // 光源相对Z位置 = 0.5
   });
 
-  setModelConfig('bubble', './assets/copper/arcanist/bubble/bubble.glb', {
+  setModelConfig('bubble', getAssetUrl('copper/arcanist/bubble/bubble.glb'), {
     initialX: 0, // 初始位置X
     initialY: 0.75, // 初始位置Y(固定)
     initialZ: 0, // 初始位置Z
@@ -29,7 +30,7 @@ function initModel() {
     lightPosZ: 0, // 光源相对Z位置
   });
 
-  setModelConfig('glimmer', './assets/copper/arcanist/glimmer/glimmer.glb', {
+  setModelConfig('glimmer', getAssetUrl('copper/arcanist/glimmer/glimmer.glb'), {
     initialX: 0, // 初始位置X
     initialY: 0.75, // 初始位置Y(固定)
     initialZ: 0, // 初始位置Z
@@ -42,7 +43,7 @@ function initModel() {
     lightPosZ: 0, // 光源相对Z位置
   });
 
-  setModelConfig('spark', './assets/copper/arcanist/spark/spark.glb', {
+  setModelConfig('spark', getAssetUrl('copper/arcanist/spark/spark.glb'), {
     initialX: 0, // 初始位置X
     initialY: 0.75, // 初始位置Y(固定)
     initialZ: 0, // 初始位置Z
@@ -55,7 +56,7 @@ function initModel() {
     lightPosZ: 0, // 光源相对Z位置
   });
 
-  setModelConfig('syrup', './assets/copper/arcanist/syrup/syrup.glb', {
+  setModelConfig('syrup', getAssetUrl('copper/arcanist/syrup/syrup.glb'), {
     initialX: 0, // 初始位置X
     initialY: 0.75, // 初始位置Y(固定)
     initialZ: 0, // 初始位置Z
@@ -68,7 +69,7 @@ function initModel() {
     lightPosZ: 0, // 光源相对Z位置
   });
 
-  setModelConfig('turner', './assets/copper/arcanist/turner/turner.glb', {
+  setModelConfig('turner', getAssetUrl('copper/arcanist/turner/turner.glb'), {
     initialX: 0, // 初始位置X
     initialY: 0.75, // 初始位置Y(固定)
     initialZ: 0, // 初始位置Z
@@ -81,7 +82,7 @@ function initModel() {
     lightPosZ: 0, // 光源相对Z位置
   });
 
-  setModelConfig('artifex', './assets/copper/craftsman/artifex/artifex.glb', {
+  setModelConfig('artifex', getAssetUrl('copper/craftsman/artifex/artifex.glb'), {
     initialX: 0, // 初始位置X
     initialY: 0.75, // 初始位置Y(固定)
     initialZ: 0, // 初始位置Z
@@ -94,7 +95,7 @@ function initModel() {
     lightPosZ: 0, // 光源相对Z位置
   });
 
-  setModelConfig('coil', './assets/copper/craftsman/coil/coil.glb', {
+  setModelConfig('coil', getAssetUrl('copper/craftsman/coil/coil.glb'), {
     initialX: 0, // 初始位置X
     initialY: 0.75, // 初始位置Y(固定)
     initialZ: 0, // 初始位置Z
@@ -109,7 +110,7 @@ function initModel() {
 
   setModelConfig(
     'drillbit',
-    './assets/copper/craftsman/dirllbit/drillbit.glb',
+    getAssetUrl('copper/craftsman/dirllbit/drillbit.glb'),
     {
       initialX: 0, // 初始位置X
       initialY: 0.75, // 初始位置Y(固定)
@@ -126,7 +127,7 @@ function initModel() {
 
   setModelConfig(
     'quickhand',
-    './assets/copper/craftsman/quickhand/quickhand.glb',
+    getAssetUrl('copper/craftsman/quickhand/quickhand.glb'),
     {
       initialX: 0, // 初始位置X
       initialY: 0.75, // 初始位置Y(固定)
@@ -141,7 +142,7 @@ function initModel() {
     }
   );
 
-  setModelConfig('wrench', './assets/copper/craftsman/wrench/wrench.glb', {
+  setModelConfig('wrench', getAssetUrl('copper/craftsman/wrench/wrench.glb'), {
     initialX: 0, // 初始位置X
     initialY: 0.75, // 初始位置Y(固定)
     initialZ: 0, // 初始位置Z
@@ -154,7 +155,7 @@ function initModel() {
     lightPosZ: 0, // 光源相对Z位置
   });
 
-  setModelConfig('bell', './assets/copper/iron_wall/bell/bell.glb', {
+  setModelConfig('bell', getAssetUrl('copper/iron_wall/bell/bell.glb'), {
     initialX: 0, // 初始位置X
     initialY: 0.75, // 初始位置Y(固定)
     initialZ: 0, // 初始位置Z
@@ -167,7 +168,7 @@ function initModel() {
     lightPosZ: 0, // 光源相对Z位置
   });
 
-  setModelConfig('chief', './assets/copper/iron_wall/chief/chief.glb', {
+  setModelConfig('chief', getAssetUrl('copper/iron_wall/chief/chief.glb'), {
     initialX: 0, // 初始位置X
     initialY: 0.75, // 初始位置Y(固定)
     initialZ: 0, // 初始位置Z
@@ -180,7 +181,7 @@ function initModel() {
     lightPosZ: 0, // 光源相对Z位置
   });
 
-  setModelConfig('rocky', './assets/copper/iron_wall/rocky/rocky.glb', {
+  setModelConfig('rocky', getAssetUrl('copper/iron_wall/rocky/rocky.glb'), {
     initialX: 0, // 初始位置X
     initialY: 0.75, // 初始位置Y(固定)
     initialZ: 0, // 初始位置Z
@@ -193,7 +194,7 @@ function initModel() {
     lightPosZ: 0, // 光源相对Z位置
   });
 
-  setModelConfig('tumble', './assets/copper/iron_wall/tumble/tumble.glb', {
+  setModelConfig('tumble', getAssetUrl('copper/iron_wall/tumble/tumble.glb'), {
     initialX: 0, // 初始位置X
     initialY: 0.75, // 初始位置Y(固定)
     initialZ: 0, // 初始位置Z
@@ -206,7 +207,7 @@ function initModel() {
     lightPosZ: 0, // 光源相对Z位置
   });
 
-  setModelConfig('wesley', './assets/copper/iron_wall/wesley/wesley.glb', {
+  setModelConfig('wesley', getAssetUrl('copper/iron_wall/wesley/wesley.glb'), {
     initialX: 0, // 初始位置X
     initialY: 0.75, // 初始位置Y(固定)
     initialZ: 0, // 初始位置Z
@@ -219,7 +220,7 @@ function initModel() {
     lightPosZ: 0, // 光源相对Z位置
   });
 
-  setModelConfig('gyro', './assets/copper/mechanic/gyro/gyro.glb', {
+  setModelConfig('gyro', getAssetUrl('copper/mechanic/gyro/gyro.glb'), {
     initialX: 0, // 初始位置X
     initialY: 0.75, // 初始位置Y(固定)
     initialZ: 0, // 初始位置Z
@@ -232,7 +233,7 @@ function initModel() {
     lightPosZ: 0, // 光源相对Z位置
   });
 
-  setModelConfig('karin', './assets/copper/mechanic/karin/karin.glb', {
+  setModelConfig('karin', getAssetUrl('copper/mechanic/karin/karin.glb'), {
     initialX: 0, // 初始位置X
     initialY: 0.75, // 初始位置Y(固定)
     initialZ: 0, // 初始位置Z
@@ -245,7 +246,7 @@ function initModel() {
     lightPosZ: 0, // 光源相对Z位置
   });
 
-  setModelConfig('pendulum', './assets/copper/mechanic/pendulum/pendulum.glb', {
+  setModelConfig('pendulum', getAssetUrl('copper/mechanic/pendulum/pendulum.glb'), {
     initialX: 0, // 初始位置X
     initialY: 0.75, // 初始位置Y(固定)
     initialZ: 0, // 初始位置Z
@@ -258,7 +259,7 @@ function initModel() {
     lightPosZ: 0, // 光源相对Z位置
   });
 
-  setModelConfig('tricky', './assets/copper/mechanic/tricky/tricky.glb', {
+  setModelConfig('tricky', getAssetUrl('copper/mechanic/tricky/tricky.glb'), {
     initialX: 0, // 初始位置X
     initialY: 0.75, // 初始位置Y(固定)
     initialZ: 0, // 初始位置Z
@@ -271,7 +272,7 @@ function initModel() {
     lightPosZ: 0, // 光源相对Z位置
   });
 
-  setModelConfig('yoyo', './assets/copper/mechanic/yoyo/yoyo.glb', {
+  setModelConfig('yoyo', getAssetUrl('copper/mechanic/yoyo/yoyo.glb'), {
     initialX: 0, // 初始位置X
     initialY: 0.75, // 初始位置Y(固定)
     initialZ: 0, // 初始位置Z
@@ -286,7 +287,7 @@ function initModel() {
 
   setModelConfig(
     'clawster',
-    './assets/copper/resonator/clawster/clawster.glb',
+    getAssetUrl('copper/resonator/clawster/clawster.glb'),
     {
       initialX: 0, // 初始位置X
       initialY: 0.75, // 初始位置Y(固定)
@@ -301,7 +302,7 @@ function initModel() {
     }
   );
 
-  setModelConfig('diggs', './assets/copper/resonator/diggs/diggs.glb', {
+  setModelConfig('diggs', getAssetUrl('copper/resonator/diggs/diggs.glb'), {
     initialX: 0, // 初始位置X
     initialY: 0.75, // 初始位置Y(固定)
     initialZ: 0, // 初始位置Z
@@ -314,7 +315,7 @@ function initModel() {
     lightPosZ: 0, // 光源相对Z位置
   });
 
-  setModelConfig('hive', './assets/copper/resonator/hive/hive.glb', {
+  setModelConfig('hive', getAssetUrl('copper/resonator/hive/hive.glb'), {
     initialX: 0, // 初始位置X
     initialY: 0.75, // 初始位置Y(固定)
     initialZ: 0, // 初始位置Z
@@ -327,7 +328,7 @@ function initModel() {
     lightPosZ: 0, // 光源相对Z位置
   });
 
-  setModelConfig('melody', './assets/copper/resonator/melody/melody.glb', {
+  setModelConfig('melody', getAssetUrl('copper/resonator/melody/melody.glb'), {
     initialX: 0, // 初始位置X
     initialY: 0.75, // 初始位置Y(固定)
     initialZ: 0, // 初始位置Z
@@ -340,7 +341,7 @@ function initModel() {
     lightPosZ: 0, // 光源相对Z位置
   });
 
-  setModelConfig('murmur', './assets/copper/resonator/murmur/murmur.glb', {
+  setModelConfig('murmur', getAssetUrl('copper/resonator/murmur/murmur.glb'), {
     initialX: 0, // 初始位置X
     initialY: 0.75, // 初始位置Y(固定)
     initialZ: 0, // 初始位置Z
@@ -353,7 +354,7 @@ function initModel() {
     lightPosZ: 0, // 光源相对Z位置
   });
 
-  setModelConfig('assassin', './assets/enemy/assassin/assassin.glb', {
+  setModelConfig('assassin', getAssetUrl('enemy/assassin/assassin.glb'), {
     initialX: 0, // 初始位置X
     initialY: 0.75, // 初始位置Y(固定)
     initialZ: 0, // 初始位置Z
@@ -366,7 +367,7 @@ function initModel() {
     lightPosZ: 0, // 光源相对Z位置
   });
 
-  setModelConfig('boxer', './assets/enemy/boxer/boxer.glb', {
+  setModelConfig('boxer', getAssetUrl('enemy/boxer/boxer.glb'), {
     initialX: 0, // 初始位置X
     initialY: 0.75, // 初始位置Y(固定)
     initialZ: 0, // 初始位置Z
@@ -378,7 +379,7 @@ function initModel() {
     lightPosY: 0, // 光源相对Y位置
     lightPosZ: 0, // 光源相对Z位置
   });
-  setModelConfig('cruiser', './assets/enemy/cruiser/cruiser.glb', {
+  setModelConfig('cruiser', getAssetUrl('enemy/cruiser/cruiser.glb'), {
     initialX: 0, // 初始位置X
     initialY: 0.75, // 初始位置Y(固定)
     initialZ: 0, // 初始位置Z
@@ -390,7 +391,7 @@ function initModel() {
     lightPosY: 0, // 光源相对Y位置
     lightPosZ: 0, // 光源相对Z位置
   });
-  setModelConfig('demon', './assets/enemy/demon/demon.glb', {
+  setModelConfig('demon', getAssetUrl('enemy/demon/demon.glb'), {
     initialX: 0, // 初始位置X
     initialY: 2, // 初始位置Y(固定)
     initialZ: 0, // 初始位置Z
@@ -402,7 +403,7 @@ function initModel() {
     lightPosY: 0, // 光源相对Y位置
     lightPosZ: 0, // 光源相对Z位置
   });
-  setModelConfig('devourer', './assets/enemy/devourer/devourer.glb', {
+  setModelConfig('devourer', getAssetUrl('enemy/devourer/devourer.glb'), {
     initialX: 0, // 初始位置X
     initialY: 1.5, // 初始位置Y(固定)
     initialZ: 0, // 初始位置Z
@@ -414,7 +415,7 @@ function initModel() {
     lightPosY: 0, // 光源相对Y位置
     lightPosZ: 0, // 光源相对Z位置
   });
-  setModelConfig('glutton', './assets/enemy/glutton/glutton.glb', {
+  setModelConfig('glutton', getAssetUrl('enemy/glutton/glutton.glb'), {
     initialX: 0, // 初始位置X
     initialY: 2, // 初始位置Y(固定)
     initialZ: 0, // 初始位置Z
@@ -426,7 +427,7 @@ function initModel() {
     lightPosY: 0, // 光源相对Y位置
     lightPosZ: 0, // 光源相对Z位置
   });
-  setModelConfig('goblin', './assets/enemy/goblin/goblin.glb', {
+  setModelConfig('goblin', getAssetUrl('enemy/goblin/goblin.glb'), {
     initialX: 0, // 初始位置X
     initialY: 0.5, // 初始位置Y(固定)
     initialZ: 0, // 初始位置Z
@@ -438,7 +439,7 @@ function initModel() {
     lightPosY: 0, // 光源相对Y位置
     lightPosZ: 0, // 光源相对Z位置
   });
-  setModelConfig('guard', './assets/enemy/guard/guard.glb', {
+  setModelConfig('guard', getAssetUrl('enemy/guard/guard.glb'), {
     initialX: 0, // 初始位置X
     initialY: 1, // 初始位置Y(固定)
     initialZ: 0, // 初始位置Z
@@ -450,7 +451,7 @@ function initModel() {
     lightPosY: 0, // 光源相对Y位置
     lightPosZ: 0, // 光源相对Z位置
   });
-  setModelConfig('horn', './assets/enemy/horn/horn.glb', {
+  setModelConfig('horn', getAssetUrl('enemy/horn/horn.glb'), {
     initialX: 0, // 初始位置X
     initialY: 1, // 初始位置Y(固定)
     initialZ: 0, // 初始位置Z
@@ -462,7 +463,7 @@ function initModel() {
     lightPosY: 0, // 光源相对Y位置
     lightPosZ: 0, // 光源相对Z位置
   });
-  setModelConfig('mirror', './assets/enemy/mirror/mirror.glb', {
+  setModelConfig('mirror', getAssetUrl('enemy/mirror/mirror.glb'), {
     initialX: 0, // 初始位置X
     initialY: 0.75, // 初始位置Y(固定)
     initialZ: 0, // 初始位置Z
@@ -474,7 +475,7 @@ function initModel() {
     lightPosY: 0.5, // 光源相对Y位置
     lightPosZ: 0, // 光源相对Z位置
   });
-  setModelConfig('scout', './assets/enemy/scout/scout.glb', {
+  setModelConfig('scout', getAssetUrl('enemy/scout/scout.glb'), {
     initialX: 0, // 初始位置X
     initialY: 0.75, // 初始位置Y(固定)
     initialZ: 0, // 初始位置Z
@@ -486,7 +487,7 @@ function initModel() {
     lightPosY: 0, // 光源相对Y位置
     lightPosZ: 0, // 光源相对Z位置
   });
-  setModelConfig('shatra', './assets/enemy/shatra/shatra.glb', {
+  setModelConfig('shatra', getAssetUrl('enemy/shatra/shatra.glb'), {
     initialX: 0, // 初始位置X
     initialY: 1.25, // 初始位置Y(固定)
     initialZ: 0, // 初始位置Z
@@ -501,7 +502,7 @@ function initModel() {
 
   setModelConfig(
     'automatic_loading_gun',
-    './assets/structure/automatic_loading_gun/automatic_loading_gun.glb',
+    getAssetUrl('structure/automatic_loading_gun/automatic_loading_gun.glb'),
     {
       initialX: 0, // 初始位置X
       initialY: 0.75, // 初始位置Y(固定)
@@ -518,7 +519,7 @@ function initModel() {
 
   setModelConfig(
     'charging_coil',
-    './assets/structure/charging_coil/charging_coil.glb',
+    getAssetUrl('structure/charging_coil/charging_coil.glb'),
     {
       initialX: 0, // 初始位置X
       initialY: 2.5, // 初始位置Y(固定)
@@ -535,7 +536,7 @@ function initModel() {
 
   setModelConfig(
     'heart_source_mineral_drill',
-    './assets/structure/heart_source_mineral_drill/heart_source_mineral_drill.glb',
+    getAssetUrl('structure/heart_source_mineral_drill/heart_source_mineral_drill.glb'),
     {
       initialX: 0, // 初始位置X
       initialY: 0.75, // 初始位置Y(固定)
@@ -552,7 +553,7 @@ function initModel() {
 
   setModelConfig(
     'mirro_light_refraction_tower',
-    './assets/structure/mirro_light_refraction_tower/mirro_light_refraction_tower.glb',
+    getAssetUrl('structure/mirro_light_refraction_tower/mirro_light_refraction_tower.glb'),
     {
       initialX: 0, // 初始位置X
       initialY: 0.75, // 初始位置Y(固定)
@@ -569,7 +570,7 @@ function initModel() {
 
   setModelConfig(
     'repair_workshop',
-    './assets/structure/repair_workshop/repair_workshop.glb',
+    getAssetUrl('structure/repair_workshop/repair_workshop.glb'),
     {
       initialX: 0, // 初始位置X
       initialY: 0.75, // 初始位置Y(固定)
@@ -586,7 +587,7 @@ function initModel() {
 
   setModelConfig(
     'resonance_alarm_bell',
-    './assets/structure/resonance_alarm_bell/resonance_alarm_bell.glb',
+    getAssetUrl('structure/resonance_alarm_bell/resonance_alarm_bell.glb'),
     {
       initialX: 0, // 初始位置X
       initialY: 0.75, // 初始位置Y(固定)
@@ -603,7 +604,7 @@ function initModel() {
 
   setModelConfig(
     'rivet_barrier',
-    './assets/structure/rivet_barrier/rivet_barrier.glb',
+    getAssetUrl('structure/rivet_barrier/rivet_barrier.glb'),
     {
       initialX: 0, // 初始位置X
       initialY: 0.75, // 初始位置Y(固定)
@@ -620,7 +621,7 @@ function initModel() {
 
   setModelConfig(
     'steam_mining_car',
-    './assets/structure/steam_mining_car/steam_mining_car.glb',
+    getAssetUrl('structure/steam_mining_car/steam_mining_car.glb'),
     {
       initialX: 0, // 初始位置X
       initialY: 0.75, // 初始位置Y(固定)
@@ -637,7 +638,7 @@ function initModel() {
 
   setModelConfig(
     'storm_anvil',
-    './assets/structure/storm_anvil/storm_anvil.glb',
+    getAssetUrl('structure/storm_anvil/storm_anvil.glb'),
     {
       initialX: 0, // 初始位置X
       initialY: 0.75, // 初始位置Y(固定)

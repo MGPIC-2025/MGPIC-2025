@@ -1,5 +1,6 @@
 <script setup>
 import { computed } from 'vue';
+import { getAssetUrl } from '../../utils/resourceLoader.js';
 
 const props = defineProps({
   hp: {
@@ -13,14 +14,8 @@ const props = defineProps({
 });
 
 // 血条边框资源
-const bloodBorderLeftSrc = new URL(
-  '../../../assets/blood-border-left.png',
-  import.meta.url
-).href;
-const bloodBorderRightSrc = new URL(
-  '../../../assets/blood-border-right.png',
-  import.meta.url
-).href;
+const bloodBorderLeftSrc = getAssetUrl('ui/blood-border-left.png');
+const bloodBorderRightSrc = getAssetUrl('ui/blood-border-right.png');
 
 const hpPercentage = computed(() => {
   if (!props.maxHp || props.maxHp === 0) return 0;

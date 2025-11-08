@@ -1,5 +1,6 @@
 <script setup>
 import { ref, onMounted } from 'vue';
+import { getAssetUrl } from '../../utils/resourceLoader.js';
 
 const props = defineProps({
   copperInfo: {
@@ -49,9 +50,9 @@ onMounted(async () => {
 
   try {
     const [blueImg, greenImg, orangeRedImg] = await Promise.all([
-      loadImage('/assets/border-blue.png'),
-      loadImage('/assets/border-green.png'),
-      loadImage('/assets/border-orange-red.png'),
+      loadImage(getAssetUrl('ui/border-blue.png')),
+      loadImage(getAssetUrl('ui/border-green.png')),
+      loadImage(getAssetUrl('ui/border-orange-red.png')),
     ]);
 
     // 计算 slice 值（通常取图片高度的 1/4）

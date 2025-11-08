@@ -1,4 +1,6 @@
 <script setup>
+import { getAssetUrl } from '../../utils/resourceLoader.js';
+
 const props = defineProps({
   canMove: { type: Boolean, default: true },
   canAttack: { type: Boolean, default: true },
@@ -7,11 +9,11 @@ const props = defineProps({
 
 const emit = defineEmits(['move', 'wait', 'attack', 'summon']);
 
-const hexSrc = '/assets/your-image.png';
-const moveIconSrc = '/assets/boot.png';
-const waitIconSrc = '/assets/mushroom.png';
-const attackIconSrc = '/assets/sword.png';
-const summonIconSrc = '/assets/currentcupper.png'; // 使用现有资源作为召唤图标
+const hexSrc = getAssetUrl('ui/your-image.png');
+const moveIconSrc = getAssetUrl('ui/boot.png');
+const waitIconSrc = getAssetUrl('ui/mushroom.png');
+const attackIconSrc = getAssetUrl('ui/sword.png');
+const summonIconSrc = getAssetUrl('ui/currentcupper.png'); // 使用现有资源作为召唤图标
 
 function onMove() {
   if (!props.canMove) return;
