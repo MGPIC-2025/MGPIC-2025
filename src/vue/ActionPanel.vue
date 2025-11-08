@@ -34,6 +34,12 @@ const props = defineProps({
 
 const emit = defineEmits(['close', 'action', 'selectCopper']);
 
+// UI资源URL
+const swordImgSrc = computed(() => getAssetUrl('ui/sword.png'));
+const redPanelBg = computed(() => getAssetUrl('ui/red.png'));
+const bootImgSrc = computed(() => getAssetUrl('ui/boot.png'));
+const greenPanelBg = computed(() => getAssetUrl('ui/green.png'));
+
 // 三角操作面板已独立为组件 TriPanel
 
 // 面板状态：'full' = 完整显示, 'minimized' = 最小化到底部
@@ -508,7 +514,7 @@ defineExpose({ cancelAction, handleSelectCopper });
 .copper-panel--minimized.copper-panel--min-attack {
   border: none;
   /* Two-layer background: top = sword badge, bottom = red panel */
-  background-image: url('/assets/sword.png'), url('/assets/red.png');
+  background-image: v-bind(swordImgSrc), v-bind(redPanelBg);
   background-repeat: no-repeat, no-repeat;
   background-position:
     8px 8px,
@@ -525,7 +531,7 @@ defineExpose({ cancelAction, handleSelectCopper });
 .copper-panel--minimized.copper-panel--min-move {
   border: none;
   /* Two-layer background: top = boot badge, bottom = green panel */
-  background-image: url('/assets/boot.png'), url('/assets/green.png');
+  background-image: v-bind(bootImgSrc), v-bind(greenPanelBg);
   background-repeat: no-repeat, no-repeat;
   background-position:
     8px 8px,

@@ -2,14 +2,13 @@
 import log from '../log.js';
 import { onMounted, onBeforeUnmount, ref, watch } from 'vue';
 import * as THREE from 'three';
-import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
-import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js';
 import {
   getAssetUrl,
   precacheAllResources,
   getCacheStatus,
 } from '../utils/resourceLoader.js';
 import modelPreloadManager from '../utils/modelPreloadManager.js';
+import { modelCache } from '../utils/modelCache.js';
 
 const props = defineProps({
   visible: {
@@ -137,53 +136,39 @@ async function initScene(onProgress = null) {
   // 步骤1：设置光照
   if (onProgress) onProgress(0, 100, 20);
 
-  const ambientLight = new THREE.AmbientLight(0x404040, 0.4);
-  scene.add(ambientLight);
-  const directionalLight = new THREE.DirectionalLight(0xffffff, 12.5);
-  directionalLight.position.set(-5, -2, 1);
-  scene.add(directionalLight);
+  // 只在没有光照时添加
+  const hasLight = scene.children.some(child => child.isLight);
+  if (!hasLight) {
+    const ambientLight = new THREE.AmbientLight(0x404040, 0.4);
+    scene.add(ambientLight);
+    const directionalLight = new THREE.DirectionalLight(0xffffff, 12.5);
+    directionalLight.position.set(-5, -2, 1);
+    scene.add(directionalLight);
+  }
 
-  // 步骤2：初始化DRACO解码器
-  if (onProgress) onProgress(0, 100, 40);
-
-  const dracoLoader = new DRACOLoader();
-  dracoLoader.setDecoderPath(
-    'https://www.gstatic.com/draco/versioned/decoders/1.5.7/'
-  );
-  const loader = new GLTFLoader();
-  loader.setDRACOLoader(dracoLoader);
-
-  // 步骤3：准备加载模型
+  // 步骤2：准备加载Logo
   if (onProgress) onProgress(0, 100, 50);
 
   const logoUrl = getAssetUrl('logo.glb');
 
-  const tryLoad = () =>
-    new Promise((resolve, reject) => {
-      loader.load(
-        logoUrl,
-        gltf => resolve(gltf),
-        undefined,
-        err => reject(err)
-      );
-    });
-
   try {
-    // 步骤6：加载模型文件
+    // 步骤3：从Cache Storage或网络加载Logo模型
     if (onProgress) onProgress(0, 100, 60);
-    const gltf = await tryLoad();
+    log('[StartMenu] 开始加载Logo模型...');
+    
+    const logoModel = await modelCache.loadModel(logoUrl, true);
 
-    // 步骤7：设置模型
+    // 步骤4：设置模型
     if (onProgress) onProgress(0, 100, 80);
-    gltf.scene.position.set(0, 0, 0);
-    scene.add(gltf.scene);
-    const box = new THREE.Box3().setFromObject(gltf.scene);
+    logoModel.position.set(0, 0, 0);
+    scene.add(logoModel);
+    const box = new THREE.Box3().setFromObject(logoModel);
     const center = box.getCenter(new THREE.Vector3());
-    gltf.scene.position.set(-center.x, -center.y, -center.z);
+    logoModel.position.set(-center.x, -center.y, -center.z);
     try {
-      gltf.scene.scale.setScalar(baseScale);
+      logoModel.scale.setScalar(baseScale);
     } catch (_) {}
-    logoObject = gltf.scene;
+    logoObject = logoModel;
 
     // 步骤8：预加载游戏模型
     if (onProgress) onProgress(0, 100, 80);
@@ -322,11 +307,11 @@ onBeforeUnmount(() => {
   <div class="startmenu">
     <canvas ref="canvasRef" class="startmenu__canvas" />
 
-    <!-- 背景图片覆盖层（仅用于预览效果） -->
-    <div
+    <!-- 背景图片覆盖层（仅用于预览效果） - 暂时禁用以避免CORS阻塞 -->
+    <!-- <div
       class="startmenu__bg"
       :style="{ backgroundImage: `url('${startBg}')` }"
-    />
+    /> -->
 
     <div
       class="startmenu-ui"
@@ -393,7 +378,7 @@ onBeforeUnmount(() => {
   background-position: center;
   background-repeat: no-repeat;
   filter: brightness(0.9);
-  z-index: 10005; /* 高于UI，便于直接查看效果 */
+  z-index: 9999; /* 低于UI按钮（10000），高于canvas */
   pointer-events: none;
 }
 

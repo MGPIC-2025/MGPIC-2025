@@ -33,48 +33,13 @@ const bgHall = ref(getAssetUrl('ui/Gemini_Generated_Image_gtrehogtrehogtre (1).p
 // 添加图片加载完成状态
 const imagesLoaded = ref(false);
 
-onMounted(async () => {
-  try {
-    if (window.getCacheStatus) {
-      const status = await window.getCacheStatus();
-      log('缓存状态:', status);
-    }
-    const imageUrls = [
-      bgStart.value,
-      bgWarehouse.value,
-      bgWiki.value,
-      bgTutorial.value,
-      bgHall.value,
-    ];
-    await Promise.allSettled(
-      imageUrls.map(
-        url =>
-          new Promise(resolve => {
-            const img = new Image();
-            img.crossOrigin = 'anonymous';
-            img.onload = () => {
-              log('背景图片预加载成功:', url);
-              resolve();
-            };
-            img.onerror = () => {
-              log('背景图片预加载失败:', url);
-              resolve();
-            };
-            img.src = url;
-          })
-      )
-    );
-    
-    // 短暂延迟后显示按钮，确保CSS已应用背景图
-    setTimeout(() => {
-      imagesLoaded.value = true;
-      log('Hall界面图片加载完成，显示UI');
-    }, 100);
-  } catch (error) {
-    log('背景图片预加载过程中出现错误:', error?.message || error);
-    // 即使出错也显示UI
+onMounted(() => {
+  // 图片已通过 resourceLoader 预缓存，直接显示 UI
+  // 短暂延迟确保 Vue 已渲染 DOM 和应用样式
+  setTimeout(() => {
     imagesLoaded.value = true;
-  }
+    log('Hall界面准备完成，显示UI');
+  }, 100);
 });
 </script>
 

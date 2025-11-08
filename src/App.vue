@@ -8,6 +8,7 @@ import StartMenu from './vue/StartMenu.vue';
 import StartGame from './vue/StartGame.vue';
 import TestPanel from './vue/TestPanel.vue';
 import TestScene from './vue/TestScene.vue';
+import { getAssetUrl } from './utils/resourceLoader.js';
 
 // 导入glue.js以触发消息处理器注册
 import './glue.js';
@@ -164,6 +165,7 @@ function goBack() {
 const musicOn = ref(true);
 const fileInput = ref(null);
 const audioRef = ref(null);
+const musicUrl = getAssetUrl('ui/铜偶的探险.mp3');
 
 function onToggleMusic() {
   musicOn.value = !musicOn.value;
@@ -442,7 +444,7 @@ onBeforeUnmount(() => {
     </div>
     <audio
       ref="audioRef"
-      src="/assets/铜偶的探险.mp3"
+      :src="musicUrl"
       loop
       preload="auto"
       @play="musicOn = true"
