@@ -68,7 +68,8 @@ fn summon_enemy_while_game_round_pass() -> Unit {
       if Room::is_full(room) {
         continue
       }
-      if room.blocks[7][7].occupant is Structure(structure) {
+      if room.blocks[7][7].occupant is Structure(structure) &&
+        structure.structure_base.name == "充能线圈" {
         let level = room.level
         let enemy = summon_enemy(level)
         // 不再用 escape_set 来判断位置了，直接反选空坐标
@@ -78,8 +79,7 @@ fn summon_enemy_while_game_round_pass() -> Unit {
             empty_positions.length() - 1,
           )]
         let enemy = Enemy::new(enemy, position, false)
-        room.blocks[position.0][position.1].occupant = Occupant::Enemy(enemy)
-        enemy_map.set(enemy.id, enemy)
+        room.blocks[position.0][position.1].occupant = Enemy(enemy)
       }
     }
   }

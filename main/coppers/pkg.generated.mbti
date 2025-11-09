@@ -29,7 +29,7 @@ pub(all) struct Copper {
   id : Int
   level : Int
   suffix : Int
-  live_left : Int
+  mut live_left : Int
   mut attribute : @attribute.Attribute
   copper_type : CopperType
   mut equipment_slot : EquipmentSlot

@@ -25,11 +25,11 @@ fn summon_enemy(level : Int) -> EnemyBase {
 
 ///|
 fn sumoon_postion(escape_set : Set[(Int, Int)]) -> (Int, Int) {
-  let mut random_position_x = @rand.summon_random_number(0, 15)
-  let mut random_position_y = @rand.summon_random_number(0, 15)
+  let mut random_position_x = @rand.summon_random_number(0, 14)
+  let mut random_position_y = @rand.summon_random_number(0, 14)
   while escape_set.contains((random_position_x, random_position_y)) {
-    random_position_x = @rand.summon_random_number(0, 15)
-    random_position_y = @rand.summon_random_number(0, 15)
+    random_position_x = @rand.summon_random_number(0, 14)
+    random_position_y = @rand.summon_random_number(0, 14)
   }
   (random_position_x, random_position_y)
 }
@@ -42,9 +42,9 @@ fn Room::new(
 ) -> Room {
   // 修复：创建完全独立的2D数组，避免共享引用
   let blocks = []
-  for _ in 0..<16 {
+  for _ in 0..<15 {
     let row = []
-    for _ in 0..<16 {
+    for _ in 0..<15 {
       row.push(MapBlock::new()) // 每个MapBlock都是独立的
     }
     blocks.push(row)
@@ -108,8 +108,8 @@ fn Room::is_full(room : Room) -> Bool {
 ///|
 fn Room::get_empty_positions(room : Room) -> Array[(Int, Int)] {
   let positions = []
-  for block_x in 0..<16 {
-    for block_y in 0..<16 {
+  for block_x in 0..<15 {
+    for block_y in 0..<15 {
       if room.blocks[block_x][block_y].occupant is Empty {
         positions.push((block_x, block_y))
       }
@@ -122,7 +122,7 @@ fn Room::get_empty_positions(room : Room) -> Array[(Int, Int)] {
 fn Room::is_coord_in_room(room : Room, coord : (Int, Int)) -> Bool {
   let (x, y) = coord
   let (room_x, room_y) = room.index_position
-  x >= room_x && x < room_x + 16 && y >= room_y && y < room_y + 16
+  x >= room_x && x < room_x + 15 && y >= room_y && y < room_y + 15
 }
 
 ///|
@@ -136,23 +136,23 @@ fn Room::get_room_direction_and_new_position(
   let relative_y = y - room_y
   if relative_x < 0 {
     if relative_y < 0 {
-      (LeftDown, (room_x - 16, room_y))
-    } else if relative_y >= 16 {
-      (LeftUp, (room_x - 16, room_y + 16))
+      (LeftDown, (room_x - 15, room_y))
+    } else if relative_y >= 15 {
+      (LeftUp, (room_x - 15, room_y + 15))
     } else {
-      (Left, (room_x - 16, room_y))
+      (Left, (room_x - 15, room_y))
     }
-  } else if relative_x >= 16 {
+  } else if relative_x >= 15 {
     if relative_y < 0 {
-      (RightDown, (room_x + 16, room_y))
-    } else if relative_y >= 16 {
-      (RightUp, (room_x + 16, room_y + 16))
+      (RightDown, (room_x + 15, room_y))
+    } else if relative_y >= 15 {
+      (RightUp, (room_x + 15, room_y + 15))
     } else {
-      (Right, (room_x + 16, room_y))
+      (Right, (room_x + 15, room_y))
     }
   } else if relative_y < 0 {
-    (Down, (room_x, room_y - 16))
+    (Down, (room_x, room_y - 15))
   } else {
-    (Up, (room_x, room_y + 16))
+    (Up, (room_x, room_y + 15))
   }
 }

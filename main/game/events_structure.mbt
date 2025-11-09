@@ -181,7 +181,7 @@ fn handle_on_structure_move_apply(
       .global_position_to_room_position(position)
       .unwrap()
     now_room.blocks[now_local_pos.0][now_local_pos.1].occupant = Empty
-    target_room.blocks[target_local_pos.0][target_local_pos.1].occupant = Occupant::Structure(
+    target_room.blocks[target_local_pos.0][target_local_pos.1].occupant = Structure(
       structure,
     )
     // 更新建筑的位置

@@ -6,6 +6,8 @@ fn cost_drop_item(Array[(Item, Double)]) -> Item?
 
 fn eventloop(String) -> Unit
 
+let structure_info_map : Map[String, StructureBase]
+
 fn test_blocks() -> Unit
 
 fn test_camera_control() -> Unit
@@ -27,14 +29,6 @@ fn test_simple_move() -> Unit
 // Errors
 
 // Types and methods
-type BattleCopper
-impl ToJson for BattleCopper
-
-type Direction
-
-type Enemy
-impl ToJson for Enemy
-
 type Item
 impl Eq for Item
 impl ToJson for Item
@@ -42,13 +36,8 @@ impl ToJson for Item
 type MapBlock
 fn MapBlock::new() -> Self
 
-type Material
-impl ToJson for Material
-
-type Room
-
-type UnitDirection
-impl Show for UnitDirection
+type StructureBase
+impl ToJson for StructureBase
 
 // Type aliases
 

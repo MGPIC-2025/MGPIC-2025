@@ -208,13 +208,11 @@ fn BattleCopper::get_structure_build_position(
         map.force_get_map_block(position).occupant is Material(_) {
         result.push(position)
       }
-    } else {
       // 普通建筑：需要空地且没有资源
       // 先用 is_occupy_or_out_of_map 检查是否安全访问
-      if !map.is_occupy_or_out_of_map(position) &&
-        map.force_get_map_block(position).resources.is_empty() {
-        result.push(position)
-      }
+    } else if !map.is_occupy_or_out_of_map(position) &&
+      map.force_get_map_block(position).resources.is_empty() {
+      result.push(position)
     }
   }
   result
