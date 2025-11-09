@@ -9,6 +9,7 @@ import {
 } from '../utils/resourceLoader.js';
 import modelPreloadManager from '../utils/modelPreloadManager.js';
 import { modelCache } from '../utils/modelCache.js';
+import { getSettings, updateSetting } from '../utils/gameSettings.js';
 
 const props = defineProps({
   visible: {

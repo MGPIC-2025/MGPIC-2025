@@ -8,6 +8,7 @@ import StartMenu from './vue/StartMenu.vue';
 import StartGame from './vue/StartGame.vue';
 import GameScene from './vue/GameScene.vue';
 import { getAssetUrl } from './utils/resourceLoader.js';
+import { getSettings, updateSetting } from './utils/gameSettings.js';
 
 // 导入glue.js以触发消息处理器注册
 import './glue.js';
@@ -21,6 +22,7 @@ const overlayHistory = ref([]);
 const currentPuppetIndex = ref(0);
 const showStartMenu = ref(true);
 const showGameScene = ref(false); // 控制游戏场景显示
+const controlMode = ref('touchpad'); // 控制模式
 const destroyStartMenu = ref(false); // 控制是否完全销毁StartMenu以释放内存
 let startMenuDestroyTimer = null;
 
@@ -86,6 +88,9 @@ function closeGameScene() {
 }
 
 function openSettings() {
+  // 打开设置时，加载当前设置
+  const settings = getSettings();
+  controlMode.value = settings.controlMode;
   showSettingsOverlay.value = true;
   isPaused.value = true;
 }
@@ -96,6 +101,17 @@ function closeSettings() {
     window.__START_MENU_RESUME__ && window.__START_MENU_RESUME__();
     isPaused.value = false;
   }
+}
+
+function setControlMode(mode) {
+  controlMode.value = mode;
+  updateSetting('controlMode', mode);
+  
+  // 通知 GameScene 更新控制模式
+  if (window.updateControlMode) {
+    window.updateControlMode(mode);
+  }
+  log(`[App] 设置控制模式: ${mode}`);
 }
 
 function goBack() {
@@ -332,6 +348,29 @@ onBeforeUnmount(() => {
           </button>
         </div>
         <div class="settings__content">
+          <!-- 控制模式设置 -->
+          <div class="settings__section">
+            <div class="settings__section-title">视角控制模式</div>
+            <div class="settings__control-options">
+              <button 
+                class="settings__control-btn"
+                :class="{ active: controlMode === 'touchpad' }"
+                @click="setControlMode('touchpad')"
+              >
+                <span class="control-title">触控板模式（推荐）</span>
+                <span class="control-desc">按住拖动视角</span>
+              </button>
+              <button 
+                class="settings__control-btn"
+                :class="{ active: controlMode === 'mouse' }"
+                @click="setControlMode('mouse')"
+              >
+                <span class="control-title">鼠标模式（实验性）</span>
+                <span class="control-desc">直接转动视角</span>
+              </button>
+            </div>
+          </div>
+
           <button class="settings__item" @click="onDownloadSave">
             <span class="settings__icon">
               <svg
@@ -542,6 +581,56 @@ onBeforeUnmount(() => {
   flex-direction: column;
   gap: 18px;
   overflow: auto;
+}
+.settings__section {
+  background: #3a2519;
+  border-radius: 14px;
+  padding: 16px;
+}
+.settings__section-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #fff;
+  margin-bottom: 12px;
+}
+.settings__control-options {
+  display: flex;
+  gap: 12px;
+}
+.settings__control-btn {
+  flex: 1;
+  padding: 14px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  color: #fff;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+.settings__control-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.3);
+  transform: translateY(-2px);
+}
+.settings__control-btn.active {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-color: #667eea;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+.control-title {
+  font-weight: 600;
+  font-size: 15px;
+}
+.control-desc {
+  font-size: 12px;
+  opacity: 0.7;
+}
+.settings__control-btn.active .control-desc {
+  opacity: 0.9;
 }
 .settings__item {
   display: flex;

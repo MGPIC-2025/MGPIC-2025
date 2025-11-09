@@ -19,6 +19,7 @@ import {
   getCopperTypeFolder,
 } from '../utils/copperMapping.js';
 import { getStructureEnglishName } from '../utils/structureMapping.js';
+import { getSetting } from '../utils/gameSettings.js';
 import ActionPanel from './ActionPanel.vue';
 import TurnSystem from './ActionPanelParts/TurnSystem.vue';
 import SummonModal from './ActionPanelParts/SummonModal.vue';
@@ -105,7 +106,21 @@ const keys = {
 };
 const moveSpeed = 0.2;
 const rotationSpeed = 0.003;
-const mouseSensitivity = 0.002;
+
+// 从设置中读取控制模式和灵敏度
+const controlMode = ref(getSetting('controlMode') || 'touchpad');
+const mouseSensitivity = ref(getSetting('mouseSensitivity') || 0.002);
+
+// 更新控制模式（供设置面板调用）
+window.updateControlMode = (mode) => {
+  controlMode.value = mode;
+  log(`[GameScene] 切换控制模式: ${mode}`);
+};
+
+// 更新鼠标灵敏度（供设置面板调用）
+window.updateMouseSensitivity = (sensitivity) => {
+  mouseSensitivity.value = sensitivity;
+};
 
 // 键盘事件处理
 function handleKeyDown(event) {
@@ -117,6 +132,11 @@ function handleKeyDown(event) {
   } else if (key === ' ') {
     keys.space = true;
     event.preventDefault(); // 防止页面滚动
+  } else if (key === 'escape') {
+    // ESC 键退出鼠标锁定
+    if (document.pointerLockElement) {
+      document.exitPointerLock();
+    }
   }
 }
 
@@ -137,8 +157,17 @@ let lastMouseX = 0;
 let lastMouseY = 0;
 let pitch = 0; // 上下旋转
 let yaw = 0; // 左右旋转
+let isPointerLocked = false; // 是否已锁定鼠标
 
 function handleMouseDown(event) {
+  // 右键或中键不响应
+  if (event.button !== 0) return;
+  
+  // 鼠标模式：点击时请求锁定鼠标
+  if (controlMode.value === 'mouse' && container.value) {
+    container.value.requestPointerLock();
+  }
+  
   isMouseDown = true;
   lastMouseX = event.clientX;
   lastMouseY = event.clientY;
@@ -149,14 +178,29 @@ function handleMouseUp() {
 }
 
 function handleMouseMove(event) {
-  if (!isMouseDown) return;
+  // 触控板模式：需要按住鼠标才能旋转
+  if (controlMode.value === 'touchpad') {
+    if (!isMouseDown) return;
+    
+    const deltaX = event.clientX - lastMouseX;
+    const deltaY = event.clientY - lastMouseY;
 
-  const deltaX = event.clientX - lastMouseX;
-  const deltaY = event.clientY - lastMouseY;
+    // 更新旋转角度
+    yaw -= deltaX * mouseSensitivity.value;
+    pitch -= deltaY * mouseSensitivity.value;
 
-  // 更新旋转角度
-  yaw -= deltaX * mouseSensitivity;
-  pitch -= deltaY * mouseSensitivity;
+    lastMouseX = event.clientX;
+    lastMouseY = event.clientY;
+  } 
+  // 鼠标模式：使用 Pointer Lock 的 movementX/Y
+  else if (controlMode.value === 'mouse' && isPointerLocked) {
+    const deltaX = event.movementX || 0;
+    const deltaY = event.movementY || 0;
+
+    // 更新旋转角度
+    yaw -= deltaX * mouseSensitivity.value;
+    pitch -= deltaY * mouseSensitivity.value;
+  }
 
   // 限制上下旋转角度
   pitch = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, pitch));
@@ -165,9 +209,20 @@ function handleMouseMove(event) {
   camera.rotation.order = 'YXZ';
   camera.rotation.y = yaw;
   camera.rotation.x = pitch;
+}
 
-  lastMouseX = event.clientX;
-  lastMouseY = event.clientY;
+// Pointer Lock 状态变化监听
+function handlePointerLockChange() {
+  isPointerLocked = document.pointerLockElement === container.value;
+  if (isPointerLocked) {
+    log('[GameScene] 鼠标已锁定');
+  } else {
+    log('[GameScene] 鼠标已解锁');
+  }
+}
+
+function handlePointerLockError() {
+  log('[GameScene] 鼠标锁定失败');
 }
 
 // 选中的铜偶信息
@@ -234,6 +289,10 @@ onMounted(async () => {
   window.addEventListener('mousedown', handleMouseDown);
   window.addEventListener('mouseup', handleMouseUp);
   window.addEventListener('mousemove', handleMouseMove);
+  
+  // Pointer Lock 事件监听
+  document.addEventListener('pointerlockchange', handlePointerLockChange);
+  document.addEventListener('pointerlockerror', handlePointerLockError);
 
   animate();
 
@@ -323,6 +382,15 @@ onBeforeUnmount(() => {
   window.removeEventListener('mousedown', handleMouseDown);
   window.removeEventListener('mouseup', handleMouseUp);
   window.removeEventListener('mousemove', handleMouseMove);
+  
+  // 移除 Pointer Lock 监听器
+  document.removeEventListener('pointerlockchange', handlePointerLockChange);
+  document.removeEventListener('pointerlockerror', handlePointerLockError);
+  
+  // 释放鼠标锁定
+  if (document.pointerLockElement) {
+    document.exitPointerLock();
+  }
 
   // 停止音乐播放
   if (audioRef.value) {
