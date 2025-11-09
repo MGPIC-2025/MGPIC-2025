@@ -1,9 +1,11 @@
 <script setup>
+import { ref } from 'vue';
 import {
   RESOURCE_META,
   getItemIcon,
   getItemName,
 } from '../../utils/resourceMeta.js';
+import { getAssetUrl } from '../../utils/resourceLoader.js';
 
 const props = defineProps({
   visible: {
@@ -38,6 +40,12 @@ const recipeItems = [
   'RefinedCopper',
 ];
 
+// 丢弃音效
+const dropSoundRef = ref(null);
+const dropSoundUrl = import.meta.env.DEV 
+  ? '/assets/drop.mp3'
+  : getAssetUrl('assets/drop.mp3');
+
 function close() {
   emit('close');
 }
@@ -49,6 +57,15 @@ function handleCraft() {
 
 function handleDrop(index) {
   console.log(`[InventoryModal] 丢弃物品: index=${index}`);
+  
+  // 播放丢弃音效
+  if (dropSoundRef.value) {
+    dropSoundRef.value.currentTime = 0;
+    dropSoundRef.value.play().catch(err => {
+      console.log('[InventoryModal] 播放丢弃音效失败:', err);
+    });
+  }
+  
   emit('drop', index);
 }
 
@@ -196,6 +213,12 @@ function handleTransferTo(target) {
         </div>
       </div>
     </div>
+    <!-- 丢弃音效 -->
+    <audio
+      ref="dropSoundRef"
+      :src="dropSoundUrl"
+      preload="auto"
+    ></audio>
   </div>
 </template>
 

@@ -82,6 +82,13 @@ function formatCost(costData) {
     })
     .join(', ');
 }
+
+// 背景图片路径（CSS border-image 需要 url() 包裹）
+const panel11Src = `url('/assets/panel11.png')`;
+const panel7Src = `url('/assets/panel7.png')`;
+const panel8Src = `url('/assets/panel8.png')`;
+const panel5Src = `url('/assets/panel5.png')`;
+const panel12Src = `url('/assets/panel12.png')`;
 </script>
 
 <template>
@@ -154,7 +161,7 @@ function formatCost(costData) {
                 v-if="selectedStructure?.name === structure.name"
                 class="selected-badge"
               >
-                ✓ 已选择
+                ✓
               </div>
             </div>
           </div>
@@ -200,14 +207,20 @@ function formatCost(costData) {
 }
 
 .build-modal {
-  background: linear-gradient(135deg, #1a2b11 0%, #0f1a0a 100%);
-  border-radius: 20px;
+  box-sizing: border-box;
+  border-style: solid;
+  border-width: 12px;
+  border-image-source: v-bind(panel11Src);
+  border-image-slice: 8 fill;
+  border-image-width: 12px;
+  border-image-outset: 0;
+  border-image-repeat: stretch;
+  background-color: transparent;
   width: min(900px, 95vw);
   max-height: 85vh;
   display: flex;
   flex-direction: column;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
-  border: 2px solid rgba(100, 200, 100, 0.3);
   animation: slideUp 0.3s ease;
 }
 
@@ -233,9 +246,10 @@ function formatCost(costData) {
 .modal-title {
   margin: 0;
   font-size: 24px;
-  font-weight: 800;
-  color: #90ee90;
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+  font-weight: 900;
+  color: #fff3ef;
+  letter-spacing: 2px;
+  text-shadow: 0 2px 0 rgba(120, 0, 0, 0.35);
 }
 
 .close-btn {
@@ -260,25 +274,41 @@ function formatCost(costData) {
 
 .modal-info {
   padding: 16px 24px;
-  background: rgba(144, 238, 144, 0.05);
-  border-bottom: 1px solid rgba(100, 200, 100, 0.1);
+  box-sizing: border-box;
+  border-style: solid;
+  border-width: 12px;
+  border-image-source: v-bind(panel5Src);
+  border-image-slice: 8 fill;
+  border-image-width: 12px;
+  border-image-outset: 0;
+  border-image-repeat: stretch;
+  background-color: transparent;
+  width: fit-content;
+  max-width: 80%;
+  margin: 0 auto;
 }
 
 .info-text {
   margin: 0 0 8px 0;
-  font-size: 16px;
-  color: #fff;
+  font-size: 14px;
+  color: #6a4931;
+  font-weight: 900;
+  letter-spacing: 2px;
 }
 
 .copper-name {
-  font-weight: 700;
-  color: #90ee90;
+  font-weight: 900;
+  color: #fff3ef;
+  letter-spacing: 2px;
+  text-shadow: 0 2px 0 rgba(120, 0, 0, 0.35);
 }
 
 .tip-text {
   margin: 0;
-  font-size: 13px;
-  color: #c8ffc8;
+  font-size: 12px;
+  color: #6a4931;
+  font-weight: 900;
+  letter-spacing: 1px;
 }
 
 .modal-body {
@@ -294,9 +324,15 @@ function formatCost(costData) {
 }
 
 .structure-card {
-  background: rgba(255, 255, 255, 0.05);
-  border: 2px solid rgba(100, 200, 100, 0.2);
-  border-radius: 12px;
+  box-sizing: border-box;
+  border-style: solid;
+  border-width: 12px;
+  border-image-source: v-bind(panel8Src);
+  border-image-slice: 8 fill;
+  border-image-width: 12px;
+  border-image-outset: 0;
+  border-image-repeat: stretch;
+  background-color: transparent;
   padding: 16px;
   cursor: pointer;
   transition: all 0.2s;
@@ -304,15 +340,12 @@ function formatCost(costData) {
 }
 
 .structure-card:hover {
-  background: rgba(255, 255, 255, 0.08);
-  border-color: rgba(100, 200, 100, 0.4);
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(100, 200, 100, 0.2);
 }
 
 .structure-card.selected {
-  background: rgba(144, 238, 144, 0.15);
-  border-color: #90ee90;
+  border-image-source: v-bind(panel7Src);
   box-shadow: 0 0 20px rgba(144, 238, 144, 0.3);
 }
 
@@ -329,14 +362,17 @@ function formatCost(costData) {
 
 .structure-name {
   font-size: 18px;
-  font-weight: 700;
-  color: #fff;
+  font-weight: 900;
+  color: #fff3ef;
+  letter-spacing: 2px;
+  text-shadow: 0 2px 0 rgba(120, 0, 0, 0.35);
 }
 
 .structure-type {
   font-size: 12px;
-  color: #c8ffc8;
-  font-weight: 600;
+  color: #6a4931;
+  font-weight: 900;
+  letter-spacing: 2px;
 }
 
 .structure-stats {
@@ -358,8 +394,9 @@ function formatCost(costData) {
 }
 
 .stat-value {
-  color: #fff;
-  font-weight: 600;
+  color: #6a4931;
+  font-weight: 900;
+  letter-spacing: 1px;
 }
 
 .structure-cost {
@@ -371,19 +408,23 @@ function formatCost(costData) {
 }
 
 .cost-label {
-  color: #ffc870;
-  font-weight: 600;
+  color: #6a4931;
+  font-weight: 900;
+  letter-spacing: 2px;
 }
 
 .cost-value {
-  color: #fff;
-  font-weight: 600;
+  color: #1a0f00;
+  font-weight: 900;
+  letter-spacing: 1px;
   margin-left: 4px;
 }
 
 .structure-desc {
   font-size: 12px;
-  color: rgba(255, 255, 255, 0.7);
+  color: #6a4931;
+  font-weight: 900;
+  letter-spacing: 1px;
   line-height: 1.5;
   margin-top: 8px;
   max-height: 60px;
@@ -391,6 +432,7 @@ function formatCost(costData) {
   text-overflow: ellipsis;
   display: -webkit-box;
   -webkit-line-clamp: 3;
+  line-clamp: 3;
   -webkit-box-orient: vertical;
 }
 
@@ -398,12 +440,20 @@ function formatCost(costData) {
   position: absolute;
   top: 12px;
   right: 12px;
-  background: #90ee90;
-  color: #0f1a0a;
+  box-sizing: border-box;
+  border-style: solid;
+  border-width: 12px;
+  border-image-source: v-bind(panel12Src);
+  border-image-slice: 8 fill;
+  border-image-width: 12px;
+  border-image-outset: 0;
+  border-image-repeat: stretch;
+  background-color: transparent;
+  color: #1a0f00;
   padding: 4px 12px;
-  border-radius: 12px;
   font-size: 12px;
-  font-weight: 700;
+  font-weight: 900;
+  letter-spacing: 2px;
 }
 
 .modal-footer {
@@ -418,7 +468,8 @@ function formatCost(costData) {
   padding: 12px 32px;
   border-radius: 12px;
   font-size: 16px;
-  font-weight: 700;
+  font-weight: 900;
+  letter-spacing: 2px;
   cursor: pointer;
   transition: all 0.2s;
   border: none;
@@ -426,8 +477,9 @@ function formatCost(costData) {
 
 .btn-cancel {
   background: rgba(255, 255, 255, 0.1);
-  color: #fff;
+  color: #fff3ef;
   border: 1px solid rgba(255, 255, 255, 0.2);
+  text-shadow: 0 2px 0 rgba(120, 0, 0, 0.35);
 }
 
 .btn-cancel:hover {
@@ -436,7 +488,7 @@ function formatCost(costData) {
 
 .btn-confirm {
   background: linear-gradient(135deg, #90ee90, #60d060);
-  color: #0f1a0a;
+  color: #1a0f00;
   box-shadow: 0 4px 12px rgba(144, 238, 144, 0.4);
 }
 

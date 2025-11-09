@@ -51,6 +51,8 @@ const moveSoundRef = ref(null);
 const moveEnemySoundRef = ref(null);
 const attackSoundRef = ref(null);
 const attackEnemySoundRef = ref(null);
+const meHurtSoundRef = ref(null);
+const enemyHurtSoundRef = ref(null);
 const moveSoundUrl = import.meta.env.DEV 
   ? '/assets/move.mp3'
   : getAssetUrl('assets/move.mp3');
@@ -63,6 +65,12 @@ const attackSoundUrl = import.meta.env.DEV
 const attackEnemySoundUrl = import.meta.env.DEV 
   ? '/assets/attack_enemy.mp3'
   : getAssetUrl('assets/attack_enemy.mp3');
+const meHurtSoundUrl = import.meta.env.DEV 
+  ? '/assets/me_hurt.mp3'
+  : getAssetUrl('assets/me_hurt.mp3');
+const enemyHurtSoundUrl = import.meta.env.DEV 
+  ? '/assets/enemy_hurt.mp3'
+  : getAssetUrl('assets/enemy_hurt.mp3');
 
 let scene, camera, renderer, controls;
 let models = [];
@@ -73,6 +81,8 @@ let gltfLoader = null;
 
 // 血条管理（全局作用域，供 animate() 访问）
 const healthBars = new Map(); // { unitId: { container: Group, background: Mesh, foreground: Mesh } }
+// 保存每个单位的上一帧血量，用于检测是否受伤
+const previousHealth = new Map(); // { unitId: number }
 
 // 地板块缓存（用于显示移动/攻击/建造范围）
 const floorBlocks = new Map(); // key: "x,y", value: THREE.Mesh
@@ -775,6 +785,11 @@ function setupMessageQueue() {
 
       scene.add(container);
       healthBars.set(unitId, { container, background, foreground });
+      
+      // 初始化血量记录（用于检测受伤）
+      if (!previousHealth.has(unitId)) {
+        previousHealth.set(unitId, nowHealth);
+      }
     }
 
     // 更新血条
@@ -813,6 +828,8 @@ function setupMessageQueue() {
       healthBar.foreground.material.dispose();
       healthBars.delete(unitId);
     }
+    // 同时清除保存的血量记录
+    previousHealth.delete(unitId);
   }
 
   // updateHealthBarsPosition 已在外部作用域定义
@@ -1853,6 +1870,29 @@ function setupMessageQueue() {
     },
     onUpdateHealth: (unitId, nowHealth, maxHealth) => {
       log(`[GameScene] 更新血量: id=${unitId}, hp=${nowHealth}/${maxHealth}`);
+      
+      // 检测是否受伤（血量减少且不是死亡）
+      const prevHealth = previousHealth.get(unitId);
+      if (prevHealth !== undefined && nowHealth < prevHealth && nowHealth > 0) {
+        // 查找单位类型
+        const model = models.find(m => m.id === unitId);
+        if (model) {
+          const isCopper = model.type === 'copper';
+          const soundRef = isCopper ? meHurtSoundRef.value : enemyHurtSoundRef.value;
+          if (soundRef) {
+            // 重置播放位置并播放
+            soundRef.currentTime = 0;
+            soundRef.play().catch(err => {
+              log(`[GameScene] 播放受击音效失败 (${isCopper ? '铜偶' : '敌人'}):`, err);
+            });
+            log(`[GameScene] 播放受击音效: ${isCopper ? '铜偶' : '敌人'} (ID=${unitId})`);
+          }
+        }
+      }
+      
+      // 保存当前血量作为下一帧的上一帧血量
+      previousHealth.set(unitId, nowHealth);
+      
       createOrUpdateHealthBar(unitId, nowHealth, maxHealth);
     },
     onRemoveHealthBar: unitId => {
@@ -2991,6 +3031,17 @@ function endRound() {
     <audio
       ref="attackEnemySoundRef"
       :src="attackEnemySoundUrl"
+      preload="auto"
+    ></audio>
+    <!-- 受击音效 -->
+    <audio
+      ref="meHurtSoundRef"
+      :src="meHurtSoundUrl"
+      preload="auto"
+    ></audio>
+    <audio
+      ref="enemyHurtSoundRef"
+      :src="enemyHurtSoundUrl"
       preload="auto"
     ></audio>
   </div>
