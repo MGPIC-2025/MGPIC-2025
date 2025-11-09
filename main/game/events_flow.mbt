@@ -3,15 +3,15 @@
 /// 后端：根据 id 生成铜偶，并将其加入游戏，放置铜偶在地图的开始位置，设置铜偶的朝向为朝向前方
 fn handle_on_game_start(ids : Array[Int]) -> Unit {
   let warehouse = @global.global.warehouse
-  let copper_1 = BattleCopper::new(warehouse.get_copper(ids[0]), ids[0], (0, 6))
-  let copper_2 = BattleCopper::new(warehouse.get_copper(ids[1]), ids[1], (0, 7))
-  let copper_3 = BattleCopper::new(warehouse.get_copper(ids[2]), ids[2], (0, 8))
+  let copper_1 = BattleCopper::new(warehouse.get_copper(ids[0]), ids[0], (0, 3))
+  let copper_2 = BattleCopper::new(warehouse.get_copper(ids[1]), ids[1], (0, 4))
+  let copper_3 = BattleCopper::new(warehouse.get_copper(ids[2]), ids[2], (0, 5))
   current_game.val = Some(Game::new())
   let map = force_get_current_map()
   let first_room = map.rooms[0]
-  first_room.blocks[0][6].occupant = Occupant::Copper(copper_1)
-  first_room.blocks[0][7].occupant = Occupant::Copper(copper_2)
-  first_room.blocks[0][8].occupant = Occupant::Copper(copper_3)
+  first_room.blocks[0][3].occupant = Occupant::Copper(copper_1)
+  first_room.blocks[0][4].occupant = Occupant::Copper(copper_2)
+  first_room.blocks[0][5].occupant = Occupant::Copper(copper_3)
 
   // 广播房间内容（地图块、敌人和铜偶）
   // 由于 Map_::new 使用了 add_room_silent，这是唯一一次广播
@@ -68,7 +68,7 @@ fn summon_enemy_while_game_round_pass() -> Unit {
       if Room::is_full(room) {
         continue
       }
-      if room.blocks[7][7].occupant is Structure(structure) &&
+      if room.blocks[4][4].occupant is Structure(structure) &&
         structure.structure_base.name == "充能线圈" {
         let level = room.level
         let enemy = summon_enemy(level)

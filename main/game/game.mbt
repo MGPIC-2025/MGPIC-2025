@@ -8,7 +8,7 @@ priv struct Game {
 
 ///|
 fn Game::new() -> Game {
-  Game::{ map: Map_::new(Set::from_array([(0, 6), (0, 7), (0, 8)])) }
+  Game::{ map: Map_::new(Set::from_array([(0, 3), (0, 4), (0, 5)])) }
 }
 
 ///|

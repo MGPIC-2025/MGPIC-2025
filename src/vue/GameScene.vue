@@ -447,7 +447,7 @@ function initScene() {
   scene.add(directionalLight);
 
   // 网格参数（保留用于其他用途）
-  const floorSize = 20;
+  const floorSize = 10;
   const gridCellSize = 1; // 全局坐标系统，1单位 = 1网格
 
   // 初始化GLTF加载器

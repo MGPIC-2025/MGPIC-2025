@@ -124,11 +124,11 @@ fn broadcast_room_content(room : Room) -> Unit {
   let (room_x, room_y) = room.index_position
 
   // 优化：批量发送地图块，避免225条单独消息造成卡顿
-  put_room_blocks(room.index_position, 15)
+  put_room_blocks(room.index_position, 9)
 
   // 只发送有内容的格子（敌人、铜偶、矿物、建筑等）
-  for x in 0..<15 {
-    for y in 0..<15 {
+  for x in 0..<9 {
+    for y in 0..<9 {
       let global_pos = (room_x + x, room_y + y)
       let occupant = room.blocks[x][y].occupant
       match occupant {
@@ -196,8 +196,8 @@ fn Map_::get_global_map(map : Map_) -> Map[(Int, Int), MapBlock] {
   let result = {}
   for room in map.rooms {
     let (room_x, room_y) = room.index_position
-    for x in 0..<15 {
-      for y in 0..<15 {
+    for x in 0..<9 {
+      for y in 0..<9 {
         let global_pos = (room_x + x, room_y + y)
         result[global_pos] = room.blocks[x][y]
       }
