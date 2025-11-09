@@ -6,7 +6,7 @@ priv struct Room {
 }
 
 ///|
-let default_enemy_count = [0, 10, 15, 20, 25, 30, 30, 30, 30, 30, 30]
+let default_enemy_count = [0, 2, 3, 3, 5, 5, 6, 6, 7, 8, 10]
 
 ///|
 fn summon_enemy(level : Int) -> EnemyBase {
