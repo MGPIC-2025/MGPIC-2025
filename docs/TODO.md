@@ -11,9 +11,13 @@
   - [ ] 移动力调整
     - [ ] 添加 `speed` 参数，决定铜偶和怪物的移动距离
   - [ ] 伤害计算公式和类型
-    - [ ] 区分法术/物理伤害，采用不同计算方式
-      - 物理： atk - def = dmg ，在 atk <= def 时造成保底 5% 伤害
-      - 法术： atk^2 / atk + def = dmg
+    1. 判定闪避：若 rand < defender.dodge => 命中失败。
+    2. 计算有效攻击/防御（考虑穿甲与百分比增益）
+    3. 比率转换为命中伤害比例：ratio = atk\_eff / (atk\_eff + k \* def\_eff)，推荐 k = 1.0（中性，atk == def 时伤害保留约 50%）。
+    4. raw = base\_damage \* ratio
+    5. 应用暴击：若 rand < crit\_chance => raw \*= crit\_multiplier
+    6. 应用抗性/减伤：raw \*= (1 - resist)
+    7. 最终伤害：final = max(min\_damage, floor(raw - flat\_reduction))
   - [ ] 技能与装备系统
   - [ ] 调整资源为全局，不再把资源放在铜偶身上
   - [ ] 添加 level 3/4 的敌人
