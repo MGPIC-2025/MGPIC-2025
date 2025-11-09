@@ -407,6 +407,7 @@ fn handle_on_copper_unequip_item(id : Int, index : Int) -> Unit {
   }
   let negative_attribute = @attribute.Attribute::new(
     health=-equipment.equipment_base.attribute.health,
+    speed=-equipment.equipment_base.attribute.speed,
     attack=-equipment.equipment_base.attribute.attack,
     defense=-equipment.equipment_base.attribute.defense,
     dodge=-equipment.equipment_base.attribute.dodge,

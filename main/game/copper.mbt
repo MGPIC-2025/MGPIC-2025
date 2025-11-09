@@ -131,14 +131,16 @@ fn BattleCopper::get_can_move(
   battle_copper : BattleCopper,
   map : Map_,
 ) -> Array[(Int, Int)] {
-  let offset = [(-1, 0), (1, 0), (0, -1), (0, 1)]
+  let offset = generate_offset(battle_copper.attribute.speed)
   let can_move = []
   for offset_ in offset {
     let position = (
       battle_copper.position.0 + offset_.0,
       battle_copper.position.1 + offset_.1,
     )
-    if !map.is_occupy(position) {
+    // 允许：1) 地图内未占用的位置，或 2) 超出地图边界1格的位置（但不允许2格或更多）
+    let distance_to_room = map.distance_to_nearest_room(position)
+    if distance_to_room <= 1 && !map.is_occupy(position) {
       can_move.push(position)
     }
   }

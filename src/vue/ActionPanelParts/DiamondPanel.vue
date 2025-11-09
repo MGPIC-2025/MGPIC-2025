@@ -7,7 +7,6 @@ const borderBlueSrc = `url('${getAssetUrl('ui/border-blue.png')}')`;
 const borderGreenSrc = `url('${getAssetUrl('ui/border-green.png')}')`;
 const borderOrangeRedSrc = `url('${getAssetUrl('ui/border-orange-red.png')}')`;
 
-
 const props = defineProps({
   copperInfo: {
     type: Object,

@@ -19,7 +19,7 @@ const selectedStructure = ref(null);
 const sortedStructures = computed(() => {
   return [...props.structureList].sort((a, b) => {
     // 按成本排序，处理后端格式: { cost: [["RefinedCopper", 10], ...] }
-    const getCost = (item) => {
+    const getCost = item => {
       const costArray = item.cost?.cost || item.cost;
       if (!Array.isArray(costArray) || costArray.length === 0) return 0;
       // 取第一个资源的数量作为排序依据
@@ -62,11 +62,11 @@ function getStructureTypeLabel(name) {
 // 格式化资源成本
 function formatCost(costData) {
   if (!costData) return '无消耗';
-  
+
   // 处理后端的格式: { cost: [["RefinedCopper", 10], ...] }
   const costArray = costData.cost || costData;
   if (!Array.isArray(costArray) || costArray.length === 0) return '无消耗';
-  
+
   return costArray
     .map(item => {
       // 如果是数组格式 ["RefinedCopper", 10]
@@ -104,7 +104,9 @@ const panel12Src = `url('/assets/panel12.png')`;
           <p class="info-text">
             <span class="copper-name">{{ copperName }}</span> 准备建造建筑
           </p>
-          <p class="tip-text">💡 提示：心源矿钻只能建在矿物上，其他建筑建在空地上</p>
+          <p class="tip-text">
+            💡 提示：心源矿钻只能建在矿物上，其他建筑建在空地上
+          </p>
         </div>
 
         <div class="modal-body">
@@ -522,4 +524,3 @@ const panel12Src = `url('/assets/panel12.png')`;
   background: rgba(100, 200, 100, 0.5);
 }
 </style>
-

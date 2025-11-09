@@ -61,6 +61,47 @@ fn Map_::is_occupy(map : Map_, position : (Int, Int)) -> Bool {
 }
 
 ///|
+/// 计算位置到最近房间边界的最短距离
+/// 如果位置在房间内，返回 0
+/// 如果位置在房间外，返回到最近房间边界的格子数
+fn Map_::distance_to_nearest_room(map : Map_, position : (Int, Int)) -> Int {
+  // 如果在某个房间内，距离为0
+  if Map_::find_position_in_map(map, position) is Some(_) {
+    return 0
+  }
+
+  // 找到距离最近的房间
+  let mut min_distance = 999999
+  for room in map.rooms {
+    let (room_x, room_y) = room.index_position
+    let (x, y) = position
+
+    // 计算到房间边界的最短距离
+    let dx = if x < room_x {
+      room_x - x
+    } else if x >= room_x + 9 {
+      x - (room_x + 9) + 1
+    } else {
+      0
+    }
+    let dy = if y < room_y {
+      room_y - y
+    } else if y >= room_y + 9 {
+      y - (room_y + 9) + 1
+    } else {
+      0
+    }
+
+    // 使用切比雪夫距离（棋盘距离）
+    let distance = if dx > dy { dx } else { dy }
+    if distance < min_distance {
+      min_distance = distance
+    }
+  }
+  min_distance
+}
+
+///|
 fn Map_::force_get_room_position(
   map : Map_,
   position : (Int, Int),

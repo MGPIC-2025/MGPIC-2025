@@ -40,7 +40,9 @@ const bgWarehouse = ref(getAssetUrl('frontend_resource/copper_warehouse.webp'));
 const bgWiki = ref(getAssetUrl('frontend_resource/game_wiki.webp'));
 const bgTutorial = ref(getAssetUrl('frontend_resource/Tutorial.webp'));
 // 使用 Vite 的静态资源导入方式
-const bgHall = ref(getAssetUrl('ui/Gemini_Generated_Image_gtrehogtrehogtre (1).png'));
+const bgHall = ref(
+  getAssetUrl('ui/Gemini_Generated_Image_gtrehogtrehogtre (1).png')
+);
 
 // 添加图片加载完成状态
 const imagesLoaded = ref(false);
@@ -48,9 +50,9 @@ const imagesLoaded = ref(false);
 // 音乐播放相关
 const audioRef = ref(null);
 // 音乐文件路径：优先使用本地 assets 文件夹，如果不存在则使用 R2 CDN
-const musicUrl = import.meta.env.DEV 
-  ? '/assets/hall.mp3'  // 开发环境使用本地路径
-  : getAssetUrl('assets/hall.mp3');  // 生产环境使用 R2 CDN
+const musicUrl = import.meta.env.DEV
+  ? '/assets/hall.mp3' // 开发环境使用本地路径
+  : getAssetUrl('assets/hall.mp3'); // 生产环境使用 R2 CDN
 
 onMounted(() => {
   // 图片已通过 resourceLoader 预缓存，直接显示 UI
@@ -64,78 +66,90 @@ onMounted(() => {
   if (props.musicOn && !props.paused && audioRef.value) {
     const tryPlay = () => {
       if (audioRef.value.readyState >= 2) {
-        audioRef.value.play().then(() => {
-          log('[Hall] 音乐播放成功');
-        }).catch(err => {
-          log('[Hall] 自动播放失败（可能浏览器阻止）:', err);
-        });
+        audioRef.value
+          .play()
+          .then(() => {
+            log('[Hall] 音乐播放成功');
+          })
+          .catch(err => {
+            log('[Hall] 自动播放失败（可能浏览器阻止）:', err);
+          });
       } else {
         const onCanPlay = () => {
-          audioRef.value.play().then(() => {
-            log('[Hall] 音频加载完成，播放成功');
-          }).catch(err => {
-            log('[Hall] 播放失败:', err);
-          });
+          audioRef.value
+            .play()
+            .then(() => {
+              log('[Hall] 音频加载完成，播放成功');
+            })
+            .catch(err => {
+              log('[Hall] 播放失败:', err);
+            });
           audioRef.value.removeEventListener('canplay', onCanPlay);
         };
         audioRef.value.addEventListener('canplay', onCanPlay, { once: true });
       }
     };
-    
+
     // 延迟一下确保音频元素已挂载
     setTimeout(tryPlay, 200);
   }
 });
 
 // 监听 musicOn 变化
-watch(() => props.musicOn, (newVal) => {
-  if (!audioRef.value) return;
-  
-  if (newVal && !props.paused) {
-    if (audioRef.value.readyState >= 2) {
-      audioRef.value.play().catch(err => {
-        log('[Hall] 播放音乐失败:', err);
-      });
-    } else {
-      const playWhenReady = () => {
+watch(
+  () => props.musicOn,
+  newVal => {
+    if (!audioRef.value) return;
+
+    if (newVal && !props.paused) {
+      if (audioRef.value.readyState >= 2) {
         audioRef.value.play().catch(err => {
           log('[Hall] 播放音乐失败:', err);
         });
-        audioRef.value.removeEventListener('canplay', playWhenReady);
-      };
-      audioRef.value.addEventListener('canplay', playWhenReady);
+      } else {
+        const playWhenReady = () => {
+          audioRef.value.play().catch(err => {
+            log('[Hall] 播放音乐失败:', err);
+          });
+          audioRef.value.removeEventListener('canplay', playWhenReady);
+        };
+        audioRef.value.addEventListener('canplay', playWhenReady);
+      }
+    } else {
+      audioRef.value.pause();
     }
-  } else {
-    audioRef.value.pause();
   }
-});
+);
 
 // 监听 paused 变化（当其他界面打开时暂停 Hall 音乐）
-watch(() => props.paused, (newVal) => {
-  if (!audioRef.value) return;
-  
-  if (newVal) {
-    // 暂停音乐
-    audioRef.value.pause();
-    log('[Hall] 音乐已暂停（其他界面打开）');
-  } else if (props.musicOn) {
-    // 恢复播放（如果音乐开关是开启的）
-    if (audioRef.value.readyState >= 2) {
-      audioRef.value.play().catch(err => {
-        log('[Hall] 恢复播放失败:', err);
-      });
-    } else {
-      const playWhenReady = () => {
+watch(
+  () => props.paused,
+  newVal => {
+    if (!audioRef.value) return;
+
+    if (newVal) {
+      // 暂停音乐
+      audioRef.value.pause();
+      log('[Hall] 音乐已暂停（其他界面打开）');
+    } else if (props.musicOn) {
+      // 恢复播放（如果音乐开关是开启的）
+      if (audioRef.value.readyState >= 2) {
         audioRef.value.play().catch(err => {
           log('[Hall] 恢复播放失败:', err);
         });
-        audioRef.value.removeEventListener('canplay', playWhenReady);
-      };
-      audioRef.value.addEventListener('canplay', playWhenReady);
+      } else {
+        const playWhenReady = () => {
+          audioRef.value.play().catch(err => {
+            log('[Hall] 恢复播放失败:', err);
+          });
+          audioRef.value.removeEventListener('canplay', playWhenReady);
+        };
+        audioRef.value.addEventListener('canplay', playWhenReady);
+      }
+      log('[Hall] 音乐已恢复播放');
     }
-    log('[Hall] 音乐已恢复播放');
   }
-});
+);
 
 onBeforeUnmount(() => {
   if (audioRef.value) {
@@ -193,12 +207,7 @@ onBeforeUnmount(() => {
         </div>
       </button>
     </div>
-    <audio
-      ref="audioRef"
-      :src="musicUrl"
-      loop
-      preload="auto"
-    ></audio>
+    <audio ref="audioRef" :src="musicUrl" loop preload="auto"></audio>
   </div>
 </template>
 

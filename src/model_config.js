@@ -30,18 +30,22 @@ function initModel() {
     lightPosZ: 0, // 光源相对Z位置
   });
 
-  setModelConfig('glimmer', getAssetUrl('copper/arcanist/glimmer/glimmer.glb'), {
-    initialX: 0, // 初始位置X
-    initialY: 0.75, // 初始位置Y(固定)
-    initialZ: 0, // 初始位置Z
-    initialScale: 1.5, // 初始缩放(固定)
-    lightIntensity: 5.0, // 光源强度
-    lightDistance: 10, // 光源距离
-    lightColor: '#ffffffff', // 光源颜色
-    lightPosX: 1, // 光源相对X位置
-    lightPosY: 0, // 光源相对Y位置
-    lightPosZ: 0, // 光源相对Z位置
-  });
+  setModelConfig(
+    'glimmer',
+    getAssetUrl('copper/arcanist/glimmer/glimmer.glb'),
+    {
+      initialX: 0, // 初始位置X
+      initialY: 0.75, // 初始位置Y(固定)
+      initialZ: 0, // 初始位置Z
+      initialScale: 1.5, // 初始缩放(固定)
+      lightIntensity: 5.0, // 光源强度
+      lightDistance: 10, // 光源距离
+      lightColor: '#ffffffff', // 光源颜色
+      lightPosX: 1, // 光源相对X位置
+      lightPosY: 0, // 光源相对Y位置
+      lightPosZ: 0, // 光源相对Z位置
+    }
+  );
 
   setModelConfig('spark', getAssetUrl('copper/arcanist/spark/spark.glb'), {
     initialX: 0, // 初始位置X
@@ -82,18 +86,22 @@ function initModel() {
     lightPosZ: 0, // 光源相对Z位置
   });
 
-  setModelConfig('artifex', getAssetUrl('copper/craftsman/artifex/artifex.glb'), {
-    initialX: 0, // 初始位置X
-    initialY: 0.75, // 初始位置Y(固定)
-    initialZ: 0, // 初始位置Z
-    initialScale: 1.5, // 初始缩放(固定)
-    lightIntensity: 5.0, // 光源强度
-    lightDistance: 10, // 光源距离
-    lightColor: '#ffffffff', // 光源颜色
-    lightPosX: 1, // 光源相对X位置
-    lightPosY: 0, // 光源相对Y位置
-    lightPosZ: 0, // 光源相对Z位置
-  });
+  setModelConfig(
+    'artifex',
+    getAssetUrl('copper/craftsman/artifex/artifex.glb'),
+    {
+      initialX: 0, // 初始位置X
+      initialY: 0.75, // 初始位置Y(固定)
+      initialZ: 0, // 初始位置Z
+      initialScale: 1.5, // 初始缩放(固定)
+      lightIntensity: 5.0, // 光源强度
+      lightDistance: 10, // 光源距离
+      lightColor: '#ffffffff', // 光源颜色
+      lightPosX: 1, // 光源相对X位置
+      lightPosY: 0, // 光源相对Y位置
+      lightPosZ: 0, // 光源相对Z位置
+    }
+  );
 
   setModelConfig('coil', getAssetUrl('copper/craftsman/coil/coil.glb'), {
     initialX: 0, // 初始位置X
@@ -246,18 +254,22 @@ function initModel() {
     lightPosZ: 0, // 光源相对Z位置
   });
 
-  setModelConfig('pendulum', getAssetUrl('copper/mechanic/pendulum/pendulum.glb'), {
-    initialX: 0, // 初始位置X
-    initialY: 0.75, // 初始位置Y(固定)
-    initialZ: 0, // 初始位置Z
-    initialScale: 1.5, // 初始缩放(固定)
-    lightIntensity: 5.0, // 光源强度
-    lightDistance: 10, // 光源距离
-    lightColor: '#ffffffff', // 光源颜色
-    lightPosX: 1, // 光源相对X位置
-    lightPosY: 0, // 光源相对Y位置
-    lightPosZ: 0, // 光源相对Z位置
-  });
+  setModelConfig(
+    'pendulum',
+    getAssetUrl('copper/mechanic/pendulum/pendulum.glb'),
+    {
+      initialX: 0, // 初始位置X
+      initialY: 0.75, // 初始位置Y(固定)
+      initialZ: 0, // 初始位置Z
+      initialScale: 1.5, // 初始缩放(固定)
+      lightIntensity: 5.0, // 光源强度
+      lightDistance: 10, // 光源距离
+      lightColor: '#ffffffff', // 光源颜色
+      lightPosX: 1, // 光源相对X位置
+      lightPosY: 0, // 光源相对Y位置
+      lightPosZ: 0, // 光源相对Z位置
+    }
+  );
 
   setModelConfig('tricky', getAssetUrl('copper/mechanic/tricky/tricky.glb'), {
     initialX: 0, // 初始位置X
@@ -536,7 +548,9 @@ function initModel() {
 
   setModelConfig(
     'heart_source_mineral_drill',
-    getAssetUrl('structure/heart_source_mineral_drill/heart_source_mineral_drill.glb'),
+    getAssetUrl(
+      'structure/heart_source_mineral_drill/heart_source_mineral_drill.glb'
+    ),
     {
       initialX: 0, // 初始位置X
       initialY: 0.75, // 初始位置Y(固定)
@@ -553,7 +567,9 @@ function initModel() {
 
   setModelConfig(
     'mirro_light_refraction_tower',
-    getAssetUrl('structure/mirro_light_refraction_tower/mirro_light_refraction_tower.glb'),
+    getAssetUrl(
+      'structure/mirro_light_refraction_tower/mirro_light_refraction_tower.glb'
+    ),
     {
       initialX: 0, // 初始位置X
       initialY: 0.75, // 初始位置Y(固定)

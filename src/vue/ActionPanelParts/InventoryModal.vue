@@ -42,7 +42,7 @@ const recipeItems = [
 
 // 丢弃音效
 const dropSoundRef = ref(null);
-const dropSoundUrl = import.meta.env.DEV 
+const dropSoundUrl = import.meta.env.DEV
   ? '/assets/drop.mp3'
   : getAssetUrl('assets/drop.mp3');
 
@@ -57,7 +57,7 @@ function handleCraft() {
 
 function handleDrop(index) {
   console.log(`[InventoryModal] 丢弃物品: index=${index}`);
-  
+
   // 播放丢弃音效
   if (dropSoundRef.value) {
     dropSoundRef.value.currentTime = 0;
@@ -65,7 +65,7 @@ function handleDrop(index) {
       console.log('[InventoryModal] 播放丢弃音效失败:', err);
     });
   }
-  
+
   emit('drop', index);
 }
 
@@ -214,11 +214,7 @@ function handleTransferTo(target) {
       </div>
     </div>
     <!-- 丢弃音效 -->
-    <audio
-      ref="dropSoundRef"
-      :src="dropSoundUrl"
-      preload="auto"
-    ></audio>
+    <audio ref="dropSoundRef" :src="dropSoundUrl" preload="auto"></audio>
   </div>
 </template>
 

@@ -30,7 +30,9 @@ const showButtons = ref(false);
 const showSettings = ref(false);
 const controlMode = ref('touchpad');
 // 背景图（用于预览效果）
-const startBg = ref(getAssetUrl('ui/Gemini_Generated_Image_gtrehogtrehogtre (1).png'));
+const startBg = ref(
+  getAssetUrl('ui/Gemini_Generated_Image_gtrehogtrehogtre (1).png')
+);
 
 // 对外事件（仅对外通知 started；设置改为本地弹层）
 const emit = defineEmits(['started']);
@@ -157,7 +159,7 @@ async function initScene(onProgress = null) {
     // 步骤3：从Cache Storage或网络加载Logo模型
     if (onProgress) onProgress(0, 100, 60);
     log('[StartMenu] 开始加载Logo模型...');
-    
+
     const logoModel = await modelCache.loadModel(logoUrl, true);
 
     // 步骤4：设置模型
@@ -259,7 +261,7 @@ function onCloseSettings() {
 function setControlMode(mode) {
   controlMode.value = mode;
   updateSetting('controlMode', mode);
-  
+
   // 通知 GameScene 更新控制模式
   if (window.updateControlMode) {
     window.updateControlMode(mode);
@@ -329,7 +331,7 @@ onBeforeUnmount(() => {
       class="startmenu__bg"
       :style="{ backgroundImage: `url('${startBg}')` }"
     />
-    
+
     <!-- 3D Canvas 层（透明背景，显示 Logo） -->
     <canvas ref="canvasRef" class="startmenu__canvas" />
 
@@ -371,7 +373,7 @@ onBeforeUnmount(() => {
           <div class="settings-local__row">
             <div class="setting-label">视角控制模式</div>
             <div class="setting-options">
-              <button 
+              <button
                 class="option-btn"
                 :class="{ active: controlMode === 'touchpad' }"
                 @click="setControlMode('touchpad')"
@@ -379,7 +381,7 @@ onBeforeUnmount(() => {
                 <span class="option-title">触控板模式</span>
                 <span class="option-desc">需要按住鼠标拖动</span>
               </button>
-              <button 
+              <button
                 class="option-btn"
                 :class="{ active: controlMode === 'mouse' }"
                 @click="setControlMode('mouse')"

@@ -23,25 +23,49 @@ pub let equipment_list : FixedArray[EquipmentBase] = [
     name: "不稳定的欢乐扳手",
     description: "工匠特斯拉的早期实验品之一。其内部嵌入了“情绪感应核心”，使用者的心情越愉悦，它的工作效率就越不稳定。实验日志上写着：“今天它帮我修好了三盏灯，但也让我的咖啡机跳了一整天的踢踏舞。",
     resource_url: "/assets/equipment/wrench.webp",
-    attribute: @attribute.Attribute::new(health=0, attack=5, defense=0, dodge=2),
+    attribute: @attribute.Attribute::new(
+      health=0,
+      speed=0,
+      attack=5,
+      defense=0,
+      dodge=2,
+    ),
   },
   {
     name: "锅盖君的绝对防御",
     description: "这并非制式装备，而是卫斯理在皇家厨房工作时获得的“馈赠”。在一次锅炉意外中，这口锅盖被注入了过量的“心源能量”，从此变得异常坚固。锅底还隐约可见一块焦黑的糖渍。",
     resource_url: "/assets/equipment/lid.webp",
-    attribute: @attribute.Attribute::new(health=0, attack=0, defense=5, dodge=2),
+    attribute: @attribute.Attribute::new(
+      health=0,
+      speed=0,
+      attack=0,
+      defense=5,
+      dodge=2,
+    ),
   },
   {
     name: "万用齿轮口袋",
     description: "小卯的随身百宝袋。她声称“没有一个问题是扔出一个合适的齿轮解决不了的”。袋子里似乎连接着一个微小的亚空间，总能摸出点意想不到的小玩意儿，当然，偶尔也会摸出午饭吃剩的螺丝螺母。",
     resource_url: "/assets/equipment/gear_pocket.webp",
-    attribute: @attribute.Attribute::new(health=0, attack=1, defense=1, dodge=1),
+    attribute: @attribute.Attribute::new(
+      health=0,
+      speed=0,
+      attack=1,
+      defense=1,
+      dodge=1,
+    ),
   },
   {
     name: "毛团的线团堡垒",
     description: "絮絮的移动家园。这些毛线来自王朝最柔软的“云羊”绒毛，并由她亲手混入导电铜丝编织而成。既提供了无与伦比的舒适感，也能在必要时释放静电，驱赶不怀好意的小型害虫。",
     resource_url: "/assets/equipment/line_fortress.webp",
-    attribute: @attribute.Attribute::new(health=0, attack=0, defense=3, dodge=5),
+    attribute: @attribute.Attribute::new(
+      health=0,
+      speed=0,
+      attack=0,
+      defense=3,
+      dodge=5,
+    ),
   },
   {
     name: "流光溢彩的棱镜",
@@ -49,6 +73,7 @@ pub let equipment_list : FixedArray[EquipmentBase] = [
     resource_url: "/assets/equipment/prism.webp",
     attribute: @attribute.Attribute::new(
       health=0,
+      speed=0,
       attack=10,
       defense=0,
       dodge=3,
@@ -60,6 +85,7 @@ pub let equipment_list : FixedArray[EquipmentBase] = [
     resource_url: "/assets/equipment/compass.webp",
     attribute: @attribute.Attribute::new(
       health=0,
+      speed=0,
       attack=8,
       defense=0,
       dodge=10,
@@ -71,6 +97,7 @@ pub let equipment_list : FixedArray[EquipmentBase] = [
     resource_url: "/assets/equipment/flute.webp",
     attribute: @attribute.Attribute::new(
       health=20,
+      speed=0,
       attack=0,
       defense=0,
       dodge=5,
@@ -80,7 +107,13 @@ pub let equipment_list : FixedArray[EquipmentBase] = [
     name: "书页的速记羽毛笔",
     description: "大书库配发给卷卷的辅助工具。它能自动记录周围的重要信息并归档。缺点是有点话痨，总爱在空白处添加大量无关紧要的脚注和个人评论。",
     resource_url: "/assets/equipment/quill_pen.webp",
-    attribute: @attribute.Attribute::new(health=0, attack=0, defense=0, dodge=0),
+    attribute: @attribute.Attribute::new(
+      health=0,
+      speed=0,
+      attack=0,
+      defense=0,
+      dodge=0,
+    ),
   },
   {
     name: "钟摆的时之碎片",
@@ -88,6 +121,7 @@ pub let equipment_list : FixedArray[EquipmentBase] = [
     resource_url: "/assets/equipment/fragment.webp",
     attribute: @attribute.Attribute::new(
       health=10,
+      speed=0,
       attack=0,
       defense=0,
       dodge=5,
@@ -99,6 +133,7 @@ pub let equipment_list : FixedArray[EquipmentBase] = [
     resource_url: "/assets/equipment/invitation.webp",
     attribute: @attribute.Attribute::new(
       health=0,
+      speed=0,
       attack=0,
       defense=0,
       dodge=20,

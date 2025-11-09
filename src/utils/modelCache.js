@@ -80,16 +80,16 @@ class ModelCacheManager {
         // 使用 Cache Storage API 加载模型文件
         const response = await loadResourceWithCache(url);
         const arrayBuffer = await response.arrayBuffer();
-        
+
         log(`[ModelCache] 解析GLTF模型: ${url}`);
-        
+
         // 使用 GLTFLoader.parse 解析 ArrayBuffer
         gltf = await new Promise((resolve, reject) => {
           this.gltfLoader.parse(
             arrayBuffer,
             '', // 基础路径
-            (parsed) => resolve(parsed),
-            (error) => reject(error)
+            parsed => resolve(parsed),
+            error => reject(error)
           );
         });
 

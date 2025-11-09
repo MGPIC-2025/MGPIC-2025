@@ -19,15 +19,34 @@ pub fn Copper::apply_upgrade(copper : Copper) -> Copper {
 
 ///|
 pub fn get_upgrade_effect(copper : Copper) -> @attribute.Attribute {
+  let speed = if copper.level == 3 { 1 } else { 0 }
   match copper.copper_type {
     IronWall =>
-      @attribute.Attribute::new(health=30, attack=5, defense=5, dodge=5)
+      @attribute.Attribute::new(health=30, speed~, attack=5, defense=5, dodge=5)
     Arcanist =>
-      @attribute.Attribute::new(health=15, attack=10, defense=2.5, dodge=2.5)
+      @attribute.Attribute::new(
+        health=15,
+        speed~,
+        attack=10,
+        defense=2.5,
+        dodge=2.5,
+      )
     Resonator =>
-      @attribute.Attribute::new(health=15, attack=2.5, defense=2.5, dodge=2.5)
+      @attribute.Attribute::new(
+        health=15,
+        speed~,
+        attack=2.5,
+        defense=2.5,
+        dodge=2.5,
+      )
     Mechanic | CraftsMan =>
-      @attribute.Attribute::new(health=15, attack=2.5, defense=2.5, dodge=2.5)
+      @attribute.Attribute::new(
+        health=15,
+        speed~,
+        attack=2.5,
+        defense=2.5,
+        dodge=2.5,
+      )
   }
 }
 

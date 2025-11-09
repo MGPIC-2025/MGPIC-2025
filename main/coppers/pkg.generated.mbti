@@ -12,8 +12,6 @@ let copper_info_list : FixedArray[CopperInfo]
 
 let copper_info_map : Map[String, CopperInfo]
 
-fn create_summoned_copper_from_enemy(String, String, String, String, String, Float, Float, Float, Float, Int) -> Copper
-
 fn get_default_attribute(CopperType) -> @attribute.Attribute
 
 fn get_upgrade_cost(Int) -> @resource.ResourceCost

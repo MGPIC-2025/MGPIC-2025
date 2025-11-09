@@ -1,6 +1,13 @@
 <script setup>
 import log from '../log.js';
-import { ref, onMounted, onBeforeUnmount, watch, defineExpose, nextTick } from 'vue';
+import {
+  ref,
+  onMounted,
+  onBeforeUnmount,
+  watch,
+  defineExpose,
+  nextTick,
+} from 'vue';
 import { getAssetUrl } from '../utils/resourceLoader.js';
 import { RESOURCE_META } from '../utils/resourceMeta.js';
 import DrawScreen from './DrawScreen.vue';
@@ -189,18 +196,24 @@ onMounted(() => {
   if (props.musicOn && audioRef.value) {
     const tryPlay = () => {
       if (audioRef.value.readyState >= 2) {
-        audioRef.value.play().then(() => {
-          log('[Warehouse] 音乐播放成功');
-        }).catch(err => {
-          log('[Warehouse] 自动播放失败（可能浏览器阻止）:', err);
-        });
+        audioRef.value
+          .play()
+          .then(() => {
+            log('[Warehouse] 音乐播放成功');
+          })
+          .catch(err => {
+            log('[Warehouse] 自动播放失败（可能浏览器阻止）:', err);
+          });
       } else {
         const onCanPlay = () => {
-          audioRef.value.play().then(() => {
-            log('[Warehouse] 音频加载完成，播放成功');
-          }).catch(err => {
-            log('[Warehouse] 播放失败:', err);
-          });
+          audioRef.value
+            .play()
+            .then(() => {
+              log('[Warehouse] 音频加载完成，播放成功');
+            })
+            .catch(err => {
+              log('[Warehouse] 播放失败:', err);
+            });
           audioRef.value.removeEventListener('canplay', onCanPlay);
         };
         audioRef.value.addEventListener('canplay', onCanPlay, { once: true });
@@ -211,27 +224,30 @@ onMounted(() => {
 });
 
 // 监听 musicOn 变化
-watch(() => props.musicOn, (newVal) => {
-  if (!audioRef.value) return;
-  
-  if (newVal) {
-    if (audioRef.value.readyState >= 2) {
-      audioRef.value.play().catch(err => {
-        log('[Warehouse] 播放音乐失败:', err);
-      });
-    } else {
-      const playWhenReady = () => {
+watch(
+  () => props.musicOn,
+  newVal => {
+    if (!audioRef.value) return;
+
+    if (newVal) {
+      if (audioRef.value.readyState >= 2) {
         audioRef.value.play().catch(err => {
           log('[Warehouse] 播放音乐失败:', err);
         });
-        audioRef.value.removeEventListener('canplay', playWhenReady);
-      };
-      audioRef.value.addEventListener('canplay', playWhenReady);
+      } else {
+        const playWhenReady = () => {
+          audioRef.value.play().catch(err => {
+            log('[Warehouse] 播放音乐失败:', err);
+          });
+          audioRef.value.removeEventListener('canplay', playWhenReady);
+        };
+        audioRef.value.addEventListener('canplay', playWhenReady);
+      }
+    } else {
+      audioRef.value.pause();
     }
-  } else {
-    audioRef.value.pause();
   }
-});
+);
 
 onBeforeUnmount(() => {
   // 停止音乐播放
@@ -397,7 +413,6 @@ async function upgradeSelected() {
   } catch (_) {}
 }
 
-
 // 背景图片路径（CSS border-image 需要 url() 包裹）
 const panel3Src = `url('/assets/panel3.png')`;
 const panel4Src = `url('/assets/panel4.png')`;
@@ -405,9 +420,9 @@ const panel5Src = `url('/assets/panel5.png')`;
 
 // 音乐播放相关
 const audioRef = ref(null);
-const musicUrl = import.meta.env.DEV 
-  ? '/assets/warehouse.mp3'  // 开发环境使用本地路径
-  : getAssetUrl('assets/warehouse.mp3');  // 生产环境使用 R2 CDN
+const musicUrl = import.meta.env.DEV
+  ? '/assets/warehouse.mp3' // 开发环境使用本地路径
+  : getAssetUrl('assets/warehouse.mp3'); // 生产环境使用 R2 CDN
 </script>
 
 <template>
@@ -571,9 +586,7 @@ const musicUrl = import.meta.env.DEV
                         alt="空槽"
                         class="equipment-icon"
                       />
-                      <span v-else class="equipment-icon">{{
-                        item.icon
-                      }}</span>
+                      <span v-else class="equipment-icon">{{ item.icon }}</span>
                     </div>
                   </div>
                 </div>
@@ -632,7 +645,11 @@ const musicUrl = import.meta.env.DEV
                 @click="upgradeSelected"
                 :disabled="selectedPuppet?.level >= 5"
               >
-                <img src="/assets/upgrade.png" class="upgrade-icon" alt="升级" />
+                <img
+                  src="/assets/upgrade.png"
+                  class="upgrade-icon"
+                  alt="升级"
+                />
               </button>
             </div>
           </div>
@@ -644,12 +661,7 @@ const musicUrl = import.meta.env.DEV
     </div>
 
     <DrawScreen v-if="showDrawScreen" @draw="onGachaResult" />
-    <audio
-      ref="audioRef"
-      :src="musicUrl"
-      loop
-      preload="auto"
-    ></audio>
+    <audio ref="audioRef" :src="musicUrl" loop preload="auto"></audio>
   </div>
 </template>
 

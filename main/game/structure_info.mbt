@@ -10,7 +10,13 @@ let structure_info_list : FixedArray[StructureBase] = [
     description: " 一段坚固的、由巨大黄铜板铆接而成的城墙，板上有蒸汽管道加固。墙头有齿轮驱动的可动挡板，墙体内嵌有发出稳定黄光的观察灯。",
     asset_url: "assets/structure/riveted_barrier/riveted_barrier.webp",
     model_url: "assets/structure/riveted_barrier/riveted_barrier.glb",
-    attribute: @attribute.Attribute::new(health=0, attack=0, defense=0, dodge=0),
+    attribute: @attribute.Attribute::new(
+      health=0,
+      speed=0,
+      attack=0,
+      defense=0,
+      dodge=0,
+    ),
     cost: @resource.ResourceCost::new([(@resource.RefinedCopper, 10)]),
   },
   {
@@ -25,6 +31,7 @@ let structure_info_list : FixedArray[StructureBase] = [
     model_url: "assets/structure/gear_arrow_tower/gear_arrow_tower.glb",
     attribute: @attribute.Attribute::new(
       health=0,
+      speed=0,
       attack=50,
       defense=0,
       dodge=0,
@@ -41,7 +48,13 @@ let structure_info_list : FixedArray[StructureBase] = [
     description: "一台顶部装有巨大钻头的大型钻井装置，由复杂的齿轮组和活塞驱动。钻头高速旋转，闪烁着蓝光，从地底带出发光的矿石。",
     asset_url: "assets/structure/heart_source_drill/heart_source_mineral_drill.webp",
     model_url: "assets/structure/heart_source_drill/heart_source_mineral_drill.glb",
-    attribute: @attribute.Attribute::new(health=0, attack=0, defense=0, dodge=0),
+    attribute: @attribute.Attribute::new(
+      health=0,
+      speed=0,
+      attack=0,
+      defense=0,
+      dodge=0,
+    ),
     cost: @resource.ResourceCost::new([
       (@resource.RefinedCopper, 15),
       (@resource.HeartCrystalDust, 5),
@@ -57,7 +70,13 @@ let structure_info_list : FixedArray[StructureBase] = [
     description: "一辆小巧但结实的黄铜矿车，车头有一个微型锅炉和烟囱，噗噗地喷着蒸汽。车厢用于装载矿石，通过预设的轨道自动往返于矿场和基地。",
     asset_url: "assets/structure/steam_mineral_car/steam_mineral_car.webp",
     model_url: "assets/structure/steam_mineral_car/steam_mineral_car.glb",
-    attribute: @attribute.Attribute::new(health=0, attack=0, defense=0, dodge=0),
+    attribute: @attribute.Attribute::new(
+      health=0,
+      speed=0,
+      attack=0,
+      defense=0,
+      dodge=0,
+    ),
     cost: @resource.ResourceCost::new([(@resource.RefinedCopper, 8)]),
   },
   {
@@ -70,7 +89,13 @@ let structure_info_list : FixedArray[StructureBase] = [
     description: "一个由巨大铜线圈缠绕而成的塔状建筑，线圈中央有电弧在不断跳跃。它能够为周围一定范围内的友方建筑提供能量，使其运作更快。",
     asset_url: "assets/structure/charging_coil/charging_coil.webp",
     model_url: "assets/structure/charging_coil/charging_coil.glb",
-    attribute: @attribute.Attribute::new(health=0, attack=0, defense=0, dodge=0),
+    attribute: @attribute.Attribute::new(
+      health=0,
+      speed=0,
+      attack=0,
+      defense=0,
+      dodge=0,
+    ),
     cost: @resource.ResourceCost::new([
       (@resource.RefinedCopper, 20),
       (@resource.ResonantCrystal, 3),
@@ -88,6 +113,7 @@ let structure_info_list : FixedArray[StructureBase] = [
     model_url: "assets/structure/repair_workshop/repair_workshop.glb",
     attribute: @attribute.Attribute::new(
       health=0,
+      speed=0,
       attack=30,
       defense=0,
       dodge=0,
@@ -109,6 +135,7 @@ let structure_info_list : FixedArray[StructureBase] = [
     model_url: "assets/structure/mirror_refractory_tower/mirror_light_refraction_tower.glb",
     attribute: @attribute.Attribute::new(
       health=0,
+      speed=0,
       attack=80,
       defense=0,
       dodge=0,
@@ -131,6 +158,7 @@ let structure_info_list : FixedArray[StructureBase] = [
     model_url: "assets/structure/resonance_alarm_bell/resonance_alarm_bell.glb",
     attribute: @attribute.Attribute::new(
       health=0,
+      speed=0,
       attack=150,
       defense=0,
       dodge=0,
@@ -152,6 +180,7 @@ let structure_info_list : FixedArray[StructureBase] = [
     model_url: "assets/structure/storm_iron_anvil/storm_anvil.glb",
     attribute: @attribute.Attribute::new(
       health=0,
+      speed=0,
       attack=200,
       defense=0,
       dodge=0,

@@ -66,4 +66,3 @@ export function updateSetting(key, value) {
 export function resetSettings() {
   return saveSettings({ ...DEFAULT_SETTINGS });
 }
-

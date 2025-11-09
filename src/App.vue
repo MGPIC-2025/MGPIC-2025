@@ -63,7 +63,6 @@ function onStartMenuStarted() {
     },
     5 * 60 * 1000
   ); // 5分钟
-  
 }
 
 function closeOverlay() {
@@ -79,7 +78,6 @@ function handleGameStart(params) {
   // 跳转到游戏场景
   showGameScene.value = true;
   log('[App] 已切换到游戏场景');
-  
 }
 
 function closeGameScene() {
@@ -106,7 +104,7 @@ function closeSettings() {
 function setControlMode(mode) {
   controlMode.value = mode;
   updateSetting('controlMode', mode);
-  
+
   // 通知 GameScene 更新控制模式
   if (window.updateControlMode) {
     window.updateControlMode(mode);
@@ -258,7 +256,9 @@ onBeforeUnmount(() => {
       />
       <Hall
         :music-on="musicOn"
-        :paused="overlay === 'start' || overlay === 'warehouse' || showGameScene"
+        :paused="
+          overlay === 'start' || overlay === 'warehouse' || showGameScene
+        "
         @startGame="openOverlay('start')"
         @openWarehouse="openOverlay('warehouse')"
         @openTutorial="openOverlay('tutorial')"
@@ -272,24 +272,21 @@ onBeforeUnmount(() => {
       >
         <template v-if="overlay === 'warehouse'">
           <div style="position: relative; width: 100%; height: 100%">
-            <TopLeftPanel 
+            <TopLeftPanel
               :music-on="musicOn"
-              @back="goBack" 
+              @back="goBack"
               @open-settings="openSettings"
               @toggle-music="onToggleMusic"
             />
-            <Warehouse 
-              ref="warehouseRef"
-              :music-on="musicOn"
-            />
+            <Warehouse ref="warehouseRef" :music-on="musicOn" />
           </div>
         </template>
         <template v-else-if="overlay === 'start'">
-          <StartGame 
+          <StartGame
             :music-on="musicOn"
             :paused="showGameScene"
-            @close="closeOverlay" 
-            @confirm="handleGameStart" 
+            @close="closeOverlay"
+            @confirm="handleGameStart"
           />
         </template>
         <template v-else>
@@ -352,7 +349,7 @@ onBeforeUnmount(() => {
           <div class="settings__section">
             <div class="settings__section-title">视角控制模式</div>
             <div class="settings__control-options">
-              <button 
+              <button
                 class="settings__control-btn"
                 :class="{ active: controlMode === 'touchpad' }"
                 @click="setControlMode('touchpad')"
@@ -360,7 +357,7 @@ onBeforeUnmount(() => {
                 <span class="control-title">触控板模式（推荐）</span>
                 <span class="control-desc">按住拖动视角</span>
               </button>
-              <button 
+              <button
                 class="settings__control-btn"
                 :class="{ active: controlMode === 'mouse' }"
                 @click="setControlMode('mouse')"

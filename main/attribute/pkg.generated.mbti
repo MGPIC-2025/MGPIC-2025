@@ -8,12 +8,13 @@ package "Lampese/MGPIC_2025/attribute"
 // Types and methods
 pub struct Attribute {
   health : Float
+  speed : Int
   attack : Float
   defense : Float
   dodge : Float
 }
 fn Attribute::merge(Self, Self) -> Self
-fn Attribute::new(health~ : Float, attack~ : Float, defense~ : Float, dodge~ : Float) -> Self
+fn Attribute::new(health~ : Float, speed~ : Int, attack~ : Float, defense~ : Float, dodge~ : Float) -> Self
 impl Eq for Attribute
 impl ToJson for Attribute
 

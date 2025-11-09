@@ -41,7 +41,6 @@ const redPanelBg = computed(() => `url('${getAssetUrl('ui/red.png')}')`);
 const bootImgSrc = computed(() => `url('${getAssetUrl('ui/boot.png')}')`);
 const greenPanelBg = computed(() => `url('${getAssetUrl('ui/green.png')}')`);
 
-
 // 三角操作面板已独立为组件 TriPanel
 
 // 面板状态：'full' = 完整显示, 'minimized' = 最小化到底部
@@ -160,7 +159,7 @@ async function handleBuild() {
     copperId: copperInfo.value.id,
     name: copperInfo.value.name,
   });
-  
+
   // 发送事件给父组件，让父组件来显示建造菜单
   emit('action', {
     type: 'buildRequest',
@@ -179,14 +178,14 @@ async function handleBuildConfirm(structureName) {
   log('[ActionPanel] 确认建造:', structureName);
   // 先关闭弹窗
   showBuildModal.value = false;
-  
+
   // 请求建造范围（通知后端选择的建筑类型，显示黄色方块）
   const startMessage = JSON.stringify({
     type: 'on_structure_build_start',
     content: { id: String(copperInfo.value.id), name: structureName },
   });
   await eventloop(startMessage);
-  
+
   // 最小化面板，进入建造模式
   panelMode.value = 'minimized';
   actionMode.value = 'building';

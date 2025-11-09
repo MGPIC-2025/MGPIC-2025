@@ -1,6 +1,7 @@
 ///|
 pub struct Attribute {
   health : Float
+  speed : Int
   attack : Float
   defense : Float
   dodge : Float
@@ -9,11 +10,12 @@ pub struct Attribute {
 ///|
 pub fn Attribute::new(
   health~ : Float,
+  speed~ : Int,
   attack~ : Float,
   defense~ : Float,
   dodge~ : Float,
 ) -> Attribute {
-  { health, attack, defense, dodge }
+  { health, speed, attack, defense, dodge }
 }
 
 ///|
@@ -23,6 +25,7 @@ pub fn Attribute::merge(
 ) -> Attribute {
   {
     health: attribute.health + attribute_to_merge.health,
+    speed: attribute.speed + attribute_to_merge.speed,
     attack: attribute.attack + attribute_to_merge.attack,
     defense: attribute.defense + attribute_to_merge.defense,
     dodge: attribute.dodge + attribute_to_merge.dodge,

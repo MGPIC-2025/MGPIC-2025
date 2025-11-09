@@ -42,9 +42,9 @@ const emit = defineEmits(['back']);
 // 音乐播放相关
 const audioRef = ref(null);
 // 音乐文件路径：优先使用本地 assets 文件夹，如果不存在则使用 R2 CDN
-const musicUrl = import.meta.env.DEV 
-  ? '/assets/gamescene.mp3'  // 开发环境使用本地路径
-  : getAssetUrl('assets/gamescene.mp3');  // 生产环境使用 R2 CDN
+const musicUrl = import.meta.env.DEV
+  ? '/assets/gamescene.mp3' // 开发环境使用本地路径
+  : getAssetUrl('assets/gamescene.mp3'); // 生产环境使用 R2 CDN
 
 // 音效播放相关
 const moveSoundRef = ref(null);
@@ -53,22 +53,22 @@ const attackSoundRef = ref(null);
 const attackEnemySoundRef = ref(null);
 const meHurtSoundRef = ref(null);
 const enemyHurtSoundRef = ref(null);
-const moveSoundUrl = import.meta.env.DEV 
+const moveSoundUrl = import.meta.env.DEV
   ? '/assets/move.mp3'
   : getAssetUrl('assets/move.mp3');
-const moveEnemySoundUrl = import.meta.env.DEV 
+const moveEnemySoundUrl = import.meta.env.DEV
   ? '/assets/move_enemy.mp3'
   : getAssetUrl('assets/move_enemy.mp3');
-const attackSoundUrl = import.meta.env.DEV 
+const attackSoundUrl = import.meta.env.DEV
   ? '/assets/attack.mp3'
   : getAssetUrl('assets/attack.mp3');
-const attackEnemySoundUrl = import.meta.env.DEV 
+const attackEnemySoundUrl = import.meta.env.DEV
   ? '/assets/attack_enemy.mp3'
   : getAssetUrl('assets/attack_enemy.mp3');
-const meHurtSoundUrl = import.meta.env.DEV 
+const meHurtSoundUrl = import.meta.env.DEV
   ? '/assets/me_hurt.mp3'
   : getAssetUrl('assets/me_hurt.mp3');
-const enemyHurtSoundUrl = import.meta.env.DEV 
+const enemyHurtSoundUrl = import.meta.env.DEV
   ? '/assets/enemy_hurt.mp3'
   : getAssetUrl('assets/enemy_hurt.mp3');
 
@@ -122,13 +122,13 @@ const controlMode = ref(getSetting('controlMode') || 'touchpad');
 const mouseSensitivity = ref(getSetting('mouseSensitivity') || 0.002);
 
 // 更新控制模式（供设置面板调用）
-window.updateControlMode = (mode) => {
+window.updateControlMode = mode => {
   controlMode.value = mode;
   log(`[GameScene] 切换控制模式: ${mode}`);
 };
 
 // 更新鼠标灵敏度（供设置面板调用）
-window.updateMouseSensitivity = (sensitivity) => {
+window.updateMouseSensitivity = sensitivity => {
   mouseSensitivity.value = sensitivity;
 };
 
@@ -172,12 +172,12 @@ let isPointerLocked = false; // 是否已锁定鼠标
 function handleMouseDown(event) {
   // 右键或中键不响应
   if (event.button !== 0) return;
-  
+
   // 鼠标模式：点击时请求锁定鼠标
   if (controlMode.value === 'mouse' && container.value) {
     container.value.requestPointerLock();
   }
-  
+
   isMouseDown = true;
   lastMouseX = event.clientX;
   lastMouseY = event.clientY;
@@ -191,7 +191,7 @@ function handleMouseMove(event) {
   // 触控板模式：需要按住鼠标才能旋转
   if (controlMode.value === 'touchpad') {
     if (!isMouseDown) return;
-    
+
     const deltaX = event.clientX - lastMouseX;
     const deltaY = event.clientY - lastMouseY;
 
@@ -201,7 +201,7 @@ function handleMouseMove(event) {
 
     lastMouseX = event.clientX;
     lastMouseY = event.clientY;
-  } 
+  }
   // 鼠标模式：使用 Pointer Lock 的 movementX/Y
   else if (controlMode.value === 'mouse' && isPointerLocked) {
     const deltaX = event.movementX || 0;
@@ -280,7 +280,7 @@ onMounted(async () => {
   if (messageQueue.sceneContext?.setTestMode) {
     messageQueue.sceneContext.setTestMode('eventloop');
   }
-  
+
   // 场景准备完成后，发送游戏开始消息
   if (window.__ACTUAL_COPPER_IDS__) {
     const ids = window.__ACTUAL_COPPER_IDS__;
@@ -299,7 +299,7 @@ onMounted(async () => {
   window.addEventListener('mousedown', handleMouseDown);
   window.addEventListener('mouseup', handleMouseUp);
   window.addEventListener('mousemove', handleMouseMove);
-  
+
   // Pointer Lock 事件监听
   document.addEventListener('pointerlockchange', handlePointerLockChange);
   document.addEventListener('pointerlockerror', handlePointerLockError);
@@ -336,51 +336,60 @@ onMounted(async () => {
   if (props.musicOn && audioRef.value) {
     const tryPlay = () => {
       if (audioRef.value.readyState >= 2) {
-        audioRef.value.play().then(() => {
-          log('[GameScene] 音乐播放成功');
-        }).catch(err => {
-          log('[GameScene] 自动播放失败（可能浏览器阻止）:', err);
-        });
+        audioRef.value
+          .play()
+          .then(() => {
+            log('[GameScene] 音乐播放成功');
+          })
+          .catch(err => {
+            log('[GameScene] 自动播放失败（可能浏览器阻止）:', err);
+          });
       } else {
         const onCanPlay = () => {
-          audioRef.value.play().then(() => {
-            log('[GameScene] 音频加载完成，播放成功');
-          }).catch(err => {
-            log('[GameScene] 播放失败:', err);
-          });
+          audioRef.value
+            .play()
+            .then(() => {
+              log('[GameScene] 音频加载完成，播放成功');
+            })
+            .catch(err => {
+              log('[GameScene] 播放失败:', err);
+            });
           audioRef.value.removeEventListener('canplay', onCanPlay);
         };
         audioRef.value.addEventListener('canplay', onCanPlay, { once: true });
       }
     };
-    
+
     // 延迟一下确保音频元素已挂载
     setTimeout(tryPlay, 200);
   }
 });
 
 // 监听 musicOn 变化
-watch(() => props.musicOn, (newVal) => {
-  if (!audioRef.value) return;
-  
-  if (newVal) {
-    if (audioRef.value.readyState >= 2) {
-      audioRef.value.play().catch(err => {
-        log('[GameScene] 播放音乐失败:', err);
-      });
-    } else {
-      const playWhenReady = () => {
+watch(
+  () => props.musicOn,
+  newVal => {
+    if (!audioRef.value) return;
+
+    if (newVal) {
+      if (audioRef.value.readyState >= 2) {
         audioRef.value.play().catch(err => {
           log('[GameScene] 播放音乐失败:', err);
         });
-        audioRef.value.removeEventListener('canplay', playWhenReady);
-      };
-      audioRef.value.addEventListener('canplay', playWhenReady);
+      } else {
+        const playWhenReady = () => {
+          audioRef.value.play().catch(err => {
+            log('[GameScene] 播放音乐失败:', err);
+          });
+          audioRef.value.removeEventListener('canplay', playWhenReady);
+        };
+        audioRef.value.addEventListener('canplay', playWhenReady);
+      }
+    } else {
+      audioRef.value.pause();
     }
-  } else {
-    audioRef.value.pause();
   }
-});
+);
 
 onBeforeUnmount(() => {
   window.removeEventListener('resize', onWindowResize);
@@ -392,11 +401,11 @@ onBeforeUnmount(() => {
   window.removeEventListener('mousedown', handleMouseDown);
   window.removeEventListener('mouseup', handleMouseUp);
   window.removeEventListener('mousemove', handleMouseMove);
-  
+
   // 移除 Pointer Lock 监听器
   document.removeEventListener('pointerlockchange', handlePointerLockChange);
   document.removeEventListener('pointerlockerror', handlePointerLockError);
-  
+
   // 释放鼠标锁定
   if (document.pointerLockElement) {
     document.exitPointerLock();
@@ -465,9 +474,9 @@ function initScene() {
 
   // 创建测试用的立方体（用于后端测试，ID=1和2）
   createTestUnits();
-    log('[GameScene] 场景初始化完成');
-    log('[GameScene] - 蓝/红立方体(ID=1,2)用于"后端测试"');
-    log('[GameScene] - EventLoop测试会动态创建新模型');
+  log('[GameScene] 场景初始化完成');
+  log('[GameScene] - 蓝/红立方体(ID=1,2)用于"后端测试"');
+  log('[GameScene] - EventLoop测试会动态创建新模型');
 
   // 窗口大小变化
   window.addEventListener('resize', onWindowResize);
@@ -785,7 +794,7 @@ function setupMessageQueue() {
 
       scene.add(container);
       healthBars.set(unitId, { container, background, foreground });
-      
+
       // 初始化血量记录（用于检测受伤）
       if (!previousHealth.has(unitId)) {
         previousHealth.set(unitId, nowHealth);
@@ -1092,7 +1101,7 @@ function setupMessageQueue() {
         log('[GameScene] 建筑移动完成，刷新建筑状态');
         // 重置状态
         currentActionMode.value = null;
-        
+
         // 重新点击建筑刷新状态
         setTimeout(async () => {
           await handleClickStructure(id);
@@ -1213,7 +1222,7 @@ function setupMessageQueue() {
         log('[GameScene] 建筑攻击完成，刷新建筑状态');
         // 重置状态
         currentActionMode.value = null;
-        
+
         // 重新点击建筑刷新状态
         setTimeout(async () => {
           await handleClickStructure(id);
@@ -1712,11 +1721,20 @@ function setupMessageQueue() {
       });
 
       log(`[GameScene] 建筑创建成功: ${structureName}`);
-      
+
       // 创建建筑血条（如果有血量信息）
-      if (structure.now_health !== undefined && structure.structure_base?.health) {
-        createOrUpdateHealthBar(id, structure.now_health, structure.structure_base.health);
-        log(`[GameScene] 创建建筑血条: ${structureName} (${structure.now_health}/${structure.structure_base.health})`);
+      if (
+        structure.now_health !== undefined &&
+        structure.structure_base?.health
+      ) {
+        createOrUpdateHealthBar(
+          id,
+          structure.now_health,
+          structure.structure_base.health
+        );
+        log(
+          `[GameScene] 创建建筑血条: ${structureName} (${structure.now_health}/${structure.structure_base.health})`
+        );
       }
     },
     onPutResourceMarker: position => {
@@ -1870,7 +1888,7 @@ function setupMessageQueue() {
     },
     onUpdateHealth: (unitId, nowHealth, maxHealth) => {
       log(`[GameScene] 更新血量: id=${unitId}, hp=${nowHealth}/${maxHealth}`);
-      
+
       // 检测是否受伤（血量减少且不是死亡）
       const prevHealth = previousHealth.get(unitId);
       if (prevHealth !== undefined && nowHealth < prevHealth && nowHealth > 0) {
@@ -1878,21 +1896,28 @@ function setupMessageQueue() {
         const model = models.find(m => m.id === unitId);
         if (model) {
           const isCopper = model.type === 'copper';
-          const soundRef = isCopper ? meHurtSoundRef.value : enemyHurtSoundRef.value;
+          const soundRef = isCopper
+            ? meHurtSoundRef.value
+            : enemyHurtSoundRef.value;
           if (soundRef) {
             // 重置播放位置并播放
             soundRef.currentTime = 0;
             soundRef.play().catch(err => {
-              log(`[GameScene] 播放受击音效失败 (${isCopper ? '铜偶' : '敌人'}):`, err);
+              log(
+                `[GameScene] 播放受击音效失败 (${isCopper ? '铜偶' : '敌人'}):`,
+                err
+              );
             });
-            log(`[GameScene] 播放受击音效: ${isCopper ? '铜偶' : '敌人'} (ID=${unitId})`);
+            log(
+              `[GameScene] 播放受击音效: ${isCopper ? '铜偶' : '敌人'} (ID=${unitId})`
+            );
           }
         }
       }
-      
+
       // 保存当前血量作为下一帧的上一帧血量
       previousHealth.set(unitId, nowHealth);
-      
+
       createOrUpdateHealthBar(unitId, nowHealth, maxHealth);
     },
     onRemoveHealthBar: unitId => {
@@ -1938,7 +1963,10 @@ function setupMessageQueue() {
         // 重置播放位置并播放
         soundRef.currentTime = 0;
         soundRef.play().catch(err => {
-          log(`[GameScene] 播放移动音效失败 (${isEnemy ? '敌人' : '铜偶'}):`, err);
+          log(
+            `[GameScene] 播放移动音效失败 (${isEnemy ? '敌人' : '铜偶'}):`,
+            err
+          );
         });
       }
 
@@ -2128,7 +2156,10 @@ function onSceneClick(event) {
   const clickableObjects = models
     .filter(
       m =>
-        (m.type === 'copper' || m.type === 'summon' || m.type === 'enemy' || m.type === 'structure') &&
+        (m.type === 'copper' ||
+          m.type === 'summon' ||
+          m.type === 'enemy' ||
+          m.type === 'structure') &&
         m.object
     )
     .map(m => m.object);
@@ -2192,7 +2223,7 @@ async function handleFloorClick(mousePos) {
     // 检查点击的位置是否在允许的范围内（有黄色方块标记）
     const key = `${gridX},${gridZ}`;
     const block = floorBlocks.get(key);
-    
+
     if (!block) {
       log(`[GameScene] 点击位置 (${gridX}, ${gridZ}) 不在允许范围内，忽略`);
       return;
@@ -2211,7 +2242,9 @@ async function handleFloorClick(mousePos) {
     }[currentActionMode.value];
 
     if (block.userData.type !== expectedType) {
-      log(`[GameScene] 地板块类型不匹配: expected=${expectedType}, actual=${block.userData.type}`);
+      log(
+        `[GameScene] 地板块类型不匹配: expected=${expectedType}, actual=${block.userData.type}`
+      );
       return;
     }
 
@@ -2281,7 +2314,10 @@ async function handleAttackApply(x, z) {
     if (soundRef) {
       soundRef.currentTime = 0;
       soundRef.play().catch(err => {
-        log(`[GameScene] 播放攻击音效失败 (${isEnemy ? '敌人' : '铜偶'}):`, err);
+        log(
+          `[GameScene] 播放攻击音效失败 (${isEnemy ? '敌人' : '铜偶'}):`,
+          err
+        );
       });
     }
 
@@ -2329,9 +2365,7 @@ async function handleSummonApply(x, z) {
 async function handleBuildApply(x, z) {
   if (!selectedCopper.value || !currentBuildingName.value) return;
 
-  log(
-    `[GameScene] 请求建造 ${currentBuildingName.value} 到位置: (${x}, ${z})`
-  );
+  log(`[GameScene] 请求建造 ${currentBuildingName.value} 到位置: (${x}, ${z})`);
 
   const message = JSON.stringify({
     type: 'on_structure_build_apply',
@@ -2346,7 +2380,7 @@ async function handleBuildApply(x, z) {
   // 建造完成，清除建造模式（后端会自动清理黄色方块）
   currentActionMode.value = null;
   currentBuildingName.value = null;
-  
+
   // 重置 ActionPanel 的状态
   if (copperActionPanelRef.value) {
     copperActionPanelRef.value.cancelAction();
@@ -2412,7 +2446,7 @@ function handleCloseSummonModal() {
 // 处理建筑面板取消操作
 function handleStructurePanelCancel() {
   log('[GameScene] 建筑面板取消操作');
-  
+
   if (currentActionMode.value === 'structureMoving') {
     const message = JSON.stringify({ type: 'on_structure_move_end' });
     eventloop(message).catch(e => {
@@ -2434,7 +2468,7 @@ function handleStructurePanelCancel() {
       log('[GameScene] 清除建筑传递范围失败', e);
     });
   }
-  
+
   currentActionMode.value = null;
 }
 
@@ -2442,7 +2476,7 @@ function handleStructurePanelCancel() {
 function closeStructurePanel() {
   // 如果正在进行建筑的 extract/transfer 操作，需要清理
   handleStructurePanelCancel();
-  
+
   selectedStructure.value = null;
   selectedStructureData.value = null;
   log('[GameScene] 关闭建筑面板');
@@ -2480,13 +2514,13 @@ async function handleStructureAction(action) {
 // 建筑开始移动
 async function handleStructureMoveStart(structureId) {
   log(`[GameScene] 建筑 ${structureId} 开始移动`);
-  
+
   const message = JSON.stringify({
     type: 'on_structure_move_start',
     content: { id: String(structureId) },
   });
   await eventloop(message);
-  
+
   // 进入移动模式
   currentActionMode.value = 'structureMoving';
 }
@@ -2494,13 +2528,13 @@ async function handleStructureMoveStart(structureId) {
 // 建筑开始攻击
 async function handleStructureAttackStart(structureId) {
   log(`[GameScene] 建筑 ${structureId} 开始攻击`);
-  
+
   const message = JSON.stringify({
     type: 'on_structure_attack_start',
     content: { id: String(structureId) },
   });
   await eventloop(message);
-  
+
   // 进入攻击模式
   currentActionMode.value = 'structureAttacking';
 }
@@ -2508,13 +2542,13 @@ async function handleStructureAttackStart(structureId) {
 // 建筑开始提取物品
 async function handleStructureExtractStart(structureId) {
   log(`[GameScene] 建筑 ${structureId} 开始提取物品`);
-  
+
   const message = JSON.stringify({
     type: 'on_structure_extract_start',
     content: { id: String(structureId) },
   });
   await eventloop(message);
-  
+
   // 进入提取模式
   currentActionMode.value = 'structureExtract';
 }
@@ -2522,13 +2556,13 @@ async function handleStructureExtractStart(structureId) {
 // 建筑开始传递物品
 async function handleStructureTransferStart(structureId) {
   log(`[GameScene] 建筑 ${structureId} 开始传递物品`);
-  
+
   const message = JSON.stringify({
     type: 'on_structure_transfer_start',
     content: { id: String(structureId) },
   });
   await eventloop(message);
-  
+
   // 进入传递模式
   currentActionMode.value = 'structureTransfer';
 }
@@ -2536,9 +2570,9 @@ async function handleStructureTransferStart(structureId) {
 // 建筑应用移动
 async function handleStructureMoveApply(x, z) {
   if (!selectedStructure.value) return;
-  
+
   log(`[GameScene] 建筑 ${selectedStructure.value.id} 移动到 (${x}, ${z})`);
-  
+
   const message = JSON.stringify({
     type: 'on_structure_move_apply',
     content: {
@@ -2547,7 +2581,7 @@ async function handleStructureMoveApply(x, z) {
     },
   });
   await eventloop(message);
-  
+
   // 移动完成，清除模式
   currentActionMode.value = null;
 }
@@ -2555,9 +2589,9 @@ async function handleStructureMoveApply(x, z) {
 // 建筑应用攻击
 async function handleStructureAttackApply(x, z) {
   if (!selectedStructure.value) return;
-  
+
   log(`[GameScene] 建筑 ${selectedStructure.value.id} 攻击 (${x}, ${z})`);
-  
+
   const message = JSON.stringify({
     type: 'on_structure_attack_apply',
     content: {
@@ -2566,7 +2600,7 @@ async function handleStructureAttackApply(x, z) {
     },
   });
   await eventloop(message);
-  
+
   // 攻击完成，清除模式
   currentActionMode.value = null;
 }
@@ -2574,11 +2608,13 @@ async function handleStructureAttackApply(x, z) {
 // 建筑应用提取物品
 async function handleStructureExtractApply(x, z) {
   if (!selectedStructure.value) return;
-  
-  log(`[GameScene] 建筑 ${selectedStructure.value.id} 从 (${x}, ${z}) 提取物品`);
-  
+
+  log(
+    `[GameScene] 建筑 ${selectedStructure.value.id} 从 (${x}, ${z}) 提取物品`
+  );
+
   const structureId = selectedStructure.value.id;
-  
+
   const message = JSON.stringify({
     type: 'on_structure_extract_apply',
     content: {
@@ -2587,19 +2623,19 @@ async function handleStructureExtractApply(x, z) {
     },
   });
   await eventloop(message);
-  
+
   // 清除红色圈
   log('[GameScene] 发送提取结束消息，清除红色圈');
   const endMessage = JSON.stringify({ type: 'on_structure_extract_end' });
   await eventloop(endMessage);
-  
+
   // 等待消息处理
   await new Promise(resolve => setTimeout(resolve, 100));
   log('[GameScene] 提取完成，准备刷新建筑状态');
-  
+
   // 提取完成，清除模式
   currentActionMode.value = null;
-  
+
   // 重新点击建筑刷新状态（延迟以确保后端状态已更新）
   setTimeout(async () => {
     log('[GameScene] 重新点击建筑刷新状态');
@@ -2610,11 +2646,13 @@ async function handleStructureExtractApply(x, z) {
 // 建筑应用传递物品
 async function handleStructureTransferApply(x, z) {
   if (!selectedStructure.value) return;
-  
-  log(`[GameScene] 建筑 ${selectedStructure.value.id} 向 (${x}, ${z}) 传递物品`);
-  
+
+  log(
+    `[GameScene] 建筑 ${selectedStructure.value.id} 向 (${x}, ${z}) 传递物品`
+  );
+
   const structureId = selectedStructure.value.id;
-  
+
   const message = JSON.stringify({
     type: 'on_structure_transfer_apply',
     content: {
@@ -2623,19 +2661,19 @@ async function handleStructureTransferApply(x, z) {
     },
   });
   await eventloop(message);
-  
+
   // 清除红色圈
   log('[GameScene] 发送传递结束消息，清除红色圈');
   const endMessage = JSON.stringify({ type: 'on_structure_transfer_end' });
   await eventloop(endMessage);
-  
+
   // 等待消息处理
   await new Promise(resolve => setTimeout(resolve, 100));
   log('[GameScene] 传递完成，准备刷新建筑状态');
-  
+
   // 传递完成，清除模式
   currentActionMode.value = null;
-  
+
   // 重新点击建筑刷新状态（延迟以确保后端状态已更新）
   setTimeout(async () => {
     log('[GameScene] 重新点击建筑刷新状态');
@@ -2664,10 +2702,10 @@ async function handleClickCopper(copperId) {
 // 处理点击建筑
 async function handleClickStructure(structureId) {
   log(`[GameScene] 点击建筑: ID=${structureId}`);
-  
+
   // 关闭铜偶面板
   selectedCopper.value = null;
-  
+
   // 发送点击建筑消息到后端
   const message = JSON.stringify({
     type: 'on_click_structure',
@@ -2959,11 +2997,15 @@ function endRound() {
       :structure="selectedStructure"
       :resources="selectedStructureData?.resources || []"
       :action-mode="
-        currentActionMode === 'structureMoving' ? 'move' :
-        currentActionMode === 'structureAttacking' ? 'attack' :
-        currentActionMode === 'structureExtract' ? 'extract' :
-        currentActionMode === 'structureTransfer' ? 'transfer' :
-        null
+        currentActionMode === 'structureMoving'
+          ? 'move'
+          : currentActionMode === 'structureAttacking'
+            ? 'attack'
+            : currentActionMode === 'structureExtract'
+              ? 'extract'
+              : currentActionMode === 'structureTransfer'
+                ? 'transfer'
+                : null
       "
       @close="closeStructurePanel"
       @action="handleStructureAction"
@@ -3005,40 +3047,23 @@ function endRound() {
         </p>
       </div>
     </div>
-    <audio
-      ref="audioRef"
-      :src="musicUrl"
-      loop
-      preload="auto"
-    ></audio>
+    <audio ref="audioRef" :src="musicUrl" loop preload="auto"></audio>
     <!-- 移动音效 -->
-    <audio
-      ref="moveSoundRef"
-      :src="moveSoundUrl"
-      preload="auto"
-    ></audio>
+    <audio ref="moveSoundRef" :src="moveSoundUrl" preload="auto"></audio>
     <audio
       ref="moveEnemySoundRef"
       :src="moveEnemySoundUrl"
       preload="auto"
     ></audio>
     <!-- 攻击音效 -->
-    <audio
-      ref="attackSoundRef"
-      :src="attackSoundUrl"
-      preload="auto"
-    ></audio>
+    <audio ref="attackSoundRef" :src="attackSoundUrl" preload="auto"></audio>
     <audio
       ref="attackEnemySoundRef"
       :src="attackEnemySoundUrl"
       preload="auto"
     ></audio>
     <!-- 受击音效 -->
-    <audio
-      ref="meHurtSoundRef"
-      :src="meHurtSoundUrl"
-      preload="auto"
-    ></audio>
+    <audio ref="meHurtSoundRef" :src="meHurtSoundUrl" preload="auto"></audio>
     <audio
       ref="enemyHurtSoundRef"
       :src="enemyHurtSoundUrl"
