@@ -28,6 +28,7 @@ let baseScale = 1.2;
 const isReady = ref(false);
 const showButtons = ref(false);
 const showSettings = ref(false);
+const controlMode = ref('touchpad');
 // 背景图（用于预览效果）
 const startBg = ref(getAssetUrl('ui/Gemini_Generated_Image_gtrehogtrehogtre (1).png'));
 
@@ -246,10 +247,24 @@ function onStart() {
 }
 
 function onOpenSettings() {
+  // 打开设置时，加载当前设置
+  const settings = getSettings();
+  controlMode.value = settings.controlMode;
   showSettings.value = true;
 }
 function onCloseSettings() {
   showSettings.value = false;
+}
+
+function setControlMode(mode) {
+  controlMode.value = mode;
+  updateSetting('controlMode', mode);
+  
+  // 通知 GameScene 更新控制模式
+  if (window.updateControlMode) {
+    window.updateControlMode(mode);
+  }
+  log(`[StartMenu] 设置控制模式: ${mode}`);
 }
 
 onMounted(() => {
@@ -354,7 +369,25 @@ onBeforeUnmount(() => {
         </div>
         <div class="settings-local__content">
           <div class="settings-local__row">
-            此处放置开始界面相关设置（占位）。
+            <div class="setting-label">视角控制模式</div>
+            <div class="setting-options">
+              <button 
+                class="option-btn"
+                :class="{ active: controlMode === 'touchpad' }"
+                @click="setControlMode('touchpad')"
+              >
+                <span class="option-title">触控板模式</span>
+                <span class="option-desc">需要按住鼠标拖动</span>
+              </button>
+              <button 
+                class="option-btn"
+                :class="{ active: controlMode === 'mouse' }"
+                @click="setControlMode('mouse')"
+              >
+                <span class="option-title">鼠标模式</span>
+                <span class="option-desc">直接移动鼠标转动视角</span>
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -467,50 +500,123 @@ onBeforeUnmount(() => {
 .settings-local {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.35);
+  background: rgba(0, 0, 0, 0.7);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 4; /* 在所有内容之上 */
+  backdrop-filter: blur(4px);
 }
 .settings-local__card {
   width: min(90vw, 520px);
-  background: #2b1a11;
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
   color: #fff;
-  border-radius: 14px;
-  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.35);
-  overflow: hidden;
+  border-radius: 16px;
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+  animation: slideIn 0.3s ease-out;
 }
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 .settings-local__header {
-  height: 56px;
-  background: #1f130c;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 14px 0 18px;
+  padding: 24px 28px;
+  border-bottom: 2px solid rgba(255, 255, 255, 0.1);
 }
 .settings-local__title {
-  font-size: 22px;
-  font-weight: 900;
+  font-size: 24px;
+  font-weight: 600;
+  margin: 0;
 }
 .settings-local__close {
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.12);
-  border: 0;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
   color: #fff;
+  font-size: 28px;
   cursor: pointer;
+  border-radius: 8px;
+  transition: all 0.2s;
 }
 .settings-local__close:hover {
-  background: rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.1);
+  transform: rotate(90deg);
 }
 .settings-local__content {
-  padding: 16px;
+  padding: 28px;
 }
 .settings-local__row {
-  padding: 12px;
-  background: #3a2519;
+  margin-bottom: 0;
+}
+
+.setting-label {
+  display: block;
+  font-size: 16px;
+  font-weight: 500;
+  color: #fff;
+  margin-bottom: 12px;
+}
+
+.setting-options {
+  display: flex;
+  gap: 12px;
+}
+
+.option-btn {
+  flex: 1;
+  padding: 16px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 2px solid rgba(255, 255, 255, 0.1);
   border-radius: 12px;
+  color: #fff;
+  font-size: 15px;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.option-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.3);
+  transform: translateY(-2px);
+}
+
+.option-btn.active {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-color: #667eea;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+.option-title {
+  font-weight: 600;
+}
+
+.option-desc {
+  font-size: 12px;
+  opacity: 0.7;
+  text-align: center;
+}
+
+.option-btn.active .option-desc {
+  opacity: 0.9;
 }
 </style>

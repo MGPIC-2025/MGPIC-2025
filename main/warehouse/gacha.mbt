@@ -22,7 +22,7 @@ fn summon_copper() -> @coppers.Copper {
 
 ///|
 pub fn gacha(global : @global_resource.GlobalResource) -> @coppers.Copper? {
-  if global.get_resource(@resource.SpiritalSpark) > 10 {
+  if global.get_resource(@resource.SpiritalSpark) >= 10 {
     global.consume_resource(@resource.SpiritalSpark, 10)
     let copper = summon_copper()
     Some(copper)

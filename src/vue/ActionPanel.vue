@@ -78,6 +78,7 @@ const copperInfo = computed(() => {
     canSummon: props.copper.can_summon,
     position: props.copper.position,
     inventoryCapacity: props.copper.inventory?.capacity || 0,
+    copperType: props.copper.copper?.copper_type || '',
   };
 });
 
@@ -495,7 +496,7 @@ defineExpose({ cancelAction, handleSelectCopper, showBuildMenu });
       :can-move="copperInfo?.canMove !== false"
       :can-attack="copperInfo?.canAttack !== false"
       :can-summon="copperInfo?.canSummon !== false"
-      :can-build="true"
+      :can-build="copperInfo?.copperType === 'CraftsMan'"
       @move="handleMove"
       @wait="handleWait"
       @attack="handleAttack"
