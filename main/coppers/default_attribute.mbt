@@ -12,7 +12,7 @@ pub fn get_default_attribute(copper_type : CopperType) -> @attribute.Attribute {
     Arcanist =>
       @attribute.Attribute::new(
         health=50,
-        speed=2,
+        speed=3,
         attack=20,
         defense=5,
         dodge=10,
@@ -20,7 +20,7 @@ pub fn get_default_attribute(copper_type : CopperType) -> @attribute.Attribute {
     Resonator =>
       @attribute.Attribute::new(
         health=50,
-        speed=1,
+        speed=3,
         attack=10,
         defense=5,
         dodge=10,
@@ -28,7 +28,7 @@ pub fn get_default_attribute(copper_type : CopperType) -> @attribute.Attribute {
     Mechanic =>
       @attribute.Attribute::new(
         health=80,
-        speed=2,
+        speed=3,
         attack=5,
         defense=5,
         dodge=10,
@@ -36,7 +36,7 @@ pub fn get_default_attribute(copper_type : CopperType) -> @attribute.Attribute {
     CraftsMan =>
       @attribute.Attribute::new(
         health=80,
-        speed=1,
+        speed=5,
         attack=0,
         defense=5,
         dodge=10,
