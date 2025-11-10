@@ -20,6 +20,10 @@ import {
 } from '../utils/copperMapping.js';
 import { getStructureEnglishName } from '../utils/structureMapping.js';
 import { getSetting } from '../utils/gameSettings.js';
+import { onEvent, offEvent, emitEvent, EventTypes } from '../utils/eventBus.js';
+import { useHealthBars } from '../composables/useHealthBars.js';
+import { useIndicators } from '../composables/useIndicators.js';
+import { useEffects } from '../composables/useEffects.js';
 import ActionPanel from './ActionPanel.vue';
 import TurnSystem from './ActionPanelParts/TurnSystem.vue';
 import SummonModal from './ActionPanelParts/SummonModal.vue';
@@ -80,31 +84,15 @@ let raycaster = null;
 let mouse = new THREE.Vector2();
 let gltfLoader = null;
 
-// 血条管理（全局作用域，供 animate() 访问）
-const healthBars = new Map(); // { unitId: { container: Group, background: Mesh, foreground: Mesh } }
+// Composables（将在 initScene 后初始化）
+let healthBarsManager = null;
+let indicatorsManager = null;
+let effectsManager = null;
+
 // 保存每个单位的上一帧血量，用于检测是否受伤
 const previousHealth = new Map(); // { unitId: number }
 
-// 地板块缓存（用于显示移动/攻击/建造范围）
-const floorBlocks = new Map(); // key: "x,y", value: THREE.Mesh
-
-// 更新所有血条位置（在动画循环中调用）
-function updateHealthBarsPosition() {
-  healthBars.forEach((healthBar, unitId) => {
-    const model = models.find(m => m.id === unitId);
-    if (model && model.object) {
-      // 更新血条位置（跟随模型）
-      healthBar.container.position.set(
-        model.object.position.x,
-        model.object.position.y + 1.0,
-        model.object.position.z
-      );
-
-      // 让血条始终面向相机
-      healthBar.container.lookAt(camera.position);
-    }
-  });
-}
+// 地板指示器已移至 indicatorsManager (useIndicators composable)
 
 // 第一人称控制
 const keys = {
@@ -283,6 +271,7 @@ onMounted(async () => {
   }
 
   // 场景准备完成后，发送游戏开始消息
+  // 兼容方式：优先使用window.__ACTUAL_COPPER_IDS__，否则使用事件总线
   if (window.__ACTUAL_COPPER_IDS__) {
     const ids = window.__ACTUAL_COPPER_IDS__;
     log('[GameScene] 场景准备完成，发送游戏开始消息，ID:', ids);
@@ -292,6 +281,8 @@ onMounted(async () => {
     });
     // 清除标记
     delete window.__ACTUAL_COPPER_IDS__;
+  } else {
+    log('[GameScene] 警告：未找到铜偶ID列表');
   }
 
   // 添加键盘和鼠标事件监听
@@ -417,6 +408,17 @@ onBeforeUnmount(() => {
     audioRef.value.pause();
   }
 
+  // 清理 Composables
+  if (healthBarsManager) {
+    healthBarsManager.dispose();
+  }
+  if (indicatorsManager) {
+    indicatorsManager.dispose();
+  }
+  if (effectsManager) {
+    effectsManager.dispose();
+  }
+
   if (renderer) {
     renderer.dispose();
   }
@@ -475,6 +477,12 @@ function initScene() {
 
   // 创建测试用的立方体（用于后端测试，ID=1和2）
   createTestUnits();
+  
+  // 初始化 Composables（需要在 scene 和 camera 创建后）
+  healthBarsManager = useHealthBars(scene, camera);
+  indicatorsManager = useIndicators(scene);
+  effectsManager = useEffects(scene);
+  
   log('[GameScene] 场景初始化完成');
   log('[GameScene] - 蓝/红立方体(ID=1,2)用于"后端测试"');
   log('[GameScene] - EventLoop测试会动态创建新模型');
@@ -683,7 +691,6 @@ function setupMessageQueue() {
   const stateIndicators = new Map(); // { unitId: { canMove: Mesh, canAttack: Mesh } }
   const mapBlocks = new Map(); // { 'x,y': Mesh } 地图块存储
   const resourceMarkers = new Map(); // { 'x,y': Mesh } 资源标记存储
-  // healthBars 已在外部作用域定义
 
   // 创建状态指示器
   function createIndicator(unitId, type, show) {
@@ -744,106 +751,8 @@ function setupMessageQueue() {
     }
   }
 
-  // 创建或更新血条
-  function createOrUpdateHealthBar(unitId, nowHealth, maxHealth) {
-    const model = models.find(m => m.id === unitId);
-    if (!model || !model.object) return;
-
-    // 根据单位类型确定血条颜色：铜偶=绿色，敌人/召唤物=红色
-    const isCopper = model.type === 'copper';
-    const healthColor = isCopper ? 0x00ff00 : 0xff0000;
-
-    // 如果血条不存在，创建新的
-    if (!healthBars.has(unitId)) {
-      const barWidth = 1.0;
-      const barHeight = 0.06;
-
-      // 创建血条容器
-      const container = new THREE.Group();
-
-      // 创建背景（黑色）
-      const bgGeometry = new THREE.PlaneGeometry(barWidth, barHeight);
-      const bgMaterial = new THREE.MeshBasicMaterial({
-        color: 0xaaaaaa,
-        side: THREE.DoubleSide, // 双面渲染
-        transparent: true,
-        opacity: 0.35,
-      });
-      const background = new THREE.Mesh(bgGeometry, bgMaterial);
-
-      // 创建前景（根据单位类型设置颜色）
-      const fgGeometry = new THREE.PlaneGeometry(barWidth, barHeight);
-      const fgMaterial = new THREE.MeshBasicMaterial({
-        color: healthColor,
-        side: THREE.DoubleSide, // 双面渲染
-      });
-      const foreground = new THREE.Mesh(fgGeometry, fgMaterial);
-      foreground.position.z = 0.01; // 稍微前移，避免z-fighting
-
-      container.add(background);
-      container.add(foreground);
-
-      // 设置血条位置（在模型上方）
-      container.position.set(
-        model.object.position.x,
-        model.object.position.y + 1.0, // 在模型上方1.0单位
-        model.object.position.z
-      );
-
-      // 让血条始终面向相机
-      container.lookAt(camera.position);
-
-      scene.add(container);
-      healthBars.set(unitId, { container, background, foreground });
-
-      // 初始化血量记录（用于检测受伤）
-      if (!previousHealth.has(unitId)) {
-        previousHealth.set(unitId, nowHealth);
-      }
-    }
-
-    // 更新血条
-    const healthBar = healthBars.get(unitId);
-    const healthPercent = Math.max(0, Math.min(1, nowHealth / maxHealth));
-
-    // 更新前景宽度
-    const barWidth = 1.0;
-    healthBar.foreground.scale.x = healthPercent;
-    healthBar.foreground.position.x = (-barWidth / 2) * (1 - healthPercent);
-
-    // 根据单位类型设置颜色
-    if (healthBar.foreground.material && healthBar.foreground.material.color) {
-      healthBar.foreground.material.color.setHex(healthColor);
-    }
-
-    // 更新血条位置（跟随模型）
-    healthBar.container.position.set(
-      model.object.position.x,
-      model.object.position.y + 1.0,
-      model.object.position.z
-    );
-
-    // 让血条始终面向相机
-    healthBar.container.lookAt(camera.position);
-  }
-
-  // 移除血条
-  function removeHealthBar(unitId) {
-    if (healthBars.has(unitId)) {
-      const healthBar = healthBars.get(unitId);
-      scene.remove(healthBar.container);
-      healthBar.background.geometry.dispose();
-      healthBar.background.material.dispose();
-      healthBar.foreground.geometry.dispose();
-      healthBar.foreground.material.dispose();
-      healthBars.delete(unitId);
-    }
-    // 同时清除保存的血量记录
-    previousHealth.delete(unitId);
-  }
-
-  // updateHealthBarsPosition 已在外部作用域定义
-  // floorBlocks 已在外部作用域定义
+  // 血条管理函数已移至 useHealthBars composable
+  // 地板指示器管理已移至 useIndicators composable
 
   // 高亮选中的铜偶
   let selectedCopperId = null;
@@ -890,77 +799,7 @@ function setupMessageQueue() {
     }
   };
 
-  // 创建/更新地板块
-  const createOrUpdateFloorBlock = (position, color, type) => {
-    const key = `${position[0]},${position[1]}`;
-
-    // 如果已存在，更新颜色
-    if (floorBlocks.has(key)) {
-      const block = floorBlocks.get(key);
-      block.material.color.setHex(color);
-      block.userData.type = type;
-      return;
-    }
-
-    // 创建新的地板块
-    const geometry = new THREE.PlaneGeometry(0.9, 0.9);
-    const material = new THREE.MeshBasicMaterial({
-      color,
-      side: THREE.DoubleSide,
-      transparent: true,
-      opacity: 0.6,
-    });
-    const block = new THREE.Mesh(geometry, material);
-    block.rotation.x = -Math.PI / 2;
-    // ✅ 以(0,0)为中心，地图范围 -7 到 7
-    block.position.set(
-      position[0],
-      0.08, // ✅ 高于地图块（0.05），确保可见
-      position[1]
-    );
-    block.userData = { type, position };
-    scene.add(block);
-    floorBlocks.set(key, block);
-  };
-
-  // 清除地板块
-  const clearFloorBlock = position => {
-    const key = `${position[0]},${position[1]}`;
-    const block = floorBlocks.get(key);
-    log(
-      `[GameScene] 尝试清除地板块: 坐标=${position}, key=${key}, 找到=${!!block}, 总数=${
-        floorBlocks.size
-      }`
-    );
-    if (block) {
-      scene.remove(block);
-      // 释放几何体和材质
-      if (block.geometry) block.geometry.dispose();
-      if (block.material) block.material.dispose();
-      floorBlocks.delete(key);
-      log(`[GameScene] 已清除地板块: ${key}, 剩余=${floorBlocks.size}`);
-    } else {
-      log(
-        `[GameScene] 未找到地板块: ${key}, 现有keys:`,
-        Array.from(floorBlocks.keys())
-      );
-    }
-  };
-
-  // 清除所有特定类型的地板块
-  const clearFloorBlocksByType = type => {
-    let count = 0;
-    floorBlocks.forEach((block, key) => {
-      if (block.userData.type === type) {
-        scene.remove(block);
-        floorBlocks.delete(key);
-        count++;
-      }
-    });
-    if (count > 0) {
-      log(`[GameScene] 清除了${count}个${type}地板块`);
-    }
-  };
+  // 地板指示器逻辑已移至 indicatorsManager (useIndicators composable)
 
   // 创建攻击特效（闪光）
   createAttackEffectFunc = (attackerId, targetPosition) => {
@@ -1109,7 +948,6 @@ function setupMessageQueue() {
       );
     },
     highlightSelectedCopper,
-    floorBlocks,
     createAttackEffect: createAttackEffectFunc, // 攻击特效
     // 移动完成后的回调
     onMoveComplete: id => {
@@ -1236,68 +1074,10 @@ function setupMessageQueue() {
     onShowResourceGain: (position, resourceChanges) => {
       log('[GameScene] 显示资源获取特效:', position, resourceChanges);
       
-      // 创建飘字特效
-      import('../utils/resourceMeta.js').then(({ getResourceName }) => {
-        const resourceTexts = Object.entries(resourceChanges)
-          .filter(([_, amount]) => amount > 0)
-          .map(([resourceType, amount]) => `+${amount} ${getResourceName(resourceType)}`);
-        
-        if (resourceTexts.length === 0) return;
-        
-        // 创建文字精灵
-        const canvas = document.createElement('canvas');
-        const context = canvas.getContext('2d');
-        canvas.width = 512;
-        canvas.height = 256;
-        
-        // 绘制文字
-        context.fillStyle = '#FFD700';
-        context.font = 'bold 48px Arial';
-        context.textAlign = 'center';
-        context.textBaseline = 'middle';
-        
-        resourceTexts.forEach((text, index) => {
-          context.fillText(text, 256, 80 + index * 60);
-        });
-        
-        // 创建纹理和精灵
-        const texture = new THREE.CanvasTexture(canvas);
-        const spriteMaterial = new THREE.SpriteMaterial({ 
-          map: texture,
-          transparent: true,
-          opacity: 1
-        });
-        const sprite = new THREE.Sprite(spriteMaterial);
-        
-        // 设置位置（在敌人死亡位置上方）
-        sprite.position.set(position[0], 1.5, position[1]);
-        sprite.scale.set(2, 1, 1);
-        
-        scene.add(sprite);
-        
-        // 飘字动画
-        const startTime = performance.now();
-        const duration = 2000; // 2秒
-        
-        function animateFloat() {
-          const elapsed = performance.now() - startTime;
-          const progress = elapsed / duration;
-          
-          if (progress < 1) {
-            // 向上飘动，逐渐淡出
-            sprite.position.y = 1.5 + progress * 2;
-            spriteMaterial.opacity = 1 - progress;
-            requestAnimationFrame(animateFloat);
-          } else {
-            // 动画结束，移除精灵
-            scene.remove(sprite);
-            texture.dispose();
-            spriteMaterial.dispose();
-          }
-        }
-        
-        animateFloat();
-      });
+      // 使用 effectsManager 显示资源获取特效
+      if (effectsManager && Object.keys(resourceChanges).length > 0) {
+        effectsManager.createResourceGainEffect(position, resourceChanges);
+      }
     },
     // 攻击完成后的回调
     onAttackComplete: id => {
@@ -1360,9 +1140,10 @@ function setupMessageQueue() {
       }, 300);
     },
     onSetMoveBlock: position => {
-      const key = `${position[0]},${position[1]}`;
-      createOrUpdateFloorBlock(position, 0x44ff44, 'move');
-      log(`[GameScene] 显示移动范围: 坐标=${position}, key=${key}`);
+      if (indicatorsManager) {
+        indicatorsManager.createIndicator(position, 'move');
+      }
+      log(`[GameScene] 显示移动范围: 坐标=${position}`);
     },
     onSetAttackBlock: position => {
       // 检查是否是传递模式（通过 currentActionMode 判断）
@@ -1408,19 +1189,24 @@ function setupMessageQueue() {
         }
       } else {
         // 攻击模式
-        createOrUpdateFloorBlock(position, 0xff4444, 'attack');
+        if (indicatorsManager) {
+          indicatorsManager.createIndicator(position, 'attack');
+        }
         hasAttackTargets.value = true; // 有攻击范围说明有目标
         log(`[GameScene] 显示攻击范围: ${position}`);
       }
     },
     onSetCanSummonBlock: position => {
       // 显示召唤范围（黄色）
-      const key = `${position[0]},${position[1]}`;
-      createOrUpdateFloorBlock(position, 0xffff00, 'summon');
-      log(`[GameScene] 显示召唤范围: 坐标=${position}, key=${key}`);
+      if (indicatorsManager) {
+        indicatorsManager.createIndicator(position, 'summon');
+      }
+      log(`[GameScene] 显示召唤范围: 坐标=${position}`);
     },
     onClearBlock: position => {
-      clearFloorBlock(position);
+      if (indicatorsManager) {
+        indicatorsManager.clearIndicatorAt(position);
+      }
     },
     // 从后端消息创建铜偶模型
     onSetCopper: async (_id, position, copper) => {
@@ -1644,9 +1430,10 @@ function setupMessageQueue() {
       // 创建血条（所有敌人和召唤物都需要）
       if (
         enemy.now_health !== undefined &&
-        enemy.enemy_base?.health !== undefined
+        enemy.enemy_base?.health !== undefined &&
+        healthBarsManager
       ) {
-        createOrUpdateHealthBar(
+        healthBarsManager.createOrUpdateHealthBar(
           actualId,
           enemy.now_health,
           enemy.enemy_base.health
@@ -1814,9 +1601,10 @@ function setupMessageQueue() {
       // 创建建筑血条（如果有血量信息）
       if (
         structure.now_health !== undefined &&
-        structure.structure_base?.health
+        structure.structure_base?.health &&
+        healthBarsManager
       ) {
-        createOrUpdateHealthBar(
+        healthBarsManager.createOrUpdateHealthBar(
           id,
           structure.now_health,
           structure.structure_base.health
@@ -2007,11 +1795,17 @@ function setupMessageQueue() {
       // 保存当前血量作为下一帧的上一帧血量
       previousHealth.set(unitId, nowHealth);
 
-      createOrUpdateHealthBar(unitId, nowHealth, maxHealth);
+      if (healthBarsManager) {
+        healthBarsManager.createOrUpdateHealthBar(unitId, nowHealth, maxHealth);
+      }
     },
     onRemoveHealthBar: unitId => {
       log(`[GameScene] 移除血条: id=${unitId}`);
-      removeHealthBar(unitId);
+      if (healthBarsManager) {
+        healthBarsManager.removeHealthBar(unitId);
+      }
+      // 同时清除保存的血量记录
+      previousHealth.delete(unitId);
     },
     onPutMapBlock: position => {
       // log(`[GameScene] 放置地图块: position=${position}`)  // 日志太多，已注释
@@ -2040,7 +1834,7 @@ function setupMessageQueue() {
       scene.add(block);
       mapBlocks.set(key, block);
     },
-    //  移动/攻击范围使用独立的 floorBlocks 系统（在前面已定义）
+    //  移动/攻击范围使用 indicatorsManager 系统
     // onSetMoveBlock, onSetAttackBlock, onClearBlock 在前面的 messageQueue.setSceneContext 中已定义
     animateModelMove: (model, targetPosition, onComplete) => {
       if (!model || !model.object) return;
@@ -2204,7 +1998,9 @@ function animate() {
   }
 
   // 更新所有血条位置（让血条跟随单位移动并面向相机）
-  updateHealthBarsPosition();
+  if (healthBarsManager) {
+    healthBarsManager.updateHealthBarsPosition(models);
+  }
 
   renderer.render(scene, camera);
 }
@@ -2309,16 +2105,7 @@ async function handleFloorClick(mousePos) {
 
     log(`[GameScene] 点击地板: (${gridX}, ${gridZ})`);
 
-    // 检查点击的位置是否在允许的范围内（有黄色方块标记）
-    const key = `${gridX},${gridZ}`;
-    const block = floorBlocks.get(key);
-
-    if (!block) {
-      log(`[GameScene] 点击位置 (${gridX}, ${gridZ}) 不在允许范围内，忽略`);
-      return;
-    }
-
-    // 验证地板块类型与当前操作模式匹配
+    // 检查点击的位置是否在允许的范围内
     const expectedType = {
       moving: 'move',
       attacking: 'attack',
@@ -2330,10 +2117,9 @@ async function handleFloorClick(mousePos) {
       structureTransfer: 'attack', // 传递使用攻击范围的红色方块
     }[currentActionMode.value];
 
-    if (block.userData.type !== expectedType) {
-      log(
-        `[GameScene] 地板块类型不匹配: expected=${expectedType}, actual=${block.userData.type}`
-      );
+    // 使用 indicatorsManager 检查是否有对应类型的指示器
+    if (!indicatorsManager || !indicatorsManager.hasIndicatorAt([gridX, gridZ], expectedType)) {
+      log(`[GameScene] 点击位置 (${gridX}, ${gridZ}) 不在允许范围内，忽略`);
       return;
     }
 
