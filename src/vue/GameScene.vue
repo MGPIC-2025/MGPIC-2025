@@ -251,6 +251,9 @@ const playerCoppers = ref([]); // 玩家的铜偶列表
 const currentCopperIndex = ref(0);
 const currentActionMode = ref(null); // 'moving' | 'attacking' | 'transferring' | 'summoning' | 'building' | null
 
+// 存储铜偶的 can_build 状态（工匠专用）
+const copperCanBuildMap = new Map(); // { copperId: boolean }
+
 const currentCopperId = computed(() => {
   if (playerCoppers.value.length === 0) return null;
   const copper = playerCoppers.value[currentCopperIndex.value];
@@ -938,12 +941,34 @@ function setupMessageQueue() {
     focusOnModel: focusOnModelFunc,
     // 显示铜偶信息
     onShowCopperInfo: (copper, resources, has_attack_targets) => {
-      selectedCopper.value = copper;
+      log(
+        `[GameScene] onShowCopperInfo 原始数据: type=${copper.copper?.copper_type}, can_build=${copper.can_build}, can_summon=${copper.can_summon}`
+      );
+
+      // 保存 can_build 状态到 Map（供游戏开始时的状态圈显示使用）
+      if (copper.copper?.copper_type === 'CraftsMan') {
+        copperCanBuildMap.set(copper.id, copper.can_build === true);
+      }
+
+      // 对于工匠，使用 can_build 作为 can_summon 的值（前端统一用 can_summon）
+      // 创建新对象以触发 Vue 响应式更新
+      if (copper.copper?.copper_type === 'CraftsMan') {
+        log(
+          `[GameScene] 检测到工匠，使用 can_build=${copper.can_build} 作为 can_summon`
+        );
+        selectedCopper.value = {
+          ...copper,
+          can_summon: copper.can_build === true,
+        };
+      } else {
+        selectedCopper.value = copper;
+      }
+
       selectedCopperResources.value = resources || [];
       // 使用后端返回的攻击目标状态
       hasAttackTargets.value = has_attack_targets || false;
       log(
-        `[GameScene] 更新铜偶信息: ID=${copper.id}, has_attack_targets=${hasAttackTargets.value}`
+        `[GameScene] 更新铜偶信息完成: ID=${selectedCopper.value.id}, has_attack_targets=${hasAttackTargets.value}, can_summon=${selectedCopper.value.can_summon}`
       );
     },
     // 显示建筑信息
@@ -1224,6 +1249,14 @@ function setupMessageQueue() {
       if (existing) {
         log(`[GameScene] 铜偶ID=${copper.id}已存在，跳过`);
         return;
+      }
+
+      // 保存工匠的 can_build 状态（供游戏开始时的状态圈显示）
+      if (copper.copper?.copper_type === 'CraftsMan') {
+        copperCanBuildMap.set(copper.id, copper.can_build === true);
+        log(
+          `[GameScene] 保存工匠 can_build 状态: id=${copper.id}, can_build=${copper.can_build}`
+        );
       }
 
       // 添加到玩家铜偶列表（游戏模式）
@@ -1732,16 +1765,45 @@ function setupMessageQueue() {
       }
     },
     onDisplayCanSummon: (unitId, canSummon) => {
-      log(`[GameScene] 显示可召唤状态: id=${unitId}, show=${canSummon}`);
-      createIndicator(unitId, 'summon', canSummon);
+      // 后端发送 can_summon 消息，但对于工匠需要使用 can_build 字段
+      // 从 selectedCopper 或 playerCoppers 中获取铜偶数据
+      let actualCanSummon = canSummon;
+
+      // 检查是否是工匠：
+      // 1. 如果有 selectedCopper 数据，从中获取类型
+      // 2. 否则从 copperCanBuildMap 查找（游戏开始时的状态圈）
+      let isCreaftsman = false;
+      let canBuild = false;
+
+      if (selectedCopper.value && selectedCopper.value.id === unitId) {
+        // 已点击铜偶，从 selectedCopper 获取
+        isCreaftsman = selectedCopper.value.copper?.copper_type === 'CraftsMan';
+        canBuild = selectedCopper.value.can_build === true;
+      } else if (copperCanBuildMap.has(unitId)) {
+        // 未点击但之前保存过，从 Map 获取
+        isCreaftsman = true;
+        canBuild = copperCanBuildMap.get(unitId);
+      }
+
+      if (isCreaftsman) {
+        actualCanSummon = canBuild;
+        log(
+          `[GameScene] 工匠建造状态: id=${unitId}, can_build=${actualCanSummon}`
+        );
+      }
+
+      log(
+        `[GameScene] 显示可召唤/建造状态: id=${unitId}, show=${actualCanSummon}`
+      );
+      createIndicator(unitId, 'summon', actualCanSummon);
 
       // 如果是当前选中的铜偶，同步更新状态（创建新对象触发响应式）
       if (selectedCopper.value && selectedCopper.value.id === unitId) {
         selectedCopper.value = {
           ...selectedCopper.value,
-          can_summon: canSummon,
+          can_summon: actualCanSummon,
         };
-        log(`[GameScene] 同步更新selectedCopper.can_summon=${canSummon}`);
+        log(`[GameScene] 同步更新selectedCopper.can_summon=${actualCanSummon}`);
       }
     },
     onClearState: unitId => {
@@ -2275,7 +2337,7 @@ async function handleBuildApply(x, z) {
 
   // 等待消息处理完成
   await new Promise(resolve => setTimeout(resolve, 100));
-  
+
   // 重新点击铜偶刷新状态（建造后 can_build 状态会改变）
   log('[GameScene] 建造完成，刷新铜偶状态');
   await handleClickCopper(copperId);
