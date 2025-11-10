@@ -94,19 +94,18 @@ fn Enemy::get_attack_targets(
       let occupant = map.get_occupant(position)
       if enemy.owned {
         match occupant {
-          Copper(copper) => can_attack.push(CanAttackTarget::Copper(copper))
-          Enemy(enemy) if enemy.owned == true =>
+          Enemy(enemy) if enemy.owned == false =>
             can_attack.push(CanAttackTarget::Enemy(enemy))
-          Structure(structure) if structure.owned == true =>
+          Structure(structure) if structure.owned == false =>
             can_attack.push(CanAttackTarget::Structure(structure))
           _ => ()
         }
       } else {
         match occupant {
           Copper(copper) => can_attack.push(CanAttackTarget::Copper(copper))
-          Enemy(enemy) if enemy.owned == false =>
+          Enemy(enemy) if enemy.owned == true =>
             can_attack.push(CanAttackTarget::Enemy(enemy))
-          Structure(structure) if structure.owned == false =>
+          Structure(structure) if structure.owned == true =>
             can_attack.push(CanAttackTarget::Structure(structure))
           _ => ()
         }
@@ -135,6 +134,13 @@ fn Enemy::find_nearest_attack_target(enemy : Enemy) -> CanAttackTarget? {
     if other_enemy.id != enemy.id && other_enemy.owned {
       position_list.push(
         (other_enemy.position, CanAttackTarget::Enemy(other_enemy)),
+      )
+    }
+  }
+  for structure in structure_map.values() {
+    if structure.owned == true {
+      position_list.push(
+        (structure.position, CanAttackTarget::Structure(structure)),
       )
     }
   }

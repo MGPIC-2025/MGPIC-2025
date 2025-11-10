@@ -95,7 +95,7 @@ fn Room::new(
 fn Room::is_full(room : Room) -> Bool {
   for blocks in room.blocks {
     for block in blocks {
-      if block.occupant is Enemy(_) {
+      if block.occupant is Empty {
         return false
       }
     }

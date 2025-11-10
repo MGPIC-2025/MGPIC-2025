@@ -85,20 +85,20 @@ fn handle_on_structure_attack_apply(
       structure.can_attack = false
       structure.update_move_and_attack_and_summon_status()
     }
-    Structure(structure) => {
-      let result = structure.apply_attack(
+    Structure(structure_) => {
+      let result = structure_.apply_attack(
         structure.structure_base.attribute.attack,
       )
       if result {
-        structure_map.remove(structure.id)
-        remove_unit(structure.id)
-        map.remove_occupant(structure.position)
+        structure_map.remove(structure_.id)
+        remove_unit(structure_.id)
+        map.remove_occupant(structure_.position)
       } else {
         // 更新建筑血量显示
         update_health(
-          structure.id,
-          structure.now_health,
-          structure.structure_base.health,
+          structure_.id,
+          structure_.now_health,
+          structure_.structure_base.health,
         )
       }
       structure.can_attack = false
