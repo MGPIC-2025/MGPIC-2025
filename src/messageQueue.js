@@ -61,7 +61,7 @@ class MessageQueue {
           // console.log("[MessageQueue] 处理消息:", type_msg);
 
           const data = JSON.parse(content);
-
+          
           // 对于简单的消息类型（如put_map_block），同步处理，不使用await
           // 避免大量Promise创建导致性能问题
           const result = handler(data, this.sceneContext || {});
@@ -175,10 +175,6 @@ export function registerAllHandlers() {
             defense: enemy.enemy_base.defense,
           },
         },
-        inventory: {
-          items: [],
-          capacity: 0,
-        },
       };
 
       // 高亮选中的单位（所有单位都可以高亮，用于表示用户正在查看哪个单位）
@@ -244,6 +240,11 @@ export function registerAllHandlers() {
     if (context.onSetEnemy) {
       context.onSetEnemy(id, position, enemy);
     }
+
+    // 如果是友方召唤物（owned=true），更新资源显示（因为召唤消耗资源）
+    if (enemy.owned) {
+      window.__UPDATE_RESOURCES__ && await window.__UPDATE_RESOURCES__();
+    }
   });
 
   // set_material: 在指定地点放置矿物
@@ -261,6 +262,11 @@ export function registerAllHandlers() {
     if (context.onSetStructure) {
       await context.onSetStructure(id, position, structure);
     }
+
+    // 如果是玩家建筑（owned=true），更新资源显示（因为建造消耗资源）
+    if (structure.owned) {
+      window.__UPDATE_RESOURCES__ && await window.__UPDATE_RESOURCES__();
+    }
   });
 
   // remove_unit: 删除单位（带消失动画）
@@ -268,6 +274,13 @@ export function registerAllHandlers() {
     const { id } = data;
 
     const model = findModelById(context.models || [], id);
+    
+    // 检查是否是敌人死亡（非友方召唤物）
+    const isEnemyDeath = model && model.type === 'enemy' && !model.isOwned;
+    const enemyPosition = isEnemyDeath ? model.position : null;
+    
+    log(`[Handler] remove_unit: ID=${id}, type=${model?.type}, isOwned=${model?.isOwned}, isEnemyDeath=${isEnemyDeath}, position=${JSON.stringify(enemyPosition)}`);
+    
     if (model && model.object) {
       // 先克隆所有材质，确保不影响其他使用相同材质的模型
       model.object.traverse(child => {
@@ -299,8 +312,8 @@ export function registerAllHandlers() {
                     mat.opacity = 1 - progress;
                   });
                 } else {
-                  child.material.transparent = true;
-                  child.material.opacity = 1 - progress;
+                child.material.transparent = true;
+                child.material.opacity = 1 - progress;
                 }
               }
             });
@@ -391,6 +404,24 @@ export function registerAllHandlers() {
       // 如果是铜偶，从玩家铜偶列表中移除
       if (model.type === 'copper' && context.onRemoveCopper) {
         context.onRemoveCopper(id);
+      }
+    }
+
+    // 如果是敌人死亡，更新资源并显示获取特效
+    if (isEnemyDeath && enemyPosition) {
+      log('[Handler] 敌人死亡，开始更新资源...');
+      
+      // 更新资源显示
+      const resourceChanges = await (window.__UPDATE_RESOURCES__ ? window.__UPDATE_RESOURCES__() : Promise.resolve({}));
+      
+      log('[Handler] 资源更新完成，变化:', resourceChanges);
+      
+      // 在敌人位置显示资源获取特效
+      if (context.onShowResourceGain && Object.keys(resourceChanges).length > 0) {
+        log('[Handler] 显示资源获取特效:', enemyPosition, resourceChanges);
+        context.onShowResourceGain(enemyPosition, resourceChanges);
+      } else {
+        log('[Handler] 未显示特效: onShowResourceGain存在?', !!context.onShowResourceGain, '有资源变化?', Object.keys(resourceChanges).length > 0);
       }
     }
   });
@@ -490,7 +521,7 @@ export function registerAllHandlers() {
           );
         });
       }
-
+      
       // 移动完成后调用回调
       if (context.onMoveComplete) {
         context.onMoveComplete(id);
@@ -777,7 +808,7 @@ export function registerAllHandlers() {
   // attack_complete: 攻击完成
   messageQueue.registerHandler('attack_complete', (data, context) => {
     const { id } = data;
-
+    
     // 攻击完成后调用回调
     if (context.onAttackComplete) {
       context.onAttackComplete(id);
