@@ -1,7 +1,8 @@
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, onBeforeUnmount } from 'vue';
 import { get_resource } from '../glue.js';
 import { getResourceIcon, getResourceName } from '../utils/resourceMeta.js';
+import { onEvent, offEvent, emitEvent, EventTypes } from '../utils/eventBus.js';
 
 const resources = ref({
   SpiritalSpark: 0,
@@ -11,37 +12,39 @@ const resources = ref({
   HeartCrystalDust: 0,
 });
 
-// 获取资源数据
+// 获取资源数据（优化：单次遍历 + 批量更新）
 async function updateResources() {
   try {
-    console.log('[ResourcePanel] 开始获取资源...');
     const resourceData = await get_resource();
-    console.log('[ResourcePanel] 后端返回资源数据:', resourceData);
     
     if (resourceData) {
-      // 后端返回简单的 JSON 对象：{ SpiritalSpark: 100, ... }
-      const oldResources = { ...resources.value };
-      Object.keys(resources.value).forEach(key => {
-        resources.value[key] = resourceData[key] || 0;
-      });
-      
-      console.log('[ResourcePanel] 旧资源:', oldResources);
-      console.log('[ResourcePanel] 新资源:', resources.value);
-      
-      // 返回资源变化信息
+      // 单次遍历完成：新值赋值 + 变化计算
       const changes = {};
+      const newResources = {};
+      
       Object.keys(resources.value).forEach(key => {
-        const diff = resources.value[key] - oldResources[key];
+        const oldVal = resources.value[key];
+        const newVal = resourceData[key] || 0;
+        newResources[key] = newVal;
+        
+        // 只记录增加的资源（用于特效显示）
+        const diff = newVal - oldVal;
         if (diff > 0) {
           changes[key] = diff;
         }
       });
       
-      console.log('[ResourcePanel] 资源变化:', changes);
+      // 批量更新（减少响应式触发次数）
+      resources.value = newResources;
+      
+      // 发送资源已更新事件（附带变化信息）
+      emitEvent(EventTypes.RESOURCES_UPDATED, changes);
+      
       return changes;
     }
   } catch (error) {
     console.error('[ResourcePanel] 获取资源失败:', error);
+    // TODO: 添加用户可见的错误提示
   }
   return {};
 }
@@ -50,11 +53,13 @@ async function updateResources() {
 onMounted(() => {
   updateResources();
   
-  // 注册到全局，供外部调用
-  if (typeof window !== 'undefined') {
-    window.__UPDATE_RESOURCES__ = updateResources;
-    console.log('[ResourcePanel] 已注册全局资源更新函数');
-  }
+  // 监听资源更新事件（替代全局变量）
+  onEvent(EventTypes.UPDATE_RESOURCES, updateResources);
+});
+
+// 组件卸载时清理事件监听
+onBeforeUnmount(() => {
+  offEvent(EventTypes.UPDATE_RESOURCES, updateResources);
 });
 
 defineExpose({ updateResources });

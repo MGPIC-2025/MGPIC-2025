@@ -1,6 +1,7 @@
 // 消息任务队列系统
 // 处理从后端global_msg发来的消息，按顺序执行动画和操作
 import log from './log.js';
+import { emitEvent, onEvent, offEvent, EventTypes } from './utils/eventBus.js';
 
 class MessageQueue {
   constructor() {
@@ -222,10 +223,12 @@ export function registerAllHandlers() {
   messageQueue.registerHandler('set_copper', async (data, context) => {
     const { id, position, copper } = data;
 
-    // 通知外部记录实际的铜偶ID
-    if (window.__ACTUAL_COPPER_IDS__) {
-      window.__ACTUAL_COPPER_IDS__.push(copper.id);
+    // 通知外部记录实际的铜偶ID（兼容旧方式+新事件总线）
+    if (!window.__ACTUAL_COPPER_IDS__) {
+      window.__ACTUAL_COPPER_IDS__ = [];
     }
+    window.__ACTUAL_COPPER_IDS__.push(copper.id);
+    emitEvent(EventTypes.COPPER_ID_ADDED, copper.id);
 
     // 等待铜偶模型加载完成，确保后续的 change_direction 消息能找到模型
     if (context.onSetCopper) {
@@ -243,7 +246,7 @@ export function registerAllHandlers() {
 
     // 如果是友方召唤物（owned=true），更新资源显示（因为召唤消耗资源）
     if (enemy.owned) {
-      window.__UPDATE_RESOURCES__ && await window.__UPDATE_RESOURCES__();
+      emitEvent(EventTypes.UPDATE_RESOURCES);
     }
   });
 
@@ -265,7 +268,7 @@ export function registerAllHandlers() {
 
     // 如果是玩家建筑（owned=true），更新资源显示（因为建造消耗资源）
     if (structure.owned) {
-      window.__UPDATE_RESOURCES__ && await window.__UPDATE_RESOURCES__();
+      emitEvent(EventTypes.UPDATE_RESOURCES);
     }
   });
 
@@ -409,20 +412,29 @@ export function registerAllHandlers() {
 
     // 如果是敌人死亡，更新资源并显示获取特效
     if (isEnemyDeath && enemyPosition) {
-      log('[Handler] 敌人死亡，开始更新资源...');
+      log('[Handler] 敌人死亡，触发资源更新...');
       
-      // 更新资源显示
-      const resourceChanges = await (window.__UPDATE_RESOURCES__ ? window.__UPDATE_RESOURCES__() : Promise.resolve({}));
+      // 监听资源更新完成事件（单次）
+      const handleResourcesUpdated = (changes) => {
+        log('[Handler] 资源更新完成，变化:', changes);
+        
+        // 在敌人位置显示资源获取特效
+        if (context.onShowResourceGain && Object.keys(changes).length > 0) {
+          log('[Handler] 显示资源获取特效:', enemyPosition, changes);
+          context.onShowResourceGain(enemyPosition, changes);
+        }
+      };
       
-      log('[Handler] 资源更新完成，变化:', resourceChanges);
+      // 注册单次监听器
+      onEvent(EventTypes.RESOURCES_UPDATED, handleResourcesUpdated);
       
-      // 在敌人位置显示资源获取特效
-      if (context.onShowResourceGain && Object.keys(resourceChanges).length > 0) {
-        log('[Handler] 显示资源获取特效:', enemyPosition, resourceChanges);
-        context.onShowResourceGain(enemyPosition, resourceChanges);
-      } else {
-        log('[Handler] 未显示特效: onShowResourceGain存在?', !!context.onShowResourceGain, '有资源变化?', Object.keys(resourceChanges).length > 0);
-      }
+      // 触发资源更新
+      emitEvent(EventTypes.UPDATE_RESOURCES);
+      
+      // 延迟后清理监听器（避免内存泄漏）
+      setTimeout(() => {
+        offEvent(EventTypes.RESOURCES_UPDATED, handleResourcesUpdated);
+      }, 1000);
     }
   });
 
