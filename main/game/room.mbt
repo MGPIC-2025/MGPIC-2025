@@ -6,21 +6,16 @@ priv struct Room {
 }
 
 ///|
-let default_enemy_count = [0, 2, 3, 3, 5, 5, 6, 6, 7, 8, 10]
+let default_enemy_count = [0, 2, 3, 4, 6, 6, 8]
 
 ///|
 fn summon_enemy(level : Int) -> EnemyBase {
-  if level == 10 {
-    // TODO: BOSS 生成的特殊逻辑
-    enemy_info_map["（BOSS）废械吞噬者 · 饕餮"]
-  } else {
-    let can_summon_enemy = enemy_list.filter(enemy => enemy.level <= level)
-    let enemy = can_summon_enemy[@rand.summon_random_number(
-        0,
-        can_summon_enemy.length() - 1,
-      )]
-    enemy
-  }
+  let can_summon_enemy = enemy_list.filter(enemy => enemy.level <= level)
+  let enemy = can_summon_enemy[@rand.summon_random_number(
+      0,
+      can_summon_enemy.length() - 1,
+    )]
+  enemy
 }
 
 ///|
@@ -41,6 +36,7 @@ fn Room::new(
   escape_set : Set[(Int, Int)],
 ) -> Room {
   // 修复：创建完全独立的2D数组，避免共享引用
+  let mut level = level
   let blocks = []
   for _ in 0..<9 {
     let row = []
@@ -49,44 +45,64 @@ fn Room::new(
     }
     blocks.push(row)
   }
-
-  // 中心点设置为怪物生成器
-  blocks[4][4].occupant = Structure(
-    Structure::new(
-      structure_info_map["充能线圈"],
-      owned=false,
-      resource_type=None,
-      (4, 4),
-    ),
-  )
-  for i in 0..<default_enemy_count[level] {
-    let enemy = summon_enemy(level)
-    let position = sumoon_postion(escape_set)
-    escape_set.add(position)
-    // 将房间内的本地坐标转换为全局坐标
-    let global_position = (
-      index_position.0 + position.0,
-      index_position.1 + position.1,
+  if level == 6 && boss_borned.val == false {
+    // 左边的 BOSS
+    blocks[3][4].occupant = Enemy(
+      Enemy::new(
+        enemy_info_map["（BOSS）废械吞噬者·饕餮"],
+        (index_position.0 + 3, index_position.1 + 4),
+        false,
+      ),
     )
-    blocks[position.0][position.1].occupant = Enemy(
-      Enemy::new(enemy, global_position, false),
+    // 右边的 BOSS
+    blocks[5][4].occupant = Enemy(
+      Enemy::new(
+        enemy_info_map["（BOSS）织网夫人·夏特拉"],
+        (index_position.0 + 5, index_position.1 + 4),
+        false,
+      ),
     )
-  }
-  // 生成 RefinedCopperIngot
-  if @rand.check_probability(0.7) {
-    let position = sumoon_postion(escape_set)
-    escape_set.add(position)
-    blocks[position.0][position.1].occupant = Material(
-      Material::new(refined_copper_ingot),
+    boss_borned.val = true
+  } else {
+    level -= 1
+    // 中心点设置为怪物生成器
+    blocks[4][4].occupant = Structure(
+      Structure::new(
+        structure_info_map["充能线圈"],
+        owned=false,
+        resource_type=None,
+        (4, 4),
+      ),
     )
-  }
-  // 生成 ResonantStarCrystal
-  if @rand.check_probability(0.7) {
-    let position = sumoon_postion(escape_set)
-    escape_set.add(position)
-    blocks[position.0][position.1].occupant = Material(
-      Material::new(resonant_star_crystal),
-    )
+    for i in 0..<default_enemy_count[level] {
+      let enemy = summon_enemy(level)
+      let position = sumoon_postion(escape_set)
+      escape_set.add(position)
+      // 将房间内的本地坐标转换为全局坐标
+      let global_position = (
+        index_position.0 + position.0,
+        index_position.1 + position.1,
+      )
+      blocks[position.0][position.1].occupant = Enemy(
+        Enemy::new(enemy, global_position, false),
+      )
+    }
+    // 生成 RefinedCopperIngot
+    if @rand.check_probability(0.7) {
+      let position = sumoon_postion(escape_set)
+      escape_set.add(position)
+      blocks[position.0][position.1].occupant = Material(
+        Material::new(refined_copper_ingot),
+      )
+    }
+    // 生成 ResonantStarCrystal
+    if @rand.check_probability(0.7) {
+      let position = sumoon_postion(escape_set)
+      escape_set.add(position)
+      blocks[position.0][position.1].occupant = Material(
+        Material::new(resonant_star_crystal),
+      )
+    }
   }
   { level, index_position, blocks }
 }

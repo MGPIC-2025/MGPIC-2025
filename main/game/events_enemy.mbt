@@ -66,6 +66,18 @@ fn handle_on_enemy_attack_apply(
         enemy_map.remove(target_enemy.id)
         remove_unit(target_enemy.id)
         map.remove_occupant(target_enemy.position)
+        if boss_borned.val == true {
+          if target_enemy.enemy_base.name ==
+            "（BOSS）废械吞噬者·饕餮" {
+            taotle_killed.val = true
+          } else if target_enemy.enemy_base.name ==
+            "（BOSS）织网夫人·夏特拉" {
+            xtale_killed.val = true
+          }
+          if taotle_killed.val == true && xtale_killed.val == true {
+            success()
+          }
+        }
       } else {
         // 更新敌人血量显示
         update_health(

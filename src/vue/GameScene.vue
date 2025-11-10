@@ -257,6 +257,12 @@ const copperCanBuildMap = new Map(); // { copperId: boolean }
 // 游戏结束对话框
 const showGameOverDialog = ref(false);
 
+// 游戏成功对话框
+const showGameSuccessDialog = ref(false);
+
+// 制作团队名单显示
+const showCredits = ref(false);
+
 // 撤退确认对话框
 const showWithdrawDialog = ref(false);
 
@@ -1121,6 +1127,11 @@ function setupMessageQueue() {
     onGameOver: () => {
       log('[GameScene] 收到游戏结束消息，显示对话框');
       showGameOverDialog.value = true;
+    },
+    // 游戏成功回调
+    onGameSuccess: () => {
+      log('[GameScene] 收到游戏胜利消息，显示对话框');
+      showGameSuccessDialog.value = true;
     },
     // 攻击完成后的回调
     onAttackComplete: id => {
@@ -2942,6 +2953,43 @@ async function handleGameOverConfirm() {
   emit('back');
 }
 
+// 处理游戏成功对话框确定按钮
+async function handleGameSuccessConfirm() {
+  log('[GameScene] 游戏胜利对话框确定，发送game over事件');
+
+  // 关闭成功对话框
+  showGameSuccessDialog.value = false;
+
+  // 发送 on_game_over 消息给后端，让后端清空 Game
+  const message = JSON.stringify({ type: 'on_game_over' });
+  await eventloop(message).catch(e => {
+    log('[GameScene] 发送 on_game_over 消息失败', e);
+  });
+
+  // 显示制作团队名单
+  showCreditsScreen();
+}
+
+// 显示制作团队名单
+function showCreditsScreen() {
+  log('[GameScene] 显示制作团队名单');
+  showCredits.value = true;
+
+  // 5秒后自动关闭制作团队名单并返回菜单
+  setTimeout(() => {
+    log('[GameScene] 制作团队名单播放完毕，返回菜单');
+    showCredits.value = false;
+    emit('back');
+  }, 5000);
+}
+
+// 跳过制作团队名单
+function skipCredits() {
+  log('[GameScene] 跳过制作团队名单，立即返回菜单');
+  showCredits.value = false;
+  emit('back');
+}
+
 // 打开撤退确认对话框
 function openWithdrawDialog() {
   log('[GameScene] 打开撤退确认对话框');
@@ -3089,6 +3137,58 @@ async function confirmWithdraw() {
         <button class="game-over-button" @click="handleGameOverConfirm">
           确定
         </button>
+      </div>
+    </div>
+
+    <!-- 游戏成功对话框 -->
+    <div v-if="showGameSuccessDialog" class="game-over-overlay">
+      <div class="game-over-dialog success-dialog">
+        <h2 class="success-title">🎉 胜利！ 🎉</h2>
+        <p class="game-over-message">恭喜你成功完成了所有挑战！</p>
+        <button
+          class="game-over-button success-button"
+          @click="handleGameSuccessConfirm"
+        >
+          确定
+        </button>
+      </div>
+    </div>
+
+    <!-- 制作团队名单 -->
+    <div v-if="showCredits" class="credits-overlay">
+      <div class="credits-container">
+        <h1 class="credits-title">制作团队</h1>
+
+        <div class="credits-content">
+          <div class="credits-section">
+            <h2>游戏设计</h2>
+            <p>MGPIC Team</p>
+          </div>
+
+          <div class="credits-section">
+            <h2>程序开发</h2>
+            <p>Backend Developer</p>
+            <p>Frontend Developer</p>
+          </div>
+
+          <div class="credits-section">
+            <h2>美术设计</h2>
+            <p>3D Artist</p>
+            <p>UI Designer</p>
+          </div>
+
+          <div class="credits-section">
+            <h2>音乐音效</h2>
+            <p>Sound Designer</p>
+          </div>
+
+          <div class="credits-section">
+            <h2>特别感谢</h2>
+            <p>所有参与测试的玩家</p>
+          </div>
+        </div>
+
+        <button class="skip-credits-button" @click="skipCredits">跳过</button>
       </div>
     </div>
 
@@ -3328,6 +3428,165 @@ async function confirmWithdraw() {
   to {
     transform: scale(1);
     opacity: 1;
+  }
+}
+
+/* 游戏成功对话框样式 */
+.success-dialog {
+  background: linear-gradient(135deg, #1a2b11 0%, #0f1f0c 100%) !important;
+  border: 3px solid rgba(100, 255, 100, 0.5) !important;
+}
+
+.success-title {
+  font-size: 52px;
+  font-weight: 900;
+  color: #44ff44;
+  margin: 0 0 20px 0;
+  text-shadow:
+    0 4px 8px rgba(68, 255, 68, 0.6),
+    0 0 20px rgba(68, 255, 68, 0.4);
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+.success-button {
+  background: linear-gradient(135deg, #44ff44 0%, #22aa22 100%) !important;
+  box-shadow: 0 8px 16px rgba(68, 255, 68, 0.4) !important;
+}
+
+.success-button:hover {
+  box-shadow: 0 12px 24px rgba(68, 255, 68, 0.6) !important;
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+}
+
+/* 制作团队名单样式 */
+.credits-overlay {
+  position: fixed;
+  inset: 0;
+  background: linear-gradient(180deg, #000000 0%, #1a1a2e 50%, #000000 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 25000;
+  animation: fadeIn 0.5s ease-out;
+}
+
+.credits-container {
+  width: 100%;
+  max-width: 800px;
+  padding: 40px;
+  text-align: center;
+  animation: creditsScroll 5s ease-in-out;
+}
+
+.credits-title {
+  font-size: 64px;
+  font-weight: 900;
+  color: #ffd700;
+  margin: 0 0 60px 0;
+  text-shadow: 0 4px 12px rgba(255, 215, 0, 0.6);
+  letter-spacing: 8px;
+}
+
+.credits-content {
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+}
+
+.credits-section {
+  opacity: 0;
+  animation: fadeInUp 0.8s ease-out forwards;
+}
+
+.credits-section:nth-child(1) {
+  animation-delay: 0.2s;
+}
+.credits-section:nth-child(2) {
+  animation-delay: 0.6s;
+}
+.credits-section:nth-child(3) {
+  animation-delay: 1s;
+}
+.credits-section:nth-child(4) {
+  animation-delay: 1.4s;
+}
+.credits-section:nth-child(5) {
+  animation-delay: 1.8s;
+}
+
+.credits-section h2 {
+  font-size: 32px;
+  font-weight: 700;
+  color: #88ccff;
+  margin: 0 0 16px 0;
+  text-shadow: 0 2px 8px rgba(136, 204, 255, 0.4);
+}
+
+.credits-section p {
+  font-size: 24px;
+  color: #ffffff;
+  margin: 8px 0;
+  opacity: 0.9;
+}
+
+.skip-credits-button {
+  position: fixed;
+  bottom: 40px;
+  right: 40px;
+  background: rgba(255, 255, 255, 0.2);
+  border: 2px solid rgba(255, 255, 255, 0.4);
+  border-radius: 12px;
+  color: white;
+  font-size: 18px;
+  font-weight: 700;
+  padding: 12px 32px;
+  cursor: pointer;
+  transition: all 0.2s;
+  backdrop-filter: blur(10px);
+}
+
+.skip-credits-button:hover {
+  background: rgba(255, 255, 255, 0.3);
+  border-color: rgba(255, 255, 255, 0.6);
+  transform: translateY(-2px);
+}
+
+@keyframes creditsScroll {
+  0% {
+    transform: translateY(100px);
+    opacity: 0;
+  }
+  20% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+  80% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-50px);
+    opacity: 1;
+  }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 </style>

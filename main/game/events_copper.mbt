@@ -65,6 +65,17 @@ fn handle_on_attack_apply(id : Int, position : (Int, Int), map : Map_) -> Unit {
         enemy_map.remove(enemy.id)
         remove_unit(enemy.id)
         map.remove_occupant(enemy.position)
+        if boss_borned.val == true {
+          if enemy.enemy_base.name == "（BOSS）废械吞噬者·饕餮" {
+            taotle_killed.val = true
+          } else if enemy.enemy_base.name ==
+            "（BOSS）织网夫人·夏特拉" {
+            xtale_killed.val = true
+          }
+          if taotle_killed.val == true && xtale_killed.val == true {
+            success()
+          }
+        }
       } else {
         // 更新敌人血量显示
         update_health(enemy.id, enemy.now_health, enemy.enemy_base.health)

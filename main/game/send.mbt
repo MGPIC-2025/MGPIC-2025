@@ -237,3 +237,12 @@ fn game_over() -> Unit {
     content: ({} : Json).stringify(),
   })
 }
+
+///|
+/// 游戏成功
+fn success() -> Unit {
+  @global_msg.msg_info.broadcast({
+    type_msg: "success",
+    content: ({} : Json).stringify(),
+  })
+}

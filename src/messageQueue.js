@@ -987,5 +987,15 @@ export function registerAllHandlers() {
     }
   });
 
+  // success: 游戏成功
+  messageQueue.registerHandler('success', (data, context) => {
+    log('[Handler] 游戏胜利！');
+
+    // 显示游戏成功对话框
+    if (context.onGameSuccess) {
+      context.onGameSuccess();
+    }
+  });
+
   // Message handlers registered
 }

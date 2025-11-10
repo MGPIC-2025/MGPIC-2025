@@ -43,6 +43,9 @@ fn handle_game_round_pass() -> Unit {
 /// 后端：直接设置 current_game 为 None
 fn handle_on_game_over() -> Unit {
   current_game.val = None
+  boss_borned.val = false
+  taotle_killed.val = false
+  xtale_killed.val = false
 }
 
 ///|
