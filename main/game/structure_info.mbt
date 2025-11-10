@@ -2,7 +2,7 @@
 let structure_info_list : FixedArray[StructureBase] = [
   {
     name: "铆接壁垒",
-    health: 180,
+    health: 400,
     can_move: false,
     can_attack: false,
     has_storage: false,
@@ -14,7 +14,7 @@ let structure_info_list : FixedArray[StructureBase] = [
       health=0,
       speed=0,
       attack=0,
-      defense=30,
+      defense=0,
       dodge=0,
     ),
     cost: @resource.ResourceCost::new([
@@ -24,7 +24,7 @@ let structure_info_list : FixedArray[StructureBase] = [
   },
   {
     name: "齿轮箭塔",
-    health: 120,
+    health: 180,
     can_move: false,
     can_attack: true,
     has_storage: false,
@@ -36,7 +36,7 @@ let structure_info_list : FixedArray[StructureBase] = [
       health=0,
       speed=0,
       attack=30,
-      defense=15,
+      defense=0,
       dodge=0,
     ),
     cost: @resource.ResourceCost::new([
@@ -46,7 +46,7 @@ let structure_info_list : FixedArray[StructureBase] = [
   },
   {
     name: "心源矿钻",
-    health: 150,
+    health: 300,
     can_move: false,
     can_attack: false,
     has_storage: true,
@@ -58,7 +58,7 @@ let structure_info_list : FixedArray[StructureBase] = [
       health=0,
       speed=0,
       attack=0,
-      defense=20,
+      defense=0,
       dodge=0,
     ),
     cost: @resource.ResourceCost::new([
@@ -69,7 +69,7 @@ let structure_info_list : FixedArray[StructureBase] = [
   },
   {
     name: "充能线圈",
-    health: 300,
+    health: 200,
     can_move: false,
     can_attack: false,
     has_storage: false,
@@ -81,7 +81,7 @@ let structure_info_list : FixedArray[StructureBase] = [
       health=0,
       speed=0,
       attack=0,
-      defense=35,
+      defense=0,
       dodge=0,
     ),
     cost: @resource.ResourceCost::new([
@@ -92,7 +92,7 @@ let structure_info_list : FixedArray[StructureBase] = [
   },
   {
     name: "维修工坊",
-    health: 120,
+    health: 200,
     can_move: false,
     can_attack: true,
     has_storage: false,
@@ -104,7 +104,7 @@ let structure_info_list : FixedArray[StructureBase] = [
       health=0,
       speed=0,
       attack=25,
-      defense=18,
+      defense=0,
       dodge=0,
     ),
     cost: @resource.ResourceCost::new([
@@ -115,11 +115,11 @@ let structure_info_list : FixedArray[StructureBase] = [
   },
   {
     name: "镜光折射塔",
-    health: 600,
+    health: 1200,
     can_move: false,
     can_attack: false,
     has_storage: false,
-    attack_range: 4,
+    attack_range: 5,
     description: "一座顶部镶嵌着巨大、可转动水晶镜片的塔。它能聚集环境中的心源能量，发射出一道灼热的折射光束，对直线上的敌人造成伤害。",
     asset_url: "assets/structure/mirror_refractory_tower/mirror_light_refraction_tower.webp",
     model_url: "assets/structure/mirror_refractory_tower/mirror_light_refraction_tower.glb",
@@ -127,7 +127,7 @@ let structure_info_list : FixedArray[StructureBase] = [
       health=0,
       speed=0,
       attack=120,
-      defense=40,
+      defense=0,
       dodge=0,
     ),
     cost: @resource.ResourceCost::new([
@@ -139,7 +139,7 @@ let structure_info_list : FixedArray[StructureBase] = [
   },
   {
     name: "共鸣警钟",
-    health: 250,
+    health: 500,
     can_move: false,
     can_attack: true,
     has_storage: false,
@@ -151,7 +151,7 @@ let structure_info_list : FixedArray[StructureBase] = [
       health=0,
       speed=0,
       attack=60,
-      defense=25,
+      defense=0,
       dodge=0,
     ),
     cost: @resource.ResourceCost::new([
@@ -162,11 +162,11 @@ let structure_info_list : FixedArray[StructureBase] = [
   },
   {
     name: "风暴铁砧",
-    health: 400,
+    health: 800,
     can_move: false,
     can_attack: true,
     has_storage: false,
-    attack_range: 3,
+    attack_range: 4,
     description: "一个被闪电线圈环绕的巨大铁砧。它会定期引动空气中的能量，召唤一道小范围的闪电风暴，轰击区域内的所有敌人。",
     asset_url: "assets/structure/storm_iron_anvil/storm_anvil.webp",
     model_url: "assets/structure/storm_iron_anvil/storm_anvil.glb",
@@ -174,7 +174,7 @@ let structure_info_list : FixedArray[StructureBase] = [
       health=0,
       speed=0,
       attack=100,
-      defense=30,
+      defense=0,
       dodge=0,
     ),
     cost: @resource.ResourceCost::new([
