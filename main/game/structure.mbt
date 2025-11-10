@@ -83,18 +83,18 @@ fn Structure::get_attack_targets(
         match occupant {
           Copper(copper) if structure.structure_base.name == "维修工坊" =>
             can_attack.push(CanAttackTarget::Copper(copper))
-          Enemy(enemy) if enemy.owned == true =>
+          Enemy(enemy) if enemy.owned == false =>
             can_attack.push(CanAttackTarget::Enemy(enemy))
-          Structure(structure) if structure.owned == true =>
+          Structure(structure) if structure.owned == false =>
             can_attack.push(CanAttackTarget::Structure(structure))
           _ => ()
         }
       } else {
         match occupant {
           Copper(copper) => can_attack.push(CanAttackTarget::Copper(copper))
-          Enemy(enemy) if enemy.owned == false =>
+          Enemy(enemy) if enemy.owned == true =>
             can_attack.push(CanAttackTarget::Enemy(enemy))
-          Structure(structure) if structure.owned == false =>
+          Structure(structure) if structure.owned == true =>
             can_attack.push(CanAttackTarget::Structure(structure))
           _ => ()
         }
