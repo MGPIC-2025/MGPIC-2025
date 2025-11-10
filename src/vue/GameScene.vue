@@ -24,6 +24,7 @@ import ActionPanel from './ActionPanel.vue';
 import TurnSystem from './ActionPanelParts/TurnSystem.vue';
 import SummonModal from './ActionPanelParts/SummonModal.vue';
 import StructurePanel from './StructurePanel.vue';
+import ResourcePanel from './ResourcePanel.vue';
 
 const props = defineProps({
   isGameMode: {
@@ -992,24 +993,42 @@ function setupMessageQueue() {
     }, 500);
 
     // 攻击线特效（从攻击者到目标）
-    const attackerPos = attacker.object.position;
-    // ✅ 以(0,0)为中心，地图范围 -7 到 7
+    // 从攻击者中心位置发射（提高高度）
+    const attackerPos = new THREE.Vector3(
+      attacker.object.position.x,
+      0.5, // 提高到模型中心高度
+      attacker.object.position.z
+    );
+    // 直接使用后端传来的坐标（已经是世界坐标）
     const targetPos = new THREE.Vector3(
-      (targetPosition[0] - 7) * 1.0,
-      0.4,
-      (targetPosition[1] - 7) * 1.0
+      targetPosition[0],
+      0.5, // 与攻击者同高
+      targetPosition[1]
     );
 
-    // 创建闪电线
-    const points = [attackerPos, targetPos];
-    const geometry = new THREE.BufferGeometry().setFromPoints(points);
-    const material = new THREE.LineBasicMaterial({
+    // 创建攻击射线
+    const direction = new THREE.Vector3().subVectors(targetPos, attackerPos);
+    const distance = direction.length();
+    const midpoint = new THREE.Vector3().addVectors(attackerPos, targetPos).multiplyScalar(0.5);
+    
+    // 创建圆柱体作为射线
+    const cylinderGeometry = new THREE.CylinderGeometry(0.05, 0.05, distance, 8);
+    const cylinderMaterial = new THREE.MeshBasicMaterial({
       color: 0xff4444,
-      linewidth: 3,
       transparent: true,
-      opacity: 0.8,
+      opacity: 0.9,
+      emissive: 0xff4444,
+      emissiveIntensity: 0.5,
     });
-    const line = new THREE.Line(geometry, material);
+    const line = new THREE.Mesh(cylinderGeometry, cylinderMaterial);
+    
+    // 定位和旋转圆柱体
+    line.position.copy(midpoint);
+    line.quaternion.setFromUnitVectors(
+      new THREE.Vector3(0, 1, 0),
+      direction.normalize()
+    );
+    
     scene.add(line);
 
     // 创建爆炸圆环
@@ -1019,11 +1038,12 @@ function setupMessageQueue() {
       side: THREE.DoubleSide,
       transparent: true,
       opacity: 0.8,
+      emissive: 0xff0000,
+      emissiveIntensity: 0.5,
     });
     const ring = new THREE.Mesh(ringGeometry, ringMaterial);
-    ring.rotation.x = -Math.PI / 2;
+    ring.rotation.x = -Math.PI / 2; // 水平放置
     ring.position.copy(targetPos);
-    ring.position.y = 0.5;
     scene.add(ring);
 
     // 动画：线和圆环淡出
@@ -1037,7 +1057,7 @@ function setupMessageQueue() {
       if (progress < 1) {
         // 淡出
         const opacity = 1 - progress;
-        if (material) material.opacity = opacity;
+        if (cylinderMaterial) cylinderMaterial.opacity = opacity;
         if (ringMaterial) ringMaterial.opacity = opacity;
 
         // 圆环扩大
@@ -1048,8 +1068,8 @@ function setupMessageQueue() {
         // 清除
         scene.remove(line);
         scene.remove(ring);
-        geometry.dispose();
-        material.dispose();
+        cylinderGeometry.dispose();
+        cylinderMaterial.dispose();
         ringGeometry.dispose();
         ringMaterial.dispose();
       }
@@ -1057,7 +1077,7 @@ function setupMessageQueue() {
 
     animateEffect();
     log(
-      `[GameScene] 攻击特效: 攻击者ID=${attackerId} → 目标位置${targetPosition}`
+      `[GameScene] 攻击特效: 攻击者ID=${attackerId}, 位置=${attackerPos.x.toFixed(1)},${attackerPos.z.toFixed(1)} → 目标位置[${targetPosition[0]},${targetPosition[1]}]`
     );
   };
 
@@ -1211,6 +1231,73 @@ function setupMessageQueue() {
           currentCopperIndex.value = 0;
         }
       }
+    },
+    // 显示资源获取特效（敌人死亡时）
+    onShowResourceGain: (position, resourceChanges) => {
+      log('[GameScene] 显示资源获取特效:', position, resourceChanges);
+      
+      // 创建飘字特效
+      import('../utils/resourceMeta.js').then(({ getResourceName }) => {
+        const resourceTexts = Object.entries(resourceChanges)
+          .filter(([_, amount]) => amount > 0)
+          .map(([resourceType, amount]) => `+${amount} ${getResourceName(resourceType)}`);
+        
+        if (resourceTexts.length === 0) return;
+        
+        // 创建文字精灵
+        const canvas = document.createElement('canvas');
+        const context = canvas.getContext('2d');
+        canvas.width = 512;
+        canvas.height = 256;
+        
+        // 绘制文字
+        context.fillStyle = '#FFD700';
+        context.font = 'bold 48px Arial';
+        context.textAlign = 'center';
+        context.textBaseline = 'middle';
+        
+        resourceTexts.forEach((text, index) => {
+          context.fillText(text, 256, 80 + index * 60);
+        });
+        
+        // 创建纹理和精灵
+        const texture = new THREE.CanvasTexture(canvas);
+        const spriteMaterial = new THREE.SpriteMaterial({ 
+          map: texture,
+          transparent: true,
+          opacity: 1
+        });
+        const sprite = new THREE.Sprite(spriteMaterial);
+        
+        // 设置位置（在敌人死亡位置上方）
+        sprite.position.set(position[0], 1.5, position[1]);
+        sprite.scale.set(2, 1, 1);
+        
+        scene.add(sprite);
+        
+        // 飘字动画
+        const startTime = performance.now();
+        const duration = 2000; // 2秒
+        
+        function animateFloat() {
+          const elapsed = performance.now() - startTime;
+          const progress = elapsed / duration;
+          
+          if (progress < 1) {
+            // 向上飘动，逐渐淡出
+            sprite.position.y = 1.5 + progress * 2;
+            spriteMaterial.opacity = 1 - progress;
+            requestAnimationFrame(animateFloat);
+          } else {
+            // 动画结束，移除精灵
+            scene.remove(sprite);
+            texture.dispose();
+            spriteMaterial.dispose();
+          }
+        }
+        
+        animateFloat();
+      });
     },
     // 攻击完成后的回调
     onAttackComplete: id => {
@@ -1550,6 +1637,8 @@ function setupMessageQueue() {
         object: obj,
         name: enemy.enemy_base?.enemy_type || `Enemy_${actualId}`,
         type: isOwned ? 'summon' : 'enemy', // 友方召唤物标记为summon
+        position: position, // 保存位置用于死亡特效
+        isOwned: isOwned, // 保存是否为友方召唤物
       });
 
       // 创建血条（所有敌人和召唤物都需要）
@@ -2966,6 +3055,9 @@ function endRound() {
       @endRound="endRound"
       @selectCopper="handleClickCopper"
     />
+
+    <!-- 全局资源面板 -->
+    <ResourcePanel v-if="isGameMode" />
 
     <!-- 铜偶操作面板（仅游戏模式显示） -->
     <ActionPanel
