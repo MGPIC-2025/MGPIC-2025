@@ -17,7 +17,7 @@ let structure_info_list : FixedArray[StructureBase] = [
       defense=0,
       dodge=0,
     ),
-    cost: @resource.ResourceCost::new([(@resource.RefinedCopper, 10)]),
+    cost: @resource.ResourceCost::new([(@resource.SpiritalSpark, 1)]),
   },
   {
     name: "齿轮箭塔",
@@ -36,7 +36,7 @@ let structure_info_list : FixedArray[StructureBase] = [
       defense=0,
       dodge=0,
     ),
-    cost: @resource.ResourceCost::new([(@resource.RefinedCopper, 10)]),
+    cost: @resource.ResourceCost::new([(@resource.SpiritalSpark, 1)]),
   },
   {
     name: "心源矿钻",
@@ -55,10 +55,7 @@ let structure_info_list : FixedArray[StructureBase] = [
       defense=0,
       dodge=0,
     ),
-    cost: @resource.ResourceCost::new([
-      (@resource.RefinedCopper, 15),
-      (@resource.HeartCrystalDust, 5),
-    ]),
+    cost: @resource.ResourceCost::new([(@resource.SpiritalSpark, 1)]),
   },
   {
     name: "充能线圈",
@@ -77,10 +74,7 @@ let structure_info_list : FixedArray[StructureBase] = [
       defense=0,
       dodge=0,
     ),
-    cost: @resource.ResourceCost::new([
-      (@resource.RefinedCopper, 20),
-      (@resource.ResonantCrystal, 3),
-    ]),
+    cost: @resource.ResourceCost::new([(@resource.SpiritalSpark, 1)]),
   },
   {
     name: "维修工坊",
@@ -99,10 +93,7 @@ let structure_info_list : FixedArray[StructureBase] = [
       defense=0,
       dodge=0,
     ),
-    cost: @resource.ResourceCost::new([
-      (@resource.RefinedCopper, 12),
-      (@resource.RecallGear, 2),
-    ]),
+    cost: @resource.ResourceCost::new([(@resource.SpiritalSpark, 1)]),
   },
   {
     name: "镜光折射塔",
@@ -121,11 +112,7 @@ let structure_info_list : FixedArray[StructureBase] = [
       defense=0,
       dodge=0,
     ),
-    cost: @resource.ResourceCost::new([
-      (@resource.RefinedCopper, 25),
-      (@resource.ResonantCrystal, 8),
-      (@resource.HeartCrystalDust, 10),
-    ]),
+    cost: @resource.ResourceCost::new([(@resource.SpiritalSpark, 1)]),
   },
   {
     name: "共鸣警钟",
@@ -144,10 +131,7 @@ let structure_info_list : FixedArray[StructureBase] = [
       defense=0,
       dodge=0,
     ),
-    cost: @resource.ResourceCost::new([
-      (@resource.RefinedCopper, 15),
-      (@resource.ResonantCrystal, 5),
-    ]),
+    cost: @resource.ResourceCost::new([(@resource.SpiritalSpark, 1)]),
   },
   {
     name: "风暴铁砧",
@@ -166,10 +150,7 @@ let structure_info_list : FixedArray[StructureBase] = [
       defense=0,
       dodge=0,
     ),
-    cost: @resource.ResourceCost::new([
-      (@resource.RefinedCopper, 18),
-      (@resource.SpiritalSpark, 3),
-    ]),
+    cost: @resource.ResourceCost::new([(@resource.SpiritalSpark, 1)]),
   },
 ]
 
