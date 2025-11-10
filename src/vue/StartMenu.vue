@@ -168,7 +168,9 @@ async function initScene(onProgress = null) {
     scene.add(logoModel);
     const box = new THREE.Box3().setFromObject(logoModel);
     const center = box.getCenter(new THREE.Vector3());
-    logoModel.position.set(-center.x, -center.y, -center.z);
+    // 调整位置让 logo 在屏幕中央显示（向左移动修正偏右问题）
+    logoModel.position.set(-center.x, -center.y, -center.z - 0.3);
+
     try {
       logoModel.scale.setScalar(baseScale);
     } catch (_) {}
@@ -280,7 +282,12 @@ onMounted(() => {
     // 设置透明背景，让背景图片显示
     scene.background = null;
 
-    camera = new THREE.PerspectiveCamera(50, 1.333, 0.1, 1000);
+    camera = new THREE.PerspectiveCamera(
+      50,
+      window.innerWidth / window.innerHeight,
+      0.1,
+      1000
+    );
     camera.position.set(-3.655, 0.2, -0.006);
     camera.rotation.set(-1.618275, -1.538307, -1.6183, 'XYZ');
 
