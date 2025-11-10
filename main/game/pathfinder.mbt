@@ -35,7 +35,8 @@ fn generate_offset(range : Int) -> Array[(Int, Int)] {
   let offset = []
   for i in -range..=range {
     for j in -range..=range {
-      let manhattan = (if i < 0 { -i } else { i }) + (if j < 0 { -j } else { j })
+      let manhattan = (if i < 0 { -i } else { i }) +
+        (if j < 0 { -j } else { j })
       if manhattan <= range && manhattan != 0 {
         offset.push((i, j))
       }

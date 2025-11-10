@@ -67,17 +67,12 @@ fn Enemy::get_drop_items(enemy : Enemy) -> Array[Item] {
 
 ///|
 fn Enemy::apply_attack(enemy : Enemy, attack : Float) -> Bool {
-  let attack = attack - enemy.enemy_base.defense
-  if attack > 0 {
-    if @rand.check_probability(enemy.enemy_base.dodge.to_double() / 100) {
-      return false
-    }
-    enemy.now_health -= attack
-    if enemy.now_health <= 0 {
-      return true
-    }
+  if @rand.check_probability(enemy.enemy_base.dodge.to_double() / 100) {
+    return false
   }
-  false
+  let damage = calculate_damage(attack, enemy.enemy_base.defense)
+  enemy.now_health -= damage
+  enemy.now_health <= 0
 }
 
 ///|

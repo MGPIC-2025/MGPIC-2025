@@ -55,17 +55,12 @@ fn BattleCopper::apply_attack(
   battle_copper : BattleCopper,
   attack : Float,
 ) -> Bool {
-  let attack = attack - battle_copper.attribute.defense
-  if attack > 0 {
-    if @rand.check_probability(battle_copper.attribute.dodge.to_double() / 100) {
-      return false
-    }
-    battle_copper.now_health -= attack
-    if battle_copper.now_health <= 0 {
-      return true
-    }
+  if @rand.check_probability(battle_copper.attribute.dodge.to_double() / 100) {
+    return false
   }
-  false
+  let damage = calculate_damage(attack, battle_copper.attribute.defense)
+  battle_copper.now_health -= damage
+  battle_copper.now_health <= 0
 }
 
 ///|
