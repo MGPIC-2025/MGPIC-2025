@@ -577,6 +577,18 @@ export function registerAllHandlers() {
     }
   });
 
+  // display_can_build: 显示可建造状态（青色圈圈）（同步处理）
+  messageQueue.registerHandler('display_can_build', (data, context) => {
+    const { id, can_build } = data;
+    const canBuild = can_build === 'true' || can_build === true;
+    log(`[Handler] display_can_build id=${id}, can_build=${canBuild}`);
+
+    // 在模型脚下添加/移除青色圈圈指示器
+    if (context.onDisplayCanBuild) {
+      context.onDisplayCanBuild(id, canBuild);
+    }
+  });
+
   // update_health: 更新单位血量显示（同步处理）
   messageQueue.registerHandler('update_health', (data, context) => {
     const { id, now_health, max_health } = data;
@@ -775,6 +787,22 @@ export function registerAllHandlers() {
     // 只在第一个或每10个时输出日志
     if (summonBlockCount === 1 || summonBlockCount % 10 === 0) {
       log(`[Handler] 召唤范围已显示 ${summonBlockCount} 个地块`);
+    }
+  });
+
+  // set_build_blocks: 设置地图块为可建造（青色）（同步处理）
+  let buildBlockCount = 0;
+  messageQueue.registerHandler('set_build_blocks', (data, context) => {
+    const { position } = data;
+    buildBlockCount++;
+
+    if (context.onSetBuildBlock) {
+      context.onSetBuildBlock(position);
+    }
+
+    // 只在第一个或每10个时输出日志
+    if (buildBlockCount === 1 || buildBlockCount % 10 === 0) {
+      log(`[Handler] 建造范围已显示 ${buildBlockCount} 个地块`);
     }
   });
 

@@ -697,7 +697,7 @@ function setupMessageQueue() {
     const model = models.find(m => m.id === unitId);
     if (!model || !model.object) return;
 
-    // 根据类型设置颜色：绿色(移动) / 红色(攻击) / 黄色(召唤)
+    // 根据类型设置颜色：绿色(移动) / 红色(攻击) / 黄色(召唤) / 青色(建造)
     let color, radius;
     if (type === 'move') {
       color = 0x00ff00; // 绿色
@@ -708,6 +708,9 @@ function setupMessageQueue() {
     } else if (type === 'summon') {
       color = 0xffff00; // 黄色
       radius = 1.2;
+    } else if (type === 'build') {
+      color = 0x00ffff; // 青色
+      radius = 1.1;
     } else {
       color = 0xffffff; // 默认白色
       radius = 1.0;
@@ -1202,6 +1205,13 @@ function setupMessageQueue() {
         indicatorsManager.createIndicator(position, 'summon');
       }
       log(`[GameScene] 显示召唤范围: 坐标=${position}`);
+    },
+    onSetBuildBlock: position => {
+      // 显示建造范围（青色）
+      if (indicatorsManager) {
+        indicatorsManager.createIndicator(position, 'build');
+      }
+      log(`[GameScene] 显示建造范围: 坐标=${position}`);
     },
     onClearBlock: position => {
       if (indicatorsManager) {
@@ -1737,6 +1747,19 @@ function setupMessageQueue() {
         log(`[GameScene] 同步更新selectedCopper.can_summon=${canSummon}`);
       }
     },
+    onDisplayCanBuild: (unitId, canBuild) => {
+      log(`[GameScene] 显示可建造状态: id=${unitId}, show=${canBuild}`);
+      createIndicator(unitId, 'build', canBuild);
+
+      // 如果是当前选中的铜偶，同步更新状态（创建新对象触发响应式）
+      if (selectedCopper.value && selectedCopper.value.id === unitId) {
+        selectedCopper.value = {
+          ...selectedCopper.value,
+          can_build: canBuild,
+        };
+        log(`[GameScene] 同步更新selectedCopper.can_build=${canBuild}`);
+      }
+    },
     onClearState: unitId => {
       log(`[GameScene] 清除状态: id=${unitId}`);
       // 清除该单位的所有指示器
@@ -2110,7 +2133,7 @@ async function handleFloorClick(mousePos) {
       moving: 'move',
       attacking: 'attack',
       summoning: 'summon',
-      building: 'summon', // 建造也使用 summon 类型的黄色方块
+      building: 'summon', // 建造暂时使用 summon 类型（后端发送 set_can_summon_blocks）
       structureMoving: 'move', // 建筑移动使用移动范围的黄色方块
       structureAttacking: 'attack', // 建筑攻击使用攻击范围的红色方块
       structureExtract: 'attack', // 提取使用攻击范围的红色方块
