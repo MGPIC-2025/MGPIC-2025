@@ -55,7 +55,6 @@ const copperInfo = computed(() => {
     canMove: props.copper.can_move,
     canAttack: props.copper.can_attack,
     canSummon: props.copper.can_summon,
-    canBuild: props.copper.can_build,
     position: props.copper.position,
     copperType: props.copper.copper?.copper_type || '',
   };
@@ -139,6 +138,10 @@ async function handleBuild() {
     copperId: copperInfo.value.id,
     name: copperInfo.value.name,
   });
+  if (!copperInfo.value.canSummon) {
+    log('[ActionPanel] 建造被阻止: 本回合已建造/召唤');
+    return;
+  }
 
   // 发送事件给父组件，让父组件来显示建造菜单
   emit('action', {
@@ -294,7 +297,6 @@ defineExpose({ cancelAction, handleSelectCopper, showBuildMenu });
       :can-move="copperInfo?.canMove !== false"
       :can-attack="copperInfo?.canAttack !== false"
       :can-summon="copperInfo?.canSummon !== false"
-      :can-build="copperInfo?.canBuild !== false"
       @move="handleMove"
       @wait="handleWait"
       @attack="handleAttack"

@@ -123,8 +123,9 @@ export function registerAllHandlers() {
         } (ID=${copper.id})`
       );
       log(
-        `[Handler] 铜偶状态: HP=${copper.now_health}/${copper.copper.attribute.health}, 可移动=${copper.can_move}, 可攻击=${copper.can_attack}, 可召唤=${copper.can_summon}, 有攻击目标=${has_attack_targets}`
+        `[Handler] 铜偶状态: HP=${copper.now_health}/${copper.copper.attribute.health}, 可移动=${copper.can_move}, 可攻击=${copper.can_attack}, 可召唤=${copper.can_summon}, 可建造=${copper.can_build}, 有攻击目标=${has_attack_targets}`
       );
+      log(`[Handler] 铜偶类型: ${copper.copper?.copper_type}`);
 
       // 高亮选中的铜偶
       if (context.highlightSelectedCopper) {
@@ -235,6 +236,8 @@ export function registerAllHandlers() {
       await context.onSetCopper(id, position, copper);
     }
   });
+
+  // 统一逻辑：工匠也使用 display_can_summon 圈显示“可建造”状态
 
   // set_enemy: 在指定地点放置敌人
   messageQueue.registerHandler('set_enemy', async (data, context) => {
@@ -952,11 +955,13 @@ export function registerAllHandlers() {
   // drill_resource_generate: 矿钻产出资源特效（同步处理）
   messageQueue.registerHandler('drill_resource_generate', (data, context) => {
     const { position, resource_type, amount } = data;
-    log(`[Handler] 矿钻产出资源: 位置=${JSON.stringify(position)}, 类型=${resource_type}, 数量=${amount}`);
+    log(
+      `[Handler] 矿钻产出资源: 位置=${JSON.stringify(position)}, 类型=${resource_type}, 数量=${amount}`
+    );
 
     // 构建资源变化对象
     const resourceChanges = {
-      [resource_type]: parseInt(amount)
+      [resource_type]: parseInt(amount),
     };
 
     // 显示资源获取特效

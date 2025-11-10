@@ -7,7 +7,6 @@ const props = defineProps({
   canMove: { type: Boolean, default: true },
   canAttack: { type: Boolean, default: true },
   canSummon: { type: Boolean, default: false },
-  canBuild: { type: Boolean, default: false },
 });
 
 const emit = defineEmits(['move', 'wait', 'attack', 'summon', 'build']);
@@ -21,13 +20,13 @@ const rightButtonType = computed(() => {
 });
 
 const rightButtonTitle = computed(() => {
-  if (rightButtonType.value === 'build') return props.canBuild ? '建造' : '本回合已建造';
+  if (rightButtonType.value === 'build') return props.canSummon ? '建造' : '本回合已建造';
   if (rightButtonType.value === 'summon') return props.canSummon ? '召唤' : '本回合已召唤';
   return props.canAttack ? '攻击' : '本回合已攻击';
 });
 
 const rightButtonLocked = computed(() => {
-  if (rightButtonType.value === 'build') return !props.canBuild;
+  if (rightButtonType.value === 'build') return !props.canSummon;
   if (rightButtonType.value === 'summon') return !props.canSummon;
   return !props.canAttack;
 });
@@ -51,6 +50,7 @@ function onWait() {
 function onRightButton() {
   // 根据按钮类型触发不同事件
   if (rightButtonType.value === 'build') {
+    if (!props.canSummon) return;
     emit('build');
   } else if (rightButtonType.value === 'summon') {
     if (!props.canSummon) return;
