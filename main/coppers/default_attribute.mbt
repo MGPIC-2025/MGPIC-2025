@@ -19,10 +19,10 @@ pub fn get_default_attribute(copper_type : CopperType) -> @attribute.Attribute {
       )
     Resonator =>
       @attribute.Attribute::new(
-        health=50,
+        health=100,
         speed=3,
         attack=10,
-        defense=5,
+        defense=10,
         dodge=10,
       )
     Mechanic =>
@@ -30,15 +30,15 @@ pub fn get_default_attribute(copper_type : CopperType) -> @attribute.Attribute {
         health=80,
         speed=3,
         attack=5,
-        defense=5,
+        defense=8,
         dodge=10,
       )
     CraftsMan =>
       @attribute.Attribute::new(
         health=80,
-        speed=5,
+        speed=4,
         attack=0,
-        defense=5,
+        defense=8,
         dodge=10,
       )
   }

@@ -29,43 +29,43 @@ pub fn get_upgrade_attribute(copper : Copper) -> @attribute.Attribute {
   match copper.copper_type {
     IronWall =>
       @attribute.Attribute::new(
-        health=cost_upgrade(attribute.health, level, 1.3),
+        health=cost_upgrade(attribute.health, level, 1.35),
         speed~,
-        attack=cost_upgrade(attribute.attack, level, 1.26),
-        defense=cost_upgrade(attribute.defense, level, 1.3),
+        attack=cost_upgrade(attribute.attack, level, 1.28),
+        defense=cost_upgrade(attribute.defense, level, 1.37),
         dodge=cost_upgrade(attribute.dodge, level, 1.19),
       )
     Arcanist =>
       @attribute.Attribute::new(
-        health=cost_upgrade(attribute.health, level, 1.3),
+        health=cost_upgrade(attribute.health, level, 1.22),
         speed~,
-        attack=cost_upgrade(attribute.attack, level, 1.4),
+        attack=cost_upgrade(attribute.attack, level, 1.40),
         defense=cost_upgrade(attribute.defense, level, 1.27),
         dodge=cost_upgrade(attribute.dodge, level, 1.19),
       )
     Resonator =>
       @attribute.Attribute::new(
-        health=cost_upgrade(attribute.health, level, 1.3),
+        health=cost_upgrade(attribute.health, level, 1.38),
         speed~,
-        attack=cost_upgrade(attribute.attack, level, 1.3),
-        defense=cost_upgrade(attribute.defense, level, 1.3),
-        dodge=cost_upgrade(attribute.dodge, level, 1.3),
+        attack=cost_upgrade(attribute.attack, level, 1.16),
+        defense=cost_upgrade(attribute.defense, level, 1.27),
+        dodge=cost_upgrade(attribute.dodge, level, 1.19),
       )
     Mechanic =>
       @attribute.Attribute::new(
         health=cost_upgrade(attribute.health, level, 1.3),
         speed~,
-        attack=cost_upgrade(attribute.attack, level, 1.3),
-        defense=cost_upgrade(attribute.defense, level, 1.3),
-        dodge=cost_upgrade(attribute.dodge, level, 1.3),
+        attack=cost_upgrade(attribute.attack, level, 1.2),
+        defense=cost_upgrade(attribute.defense, level, 1.27),
+        dodge=cost_upgrade(attribute.dodge, level, 1.19),
       )
     CraftsMan =>
       @attribute.Attribute::new(
         health=cost_upgrade(attribute.health, level, 1.3),
         speed~,
-        attack=cost_upgrade(attribute.attack, level, 1.3),
-        defense=cost_upgrade(attribute.defense, level, 1.3),
-        dodge=cost_upgrade(attribute.dodge, level, 1.3),
+        attack=cost_upgrade(attribute.attack, level, 1.27),
+        defense=cost_upgrade(attribute.defense, level, 1.16),
+        dodge=cost_upgrade(attribute.dodge, level, 1.19),
       )
   }
 }
