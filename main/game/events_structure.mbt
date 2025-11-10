@@ -75,6 +75,9 @@ fn handle_on_structure_attack_apply(
           remove_unit(copper.id)
           map.remove_occupant(copper.position)
         }
+        if battle_copper_map.length() == 0 {
+          game_over()
+        }
       }
       // 更新铜偶血量显示
       update_health(

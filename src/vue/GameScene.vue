@@ -254,6 +254,9 @@ const currentActionMode = ref(null); // 'moving' | 'attacking' | 'transferring' 
 // 存储铜偶的 can_build 状态（工匠专用）
 const copperCanBuildMap = new Map(); // { copperId: boolean }
 
+// 游戏结束对话框
+const showGameOverDialog = ref(false);
+
 const currentCopperId = computed(() => {
   if (playerCoppers.value.length === 0) return null;
   const copper = playerCoppers.value[currentCopperIndex.value];
@@ -1110,6 +1113,11 @@ function setupMessageQueue() {
       if (effectsManager && Object.keys(resourceChanges).length > 0) {
         effectsManager.createResourceGainEffect(position, resourceChanges);
       }
+    },
+    // 游戏结束回调
+    onGameOver: () => {
+      log('[GameScene] 收到游戏结束消息，显示对话框');
+      showGameOverDialog.value = true;
     },
     // 攻击完成后的回调
     onAttackComplete: id => {
@@ -2913,6 +2921,23 @@ function endRound() {
     }, 500);
   }
 }
+
+// 处理游戏结束对话框确定按钮
+async function handleGameOverConfirm() {
+  log('[GameScene] 游戏结束对话框确定，返回菜单');
+  
+  // 关闭对话框
+  showGameOverDialog.value = false;
+  
+  // 发送 on_game_over 消息给后端，让后端清空 Game
+  const message = JSON.stringify({ type: 'on_game_over' });
+  await eventloop(message).catch(e => {
+    log('[GameScene] 发送 on_game_over 消息失败', e);
+  });
+  
+  // 返回菜单
+  emit('back');
+}
 </script>
 
 <template>
@@ -3013,6 +3038,17 @@ function endRound() {
         </p>
       </div>
     </div>
+
+    <!-- 游戏结束对话框 -->
+    <div v-if="showGameOverDialog" class="game-over-overlay">
+      <div class="game-over-dialog">
+        <h2 class="game-over-title">游戏结束</h2>
+        <p class="game-over-message">所有铜偶已被击败</p>
+        <button class="game-over-button" @click="handleGameOverConfirm">
+          确定
+        </button>
+      </div>
+    </div>
     <audio ref="audioRef" :src="musicUrl" loop preload="auto"></audio>
     <!-- 移动音效 -->
     <audio ref="moveSoundRef" :src="moveSoundUrl" preload="auto"></audio>
@@ -3075,5 +3111,84 @@ function endRound() {
   margin: 6px 0;
   font-size: 14px;
   line-height: 1.5;
+}
+
+/* 游戏结束对话框样式 */
+.game-over-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 20000;
+  animation: fadeIn 0.3s ease-out;
+}
+
+.game-over-dialog {
+  background: linear-gradient(135deg, #2b1a11 0%, #1f130c 100%);
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  border-radius: 20px;
+  padding: 40px 60px;
+  text-align: center;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+  animation: scaleIn 0.3s ease-out;
+}
+
+.game-over-title {
+  font-size: 48px;
+  font-weight: 900;
+  color: #ff4444;
+  margin: 0 0 20px 0;
+  text-shadow: 0 4px 8px rgba(255, 68, 68, 0.4);
+}
+
+.game-over-message {
+  font-size: 24px;
+  color: #ffffff;
+  margin: 0 0 40px 0;
+  opacity: 0.9;
+}
+
+.game-over-button {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border: none;
+  border-radius: 12px;
+  color: white;
+  font-size: 20px;
+  font-weight: 700;
+  padding: 16px 48px;
+  cursor: pointer;
+  box-shadow: 0 8px 16px rgba(102, 126, 234, 0.4);
+  transition: all 0.2s;
+}
+
+.game-over-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 24px rgba(102, 126, 234, 0.6);
+}
+
+.game-over-button:active {
+  transform: translateY(0);
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    transform: scale(0.8);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
 }
 </style>

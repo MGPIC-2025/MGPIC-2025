@@ -228,3 +228,12 @@ fn update_health(id : Int, now_health : Float, max_health : Float) -> Unit {
       { "id": id, "now_health": now_health, "max_health": max_health } : Json).stringify(),
   })
 }
+
+///|
+/// 游戏结束
+fn game_over() -> Unit {
+  @global_msg.msg_info.broadcast({
+    type_msg: "game_over",
+    content: ({} : Json).stringify(),
+  })
+}

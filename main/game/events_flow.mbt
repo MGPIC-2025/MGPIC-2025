@@ -39,6 +39,13 @@ fn handle_game_round_pass() -> Unit {
 }
 
 ///|
+/// 游戏结束
+/// 后端：直接设置 current_game 为 None
+fn handle_on_game_over() -> Unit {
+  current_game.val = None
+}
+
+///|
 /// 重新设置所有地砖状态
 fn reset_all_blocks() -> Unit {
   for attack_block in setted_attack_blocks {
@@ -156,6 +163,9 @@ fn enemy_ai() -> Unit {
             battle_copper_map.remove(copper.id)
             remove_unit(copper.id)
             map.remove_occupant(copper.position)
+            if battle_copper_map.length() == 0 {
+              game_over()
+            }
           } else {
             // 更新铜偶血量显示
             update_health(

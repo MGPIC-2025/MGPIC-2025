@@ -977,5 +977,15 @@ export function registerAllHandlers() {
     emitEvent(EventTypes.UPDATE_RESOURCES);
   });
 
+  // game_over: 游戏结束
+  messageQueue.registerHandler('game_over', (data, context) => {
+    log('[Handler] 游戏结束');
+
+    // 显示游戏结束对话框
+    if (context.onGameOver) {
+      context.onGameOver();
+    }
+  });
+
   // Message handlers registered
 }

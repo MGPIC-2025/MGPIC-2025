@@ -130,6 +130,7 @@ pub fn eventloop(msg : String) -> Unit {
         (string_to_int(x), string_to_int(y)),
         force_get_current_map(),
       )
+    { "type": "on_game_over", .. } => handle_on_game_over()
     _ => abort("Invalid message")
   }
 }
