@@ -201,6 +201,7 @@ fn BattleCopper::update_move_and_attack_and_summon_status(
   display_can_move(copper.id, copper.can_move)
   display_can_attack(copper.id, copper.can_attack)
   display_can_summon(copper.id, copper.can_summon)
+  display_can_build(copper.id, copper.can_build)
 }
 
 ///|
