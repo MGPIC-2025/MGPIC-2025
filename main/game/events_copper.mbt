@@ -186,23 +186,20 @@ fn handle_on_move_apply(id : Int, position : (Int, Int), map : Map_) -> Unit {
     let (_, new_room_index) = Room::get_room_direction_and_new_position(
       now_room, position,
     )
-    // 生成房间，将其加入地图
+    // 计算铜偶在新房间内的本地位置
+    let new_local_x = position.0 - new_room_index.0
+    let new_local_y = position.1 - new_room_index.1
+    // 生成房间，将其加入地图，并排除铜偶的位置来生成敌人
     let new_room = Room::new(
       get_level_by_room_count(map.rooms.length() + 1),
       new_room_index,
-      Set::from_array([new_room_index]),
+      Set::from_array([(new_local_x, new_local_y)]),
     )
     Map_::add_room(map, new_room)
     // 移除旧房间的铜偶
     now_room.blocks[now_local_pos.0][now_local_pos.1].occupant = Empty
-    // 计算铜偶在新房间内的本地位置
-    // 玩家点击的position是全局坐标，需要转换为新房间的本地坐标
-    let new_local_x = position.0 - new_room_index.0
-    let new_local_y = position.1 - new_room_index.1
     // 将铜偶放入新房间
-    new_room.blocks[new_local_x][new_local_y].occupant = Occupant::Copper(
-      battle_copper,
-    )
+    new_room.blocks[new_local_x][new_local_y].occupant = Copper(battle_copper)
     // 广播新房间的内容到前端
     broadcast_room_content(new_room)
     // 根据位置改变铜偶的朝向（使用get_direction_by_position计算正确的朝向）

@@ -9,9 +9,9 @@ fn handle_on_game_start(ids : Array[Int]) -> Unit {
   current_game.val = Some(Game::new())
   let map = force_get_current_map()
   let first_room = map.rooms[0]
-  first_room.blocks[0][3].occupant = Occupant::Copper(copper_1)
-  first_room.blocks[0][4].occupant = Occupant::Copper(copper_2)
-  first_room.blocks[0][5].occupant = Occupant::Copper(copper_3)
+  first_room.blocks[0][3].occupant = Copper(copper_1)
+  first_room.blocks[0][4].occupant = Copper(copper_2)
+  first_room.blocks[0][5].occupant = Copper(copper_3)
 
   // 广播房间内容（地图块、敌人和铜偶）
   // 由于 Map_::new 使用了 add_room_silent，这是唯一一次广播
