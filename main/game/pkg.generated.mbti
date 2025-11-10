@@ -1,38 +1,20 @@
 // Generated using `moon info`, DON'T EDIT IT
 package "Lampese/MGPIC_2025/game"
 
+import(
+  "Lampese/MGPIC_2025/global_resource"
+)
+
 // Values
-fn cost_drop_item(Array[(Item, Double)]) -> Item?
+fn cost_drop_item(Array[(@global_resource.Item, Double)]) -> @global_resource.Item?
 
 fn eventloop(String) -> Unit
 
 let structure_info_map : Map[String, StructureBase]
 
-fn test_blocks() -> Unit
-
-fn test_camera_control() -> Unit
-
-fn test_camera_reset() -> Unit
-
-fn test_clear_states() -> Unit
-
-fn test_display_states() -> Unit
-
-fn test_game_round_pass() -> Unit
-
-fn test_remove() -> Unit
-
-fn test_sequence() -> Unit
-
-fn test_simple_move() -> Unit
-
 // Errors
 
 // Types and methods
-type Item
-impl Eq for Item
-impl ToJson for Item
-
 type MapBlock
 fn MapBlock::new() -> Self
 

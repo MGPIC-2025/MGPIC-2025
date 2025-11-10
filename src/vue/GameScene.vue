@@ -477,12 +477,12 @@ function initScene() {
 
   // 创建测试用的立方体（用于后端测试，ID=1和2）
   createTestUnits();
-  
+
   // 初始化 Composables（需要在 scene 和 camera 创建后）
   healthBarsManager = useHealthBars(scene, camera);
   indicatorsManager = useIndicators(scene);
   effectsManager = useEffects(scene);
-  
+
   log('[GameScene] 场景初始化完成');
   log('[GameScene] - 蓝/红立方体(ID=1,2)用于"后端测试"');
   log('[GameScene] - EventLoop测试会动态创建新模型');
@@ -851,10 +851,17 @@ function setupMessageQueue() {
     // 创建攻击射线
     const direction = new THREE.Vector3().subVectors(targetPos, attackerPos);
     const distance = direction.length();
-    const midpoint = new THREE.Vector3().addVectors(attackerPos, targetPos).multiplyScalar(0.5);
-    
+    const midpoint = new THREE.Vector3()
+      .addVectors(attackerPos, targetPos)
+      .multiplyScalar(0.5);
+
     // 创建圆柱体作为射线
-    const cylinderGeometry = new THREE.CylinderGeometry(0.05, 0.05, distance, 8);
+    const cylinderGeometry = new THREE.CylinderGeometry(
+      0.05,
+      0.05,
+      distance,
+      8
+    );
     const cylinderMaterial = new THREE.MeshBasicMaterial({
       color: 0xff4444,
       transparent: true,
@@ -863,14 +870,14 @@ function setupMessageQueue() {
       emissiveIntensity: 0.5,
     });
     const line = new THREE.Mesh(cylinderGeometry, cylinderMaterial);
-    
+
     // 定位和旋转圆柱体
     line.position.copy(midpoint);
     line.quaternion.setFromUnitVectors(
       new THREE.Vector3(0, 1, 0),
       direction.normalize()
     );
-    
+
     scene.add(line);
 
     // 创建爆炸圆环
@@ -1076,7 +1083,7 @@ function setupMessageQueue() {
     // 显示资源获取特效（敌人死亡时）
     onShowResourceGain: (position, resourceChanges) => {
       log('[GameScene] 显示资源获取特效:', position, resourceChanges);
-      
+
       // 使用 effectsManager 显示资源获取特效
       if (effectsManager && Object.keys(resourceChanges).length > 0) {
         effectsManager.createResourceGainEffect(position, resourceChanges);
@@ -2141,7 +2148,10 @@ async function handleFloorClick(mousePos) {
     }[currentActionMode.value];
 
     // 使用 indicatorsManager 检查是否有对应类型的指示器
-    if (!indicatorsManager || !indicatorsManager.hasIndicatorAt([gridX, gridZ], expectedType)) {
+    if (
+      !indicatorsManager ||
+      !indicatorsManager.hasIndicatorAt([gridX, gridZ], expectedType)
+    ) {
       log(`[GameScene] 点击位置 (${gridX}, ${gridZ}) 不在允许范围内，忽略`);
       return;
     }

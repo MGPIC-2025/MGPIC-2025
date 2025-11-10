@@ -13,10 +13,8 @@ fn handle_on_click_enemy(id : Int) -> Unit {
   @global_msg.msg_info.broadcast({
     type_msg: "handle_on_click_enemy",
     content: (
-      {
-        "enemy": enemy.to_json(),
-        "has_attack_targets": has_attack_targets,
-      } : Json).stringify(),
+      { "enemy": enemy.to_json(), "has_attack_targets": has_attack_targets } :
+      Json).stringify(),
   })
 }
 

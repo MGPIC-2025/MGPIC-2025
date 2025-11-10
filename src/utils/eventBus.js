@@ -13,18 +13,18 @@ export const EventTypes = {
   // 资源相关
   UPDATE_RESOURCES: 'update:resources',
   RESOURCES_UPDATED: 'resources:updated',
-  
+
   // 铜偶相关
   COPPER_ID_ADDED: 'copper:id:added',
-  
+
   // 菜单/场景控制
   START_MENU_PAUSE: 'menu:pause',
   START_MENU_RESUME: 'menu:resume',
   START_MENU_STARTED: 'menu:started',
-  
+
   // 控制模式
   CONTROL_MODE_CHANGED: 'control:mode:changed',
-  
+
   // 游戏流程
   GAME_STARTED: 'game:started',
   GAME_ENDED: 'game:ended',
@@ -59,4 +59,3 @@ export const clearAllEvents = () => {
 };
 
 export default eventBus;
-

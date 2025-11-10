@@ -13,10 +13,12 @@ let global : Global
 
 // Types and methods
 pub struct Global {
-  resource : @global_resource.GlobalResource
   mut warehouse : @warehouse.Warehouse
+  bag : @global_resource.Bag
 }
+fn Global::craft(Self) -> String
 fn Global::gacha(Self) -> String
+fn Global::get_bag(Self) -> String
 fn Global::get_copper_list(Self) -> String
 fn Global::get_resource(Self) -> String
 fn Global::new() -> Self

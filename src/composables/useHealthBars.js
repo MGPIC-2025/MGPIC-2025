@@ -98,16 +98,16 @@ export function useHealthBars(scene, camera) {
     if (!barData) return;
 
     const { bar, background, container } = barData;
-    
+
     // 清理几何体和材质
     bar.geometry.dispose();
     bar.material.dispose();
     background.geometry.dispose();
     background.material.dispose();
-    
+
     // 从场景移除
     scene.remove(container);
-    
+
     // 从Map删除
     healthBars.delete(unitId);
   }
@@ -120,12 +120,12 @@ export function useHealthBars(scene, camera) {
       const model = models.find(m => m.id === unitId);
       if (model && model.object) {
         const { container } = barData;
-        
+
         // 位置：单位上方1.5单位
         const position = model.object.position.clone();
         position.y += 1.5;
         container.position.copy(position);
-        
+
         // 朝向相机（确保血条始终正面朝向玩家）
         container.lookAt(camera.position);
       }
@@ -151,4 +151,3 @@ export function useHealthBars(scene, camera) {
     dispose,
   };
 }
-

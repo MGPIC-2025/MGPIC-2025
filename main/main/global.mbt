@@ -12,6 +12,7 @@ pub fn global_get_resource() -> String {
 pub fn global_craft() -> String {
   @global.global.craft()
 }
+
 ///|
 pub fn global_get_copper_list() -> String {
   @global.global.get_copper_list()

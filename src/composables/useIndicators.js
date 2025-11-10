@@ -17,10 +17,10 @@ export function useIndicators(scene) {
    * 指示器类型配置（匹配GameScene原有颜色）
    */
   const indicatorConfig = {
-    move: { color: 0x44ff44, opacity: 0.6 },    // 亮绿色
-    attack: { color: 0xff4444, opacity: 0.6 },  // 亮红色
-    summon: { color: 0xffff00, opacity: 0.6 },  // 黄色
-    build: { color: 0x00ffff, opacity: 0.6 },   // 青色
+    move: { color: 0x44ff44, opacity: 0.6 }, // 亮绿色
+    attack: { color: 0xff4444, opacity: 0.6 }, // 亮红色
+    summon: { color: 0xffff00, opacity: 0.6 }, // 黄色
+    build: { color: 0x00ffff, opacity: 0.6 }, // 青色
   };
 
   /**
@@ -55,13 +55,13 @@ export function useIndicators(scene) {
   function clearIndicatorAt(position) {
     const [x, z] = position;
     let cleared = false;
-    
+
     Object.keys(indicators).forEach(type => {
       const index = indicators[type].findIndex(plane => {
         const pos = plane.userData.position;
         return pos[0] === x && pos[1] === z;
       });
-      
+
       if (index !== -1) {
         const plane = indicators[type][index];
         scene.remove(plane);
@@ -71,7 +71,7 @@ export function useIndicators(scene) {
         cleared = true;
       }
     });
-    
+
     return cleared;
   }
 
@@ -127,4 +127,3 @@ export function useIndicators(scene) {
     dispose,
   };
 }
-

@@ -16,30 +16,30 @@ const resources = ref({
 async function updateResources() {
   try {
     const resourceData = await get_resource();
-    
+
     if (resourceData) {
       // 单次遍历完成：新值赋值 + 变化计算
       const changes = {};
       const newResources = {};
-      
+
       Object.keys(resources.value).forEach(key => {
         const oldVal = resources.value[key];
         const newVal = resourceData[key] || 0;
         newResources[key] = newVal;
-        
+
         // 只记录增加的资源（用于特效显示）
         const diff = newVal - oldVal;
         if (diff > 0) {
           changes[key] = diff;
         }
       });
-      
+
       // 批量更新（减少响应式触发次数）
       resources.value = newResources;
-      
+
       // 发送资源已更新事件（附带变化信息）
       emitEvent(EventTypes.RESOURCES_UPDATED, changes);
-      
+
       return changes;
     }
   } catch (error) {
@@ -52,7 +52,7 @@ async function updateResources() {
 // 初始化时加载一次
 onMounted(() => {
   updateResources();
-  
+
   // 监听资源更新事件（替代全局变量）
   onEvent(EventTypes.UPDATE_RESOURCES, updateResources);
 });
@@ -170,4 +170,3 @@ defineExpose({ updateResources });
   text-align: right;
 }
 </style>
-

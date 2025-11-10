@@ -40,7 +40,6 @@ fn Enemy::new(
   // 友方召唤物第一回合不能移动和攻击，野生敌人可以
   let can_move = if owned { false } else { true }
   let can_attack = if owned { false } else { true }
-  
   let enemy = {
     id: @id.id_pool.get_id(),
     position,

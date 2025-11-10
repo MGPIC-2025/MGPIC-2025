@@ -2,6 +2,7 @@
 package "Lampese/MGPIC_2025/global_resource"
 
 import(
+  "Lampese/MGPIC_2025/equipment"
   "Lampese/MGPIC_2025/resource"
 )
 
@@ -10,12 +11,34 @@ import(
 // Errors
 
 // Types and methods
+pub struct Bag {
+  resources : GlobalResource
+  equipments : Array[@equipment.Equipment]
+}
+fn Bag::add_resource(Self, Array[Item]) -> Unit
+fn Bag::new() -> Self
+impl ToJson for Bag
+
 type GlobalResource
+fn GlobalResource::add_resource(Self, @resource.ResourceType, Int) -> Unit
 fn GlobalResource::check_resource_cost(Self, @resource.ResourceCost) -> Bool
 fn GlobalResource::consume_resource(Self, @resource.ResourceType, Int) -> Unit
 fn GlobalResource::consume_resource_cost(Self, @resource.ResourceCost) -> Unit
 fn GlobalResource::get_resource(Self, @resource.ResourceType) -> Int
 fn GlobalResource::new() -> Self
+impl ToJson for GlobalResource
+
+type Item
+fn Item::new(ItemType, count? : Int) -> Self
+impl Eq for Item
+impl ToJson for Item
+
+pub(all) enum ItemType {
+  Resource(@resource.ResourceType)
+  Equipment(@equipment.Equipment)
+}
+impl Eq for ItemType
+impl ToJson for ItemType
 
 // Type aliases
 

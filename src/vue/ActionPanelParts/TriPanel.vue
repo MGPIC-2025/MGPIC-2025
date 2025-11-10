@@ -5,7 +5,7 @@ const props = defineProps({
   canMove: { type: Boolean, default: true },
   canAttack: { type: Boolean, default: true },
   canSummon: { type: Boolean, default: false },
-  canBuild: { type: Boolean, default: false }, 
+  canBuild: { type: Boolean, default: false },
 });
 
 const emit = defineEmits(['move', 'wait', 'attack', 'summon', 'build']);
@@ -85,12 +85,7 @@ function onBuild() {
       </div>
 
       <!-- 下：建造（仅工匠可见） -->
-      <div
-        v-if="canBuild"
-        class="hex bottom"
-        title="建造"
-        @click="onBuild"
-      >
+      <div v-if="canBuild" class="hex bottom" title="建造" @click="onBuild">
         <img class="hex-bg" :src="hexSrc" alt="六边形背景" />
         <img class="hex-icon" src="/assets/build.png" alt="建造图标" />
       </div>

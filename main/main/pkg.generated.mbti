@@ -4,7 +4,11 @@ package "Lampese/MGPIC_2025/main"
 // Values
 fn eventloop(String) -> Unit
 
+fn global_craft() -> String
+
 fn global_gacha() -> String
+
+fn global_get_bag() -> String
 
 fn global_get_copper_list() -> String
 

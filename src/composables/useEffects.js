@@ -19,11 +19,13 @@ export function useEffects(scene) {
 
     // 1. 攻击射线
     const line = effectPool.getAttackRay(distance);
-    
+
     // 设置位置和方向
-    const midpoint = new THREE.Vector3().addVectors(start, target).multiplyScalar(0.5);
+    const midpoint = new THREE.Vector3()
+      .addVectors(start, target)
+      .multiplyScalar(0.5);
     line.position.copy(midpoint);
-    
+
     // 计算旋转
     const direction = new THREE.Vector3().subVectors(target, start).normalize();
     const quaternion = new THREE.Quaternion();
@@ -37,7 +39,7 @@ export function useEffects(scene) {
     const fadeOut = () => {
       opacity -= 0.05;
       line.material.opacity = opacity;
-      
+
       if (opacity <= 0) {
         scene.remove(line);
         effectPool.recycleAttackRay(line);
@@ -45,7 +47,7 @@ export function useEffects(scene) {
         requestAnimationFrame(fadeOut);
       }
     };
-    
+
     setTimeout(fadeOut, 300);
 
     // 2. 爆炸圆环
@@ -59,10 +61,10 @@ export function useEffects(scene) {
     const expand = () => {
       scale += 0.1;
       ringOpacity -= 0.08;
-      
+
       ring.scale.set(scale, scale, 1);
       ring.material.opacity = ringOpacity;
-      
+
       if (ringOpacity <= 0) {
         scene.remove(ring);
         effectPool.recycleExplosionRing(ring);
@@ -70,7 +72,7 @@ export function useEffects(scene) {
         requestAnimationFrame(expand);
       }
     };
-    
+
     expand();
   }
 
@@ -88,27 +90,27 @@ export function useEffects(scene) {
     if (messages.length === 0) return;
 
     const text = messages.join('\n');
-    
+
     // 创建Canvas文本纹理
     const canvas = document.createElement('canvas');
     const context = canvas.getContext('2d');
     canvas.width = 512;
     canvas.height = 256;
-    
+
     context.fillStyle = 'rgba(0, 0, 0, 0)';
     context.fillRect(0, 0, canvas.width, canvas.height);
-    
+
     context.font = 'bold 48px Arial';
     context.fillStyle = '#ffff00';
     context.strokeStyle = '#000000';
     context.lineWidth = 4;
     context.textAlign = 'center';
     context.textBaseline = 'middle';
-    
+
     const lines = text.split('\n');
     const lineHeight = 60;
     const startY = canvas.height / 2 - ((lines.length - 1) * lineHeight) / 2;
-    
+
     lines.forEach((line, index) => {
       const y = startY + index * lineHeight;
       context.strokeText(line, canvas.width / 2, y);
@@ -133,10 +135,10 @@ export function useEffects(scene) {
     const rise = () => {
       y += 0.02;
       opacity -= 0.01;
-      
+
       sprite.position.y = y;
       sprite.material.opacity = opacity;
-      
+
       if (opacity <= 0) {
         scene.remove(sprite);
         sprite.material.map.dispose();
@@ -145,7 +147,7 @@ export function useEffects(scene) {
         requestAnimationFrame(rise);
       }
     };
-    
+
     rise();
   }
 
@@ -162,4 +164,3 @@ export function useEffects(scene) {
     dispose,
   };
 }
-

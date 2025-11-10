@@ -62,7 +62,7 @@ class MessageQueue {
           // console.log("[MessageQueue] 处理消息:", type_msg);
 
           const data = JSON.parse(content);
-          
+
           // 对于简单的消息类型（如put_map_block），同步处理，不使用await
           // 避免大量Promise创建导致性能问题
           const result = handler(data, this.sceneContext || {});
@@ -277,13 +277,15 @@ export function registerAllHandlers() {
     const { id } = data;
 
     const model = findModelById(context.models || [], id);
-    
+
     // 检查是否是敌人死亡（非友方召唤物）
     const isEnemyDeath = model && model.type === 'enemy' && !model.isOwned;
     const enemyPosition = isEnemyDeath ? model.position : null;
-    
-    log(`[Handler] remove_unit: ID=${id}, type=${model?.type}, isOwned=${model?.isOwned}, isEnemyDeath=${isEnemyDeath}, position=${JSON.stringify(enemyPosition)}`);
-    
+
+    log(
+      `[Handler] remove_unit: ID=${id}, type=${model?.type}, isOwned=${model?.isOwned}, isEnemyDeath=${isEnemyDeath}, position=${JSON.stringify(enemyPosition)}`
+    );
+
     if (model && model.object) {
       // 先克隆所有材质，确保不影响其他使用相同材质的模型
       model.object.traverse(child => {
@@ -315,8 +317,8 @@ export function registerAllHandlers() {
                     mat.opacity = 1 - progress;
                   });
                 } else {
-                child.material.transparent = true;
-                child.material.opacity = 1 - progress;
+                  child.material.transparent = true;
+                  child.material.opacity = 1 - progress;
                 }
               }
             });
@@ -413,24 +415,24 @@ export function registerAllHandlers() {
     // 如果是敌人死亡，更新资源并显示获取特效
     if (isEnemyDeath && enemyPosition) {
       log('[Handler] 敌人死亡，触发资源更新...');
-      
+
       // 监听资源更新完成事件（单次）
-      const handleResourcesUpdated = (changes) => {
+      const handleResourcesUpdated = changes => {
         log('[Handler] 资源更新完成，变化:', changes);
-        
+
         // 在敌人位置显示资源获取特效
         if (context.onShowResourceGain && Object.keys(changes).length > 0) {
           log('[Handler] 显示资源获取特效:', enemyPosition, changes);
           context.onShowResourceGain(enemyPosition, changes);
         }
       };
-      
+
       // 注册单次监听器
       onEvent(EventTypes.RESOURCES_UPDATED, handleResourcesUpdated);
-      
+
       // 触发资源更新
       emitEvent(EventTypes.UPDATE_RESOURCES);
-      
+
       // 延迟后清理监听器（避免内存泄漏）
       setTimeout(() => {
         offEvent(EventTypes.RESOURCES_UPDATED, handleResourcesUpdated);
@@ -533,7 +535,7 @@ export function registerAllHandlers() {
           );
         });
       }
-      
+
       // 移动完成后调用回调
       if (context.onMoveComplete) {
         context.onMoveComplete(id);
@@ -848,7 +850,7 @@ export function registerAllHandlers() {
   // attack_complete: 攻击完成
   messageQueue.registerHandler('attack_complete', (data, context) => {
     const { id } = data;
-    
+
     // 攻击完成后调用回调
     if (context.onAttackComplete) {
       context.onAttackComplete(id);

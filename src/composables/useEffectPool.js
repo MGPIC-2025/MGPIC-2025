@@ -25,7 +25,7 @@ export function useEffectPool() {
    */
   function getAttackRay(distance) {
     let cylinder;
-    
+
     if (attackRayPool.meshes.length > 0) {
       // 从池中取出
       cylinder = attackRayPool.meshes.pop();
@@ -46,7 +46,7 @@ export function useEffectPool() {
       });
       cylinder = new THREE.Mesh(geometry, material);
     }
-    
+
     return cylinder;
   }
 
@@ -68,7 +68,7 @@ export function useEffectPool() {
    */
   function getExplosionRing() {
     let ring;
-    
+
     if (explosionRingPool.meshes.length > 0) {
       // 从池中取出
       ring = explosionRingPool.meshes.pop();
@@ -89,7 +89,7 @@ export function useEffectPool() {
       ring = new THREE.Mesh(geometry, material);
       ring.rotation.x = -Math.PI / 2; // 水平放置
     }
-    
+
     return ring;
   }
 
@@ -137,4 +137,3 @@ export function useEffectPool() {
     dispose,
   };
 }
-
