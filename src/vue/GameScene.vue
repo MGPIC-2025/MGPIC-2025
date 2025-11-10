@@ -257,6 +257,9 @@ const copperCanBuildMap = new Map(); // { copperId: boolean }
 // 游戏结束对话框
 const showGameOverDialog = ref(false);
 
+// 撤退确认对话框
+const showWithdrawDialog = ref(false);
+
 const currentCopperId = computed(() => {
   if (playerCoppers.value.length === 0) return null;
   const copper = playerCoppers.value[currentCopperIndex.value];
@@ -2925,16 +2928,46 @@ function endRound() {
 // 处理游戏结束对话框确定按钮
 async function handleGameOverConfirm() {
   log('[GameScene] 游戏结束对话框确定，返回菜单');
-  
+
   // 关闭对话框
   showGameOverDialog.value = false;
-  
+
   // 发送 on_game_over 消息给后端，让后端清空 Game
   const message = JSON.stringify({ type: 'on_game_over' });
   await eventloop(message).catch(e => {
     log('[GameScene] 发送 on_game_over 消息失败', e);
   });
-  
+
+  // 返回菜单
+  emit('back');
+}
+
+// 打开撤退确认对话框
+function openWithdrawDialog() {
+  log('[GameScene] 打开撤退确认对话框');
+  showWithdrawDialog.value = true;
+}
+
+// 取消撤退
+function cancelWithdraw() {
+  log('[GameScene] 取消撤退');
+  showWithdrawDialog.value = false;
+}
+
+// 确认撤退
+async function confirmWithdraw() {
+  log('[GameScene] 确认撤退，发送 game_over 消息');
+
+  // 关闭对话框
+  showWithdrawDialog.value = false;
+
+  // 发送 game_over 消息（直接发送 game_over，不需要先经过前端处理）
+  // 然后发送 on_game_over 清空 Game
+  const message = JSON.stringify({ type: 'on_game_over' });
+  await eventloop(message).catch(e => {
+    log('[GameScene] 发送 on_game_over 消息失败', e);
+  });
+
   // 返回菜单
   emit('back');
 }
@@ -2954,6 +2987,15 @@ async function handleGameOverConfirm() {
       @endRound="endRound"
       @selectCopper="handleClickCopper"
     />
+
+    <!-- 撤退按钮 -->
+    <button
+      v-if="isGameMode"
+      class="withdraw-button"
+      @click="openWithdrawDialog"
+    >
+      撤退
+    </button>
 
     <!-- 全局资源面板 -->
     <ResourcePanel v-if="isGameMode" />
@@ -3049,6 +3091,22 @@ async function handleGameOverConfirm() {
         </button>
       </div>
     </div>
+
+    <!-- 撤退确认对话框 -->
+    <div v-if="showWithdrawDialog" class="game-over-overlay">
+      <div class="game-over-dialog">
+        <h2 class="withdraw-title">撤退确认</h2>
+        <p class="game-over-message">确定要撤退吗？<br />当前进度将会丢失</p>
+        <div class="dialog-buttons">
+          <button class="dialog-button cancel-button" @click="cancelWithdraw">
+            取消
+          </button>
+          <button class="dialog-button confirm-button" @click="confirmWithdraw">
+            确定撤退
+          </button>
+        </div>
+      </div>
+    </div>
     <audio ref="audioRef" :src="musicUrl" loop preload="auto"></audio>
     <!-- 移动音效 -->
     <audio ref="moveSoundRef" :src="moveSoundUrl" preload="auto"></audio>
@@ -3113,6 +3171,35 @@ async function handleGameOverConfirm() {
   line-height: 1.5;
 }
 
+/* 撤退按钮 */
+.withdraw-button {
+  position: fixed;
+  top: 20px;
+  left: 20px;
+  background: rgba(139, 0, 0, 0.9);
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 12px;
+  color: white;
+  font-size: 18px;
+  font-weight: 700;
+  padding: 12px 24px;
+  cursor: pointer;
+  z-index: 1500;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+  transition: all 0.2s;
+  backdrop-filter: blur(10px);
+}
+
+.withdraw-button:hover {
+  background: rgba(178, 34, 34, 0.95);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(178, 34, 34, 0.5);
+}
+
+.withdraw-button:active {
+  transform: translateY(0);
+}
+
 /* 游戏结束对话框样式 */
 .game-over-overlay {
   position: fixed;
@@ -3143,6 +3230,14 @@ async function handleGameOverConfirm() {
   text-shadow: 0 4px 8px rgba(255, 68, 68, 0.4);
 }
 
+.withdraw-title {
+  font-size: 42px;
+  font-weight: 900;
+  color: #ffa500;
+  margin: 0 0 20px 0;
+  text-shadow: 0 4px 8px rgba(255, 165, 0, 0.4);
+}
+
 .game-over-message {
   font-size: 24px;
   color: #ffffff;
@@ -3169,6 +3264,50 @@ async function handleGameOverConfirm() {
 }
 
 .game-over-button:active {
+  transform: translateY(0);
+}
+
+/* 对话框按钮组 */
+.dialog-buttons {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+}
+
+.dialog-button {
+  border: none;
+  border-radius: 12px;
+  color: white;
+  font-size: 18px;
+  font-weight: 700;
+  padding: 14px 32px;
+  cursor: pointer;
+  transition: all 0.2s;
+  min-width: 140px;
+}
+
+.cancel-button {
+  background: rgba(128, 128, 128, 0.8);
+  box-shadow: 0 4px 12px rgba(128, 128, 128, 0.3);
+}
+
+.cancel-button:hover {
+  background: rgba(160, 160, 160, 0.9);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(128, 128, 128, 0.4);
+}
+
+.confirm-button {
+  background: linear-gradient(135deg, #dc143c 0%, #8b0000 100%);
+  box-shadow: 0 4px 12px rgba(220, 20, 60, 0.4);
+}
+
+.confirm-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(220, 20, 60, 0.6);
+}
+
+.dialog-button:active {
   transform: translateY(0);
 }
 
