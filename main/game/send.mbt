@@ -110,6 +110,17 @@ fn display_can_summon(id : Int, can_summon : Bool) -> Unit {
 }
 
 ///|
+/// 显示一个单位的可建造状态，true 表示可建造，false 表示不可建造
+/// 可以建造的时候我希望可以在单位脚下显示一个蓝色圈圈，然后不可以建造的时候清除就好
+/// 他和 display_can_move 和 display_can_attack 和 display_can_summon 的圈圈最好可以叠加显示
+fn display_can_build(id : Int, can_build : Bool) -> Unit {
+  @global_msg.msg_info.broadcast({
+    type_msg: "display_can_build",
+    content: ({ "id": id, "can_build": can_build.to_string() } : Json).stringify(),
+  })
+}
+
+///|
 /// 清除一个单位的任何状态（包括可移动状态和可攻击状态）
 fn clear_state(id : Int) -> Unit {
   @global_msg.msg_info.broadcast({
@@ -177,6 +188,15 @@ fn set_attack_block(position : (Int, Int)) -> Unit {
 fn set_can_summon_blocks(position : (Int, Int)) -> Unit {
   @global_msg.msg_info.broadcast({
     type_msg: "set_can_summon_blocks",
+    content: ({ "position": position } : Json).stringify(),
+  })
+}
+
+///|
+/// 设置一个地图块为可建造状态，就是把它直接渲染为蓝色就可以了
+fn set_build_blocks(position : (Int, Int)) -> Unit {
+  @global_msg.msg_info.broadcast({
+    type_msg: "set_build_blocks",
     content: ({ "position": position } : Json).stringify(),
   })
 }

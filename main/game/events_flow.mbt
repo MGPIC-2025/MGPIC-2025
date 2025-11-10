@@ -95,10 +95,8 @@ fn reset_states() -> Unit {
       CraftsMan | Resonator => false
       _ => true
     }
-    battle_copper.can_summon = match battle_copper.copper.copper_type {
-      Resonator | CraftsMan => true
-      _ => false
-    }
+    battle_copper.can_summon = battle_copper.copper.copper_type is Resonator
+    battle_copper.can_build = battle_copper.copper.copper_type is CraftsMan
     battle_copper.update_move_and_attack_and_summon_status()
   }
 
@@ -154,6 +152,7 @@ fn enemy_ai() -> Unit {
         Copper(copper) => {
           let result = copper.apply_attack(enemy.enemy_base.attack)
           if result {
+            copper.copper.live_left -= 1
             battle_copper_map.remove(copper.id)
             remove_unit(copper.id)
             map.remove_occupant(copper.position)

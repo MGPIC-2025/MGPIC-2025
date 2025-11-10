@@ -9,6 +9,7 @@ priv struct BattleCopper {
   mut can_move : Bool // 可移动状态，如果为 false，前端应该不允许点击移动按钮
   mut can_attack : Bool // 可攻击状态，如果为 false，前端应该不允许点击攻击按钮
   mut can_summon : Bool // 可召唤状态，如果为 false，前端应该不允许点击召唤按钮
+  mut can_build : Bool // 可建造状态，如果为 false，前端应该不允许点击建造按钮
   mut position : (Int, Int)
   mut now_health : Float
   attribute : @attribute.Attribute
@@ -36,8 +37,8 @@ fn BattleCopper::new(
     original_id,
     can_move: true,
     can_attack,
-    can_summon: copper.copper_type is Resonator ||
-    copper.copper_type is CraftsMan,
+    can_summon: copper.copper_type is Resonator,
+    can_build: copper.copper_type is CraftsMan,
     position,
     now_health: copper.attribute.health,
     attribute: copper.attribute,
