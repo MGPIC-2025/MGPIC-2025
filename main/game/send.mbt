@@ -155,24 +155,6 @@ fn put_room_blocks(room_position : (Int, Int), size : Int) -> Unit {
 }
 
 ///|
-/// 在地图块上放置资源标记（显示该格子有可拾取资源）
-fn put_resource_marker(position : (Int, Int)) -> Unit {
-  @global_msg.msg_info.broadcast({
-    type_msg: "put_resource_marker",
-    content: ({ "position": position } : Json).stringify(),
-  })
-}
-
-///|
-/// 清除地图块上的资源标记
-fn clear_resource_marker(position : (Int, Int)) -> Unit {
-  @global_msg.msg_info.broadcast({
-    type_msg: "clear_resource_marker",
-    content: ({ "position": position } : Json).stringify(),
-  })
-}
-
-///|
 /// 设置一个地图块为可移动状态，就是把它直接渲染为绿色就可以了
 fn set_move_block(position : (Int, Int)) -> Unit {
   @global_msg.msg_info.broadcast({

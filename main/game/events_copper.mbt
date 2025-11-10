@@ -1,27 +1,19 @@
 ///|
 /// 前端：当铜偶被点击
 /// 后端：返回铜偶信息以供渲染信息栏
-/// 注意：这里的资源是地图块上的资源，不是铜偶背包里的资源
 fn handle_on_click_copper(id : Int) -> Unit {
   // 清除所有范围显示（切换铜偶时）
   handle_on_move_end()
   handle_on_attack_end()
-  handle_on_transfer_end()
   handle_on_summon_end()
   let battle_copper = get_battle_copper_by_id(id)
-  let position = battle_copper.position
   let map = force_get_current_map()
-  let map_block = map.global_position_to_room_position(position)
-  guard map_block is Some((room, position))
-  let resource = room.blocks[position.0][position.1].resources
-  // 检查是否有攻击目标
   let has_attack_targets = !battle_copper.get_can_attack(map).is_empty()
   @global_msg.msg_info.broadcast({
     type_msg: "handle_on_click_copper",
     content: (
       {
         "copper": get_battle_copper_by_id(id).to_json(),
-        "resources": resource.to_json(),
         "has_attack_targets": has_attack_targets,
       } : Json).stringify(),
   })
@@ -35,7 +27,6 @@ fn handle_on_click_copper(id : Int) -> Unit {
 fn handle_on_attack_start(map : Map_, id : Int) -> Unit {
   handle_on_move_end()
   handle_on_attack_end()
-  handle_on_transfer_end()
   handle_on_summon_end()
   let battle_copper = get_battle_copper_by_id(id)
   let attack_target = battle_copper.get_can_attack(map)
@@ -70,14 +61,7 @@ fn handle_on_attack_apply(id : Int, position : (Int, Int), map : Map_) -> Unit {
       let result = enemy.apply_attack(battle_copper.attribute.attack)
       // 单位被击杀
       if result {
-        let drop_items = enemy.get_drop_items()
-        for drop_item in drop_items {
-          map.add_resource(enemy.position, drop_item)
-        }
-        // 如果有掉落物，显示资源标记
-        if drop_items.length() > 0 {
-          put_resource_marker(enemy.position)
-        }
+        @global.global.bag.add_resource(enemy.get_drop_items())
         enemy_map.remove(enemy.id)
         remove_unit(enemy.id)
         map.remove_occupant(enemy.position)
@@ -138,7 +122,6 @@ fn handle_on_move_start(map : Map_, id : Int) -> Unit {
   // 先清除之前的移动范围和攻击范围
   handle_on_move_end()
   handle_on_attack_end()
-  handle_on_transfer_end()
   handle_on_summon_end()
   let battle_copper = get_battle_copper_by_id(id)
   let can_move = battle_copper.get_can_move(map)
@@ -243,189 +226,6 @@ fn handle_on_move_apply(id : Int, position : (Int, Int), map : Map_) -> Unit {
   setted_move_blocks.clear()
 }
 
-///|
-/// 前端：当玩家开始转移某个铜偶物品到其他铜偶
-/// 后端：设置可转移的地块
-/// index 是物品在铜偶背包中的索引，从 0 开始
-fn handle_on_transfer_start(id : Int, index : Int, count : Int) -> Unit {
-  // 先清除之前的移动范围和攻击范围
-  handle_on_move_end()
-  handle_on_attack_end()
-  handle_on_transfer_end()
-  handle_on_summon_end()
-  transfer_from_id.val = Some(id)
-  let battle_copper = get_battle_copper_by_id(id)
-  let item_type = battle_copper.inventory.items[index].item_type
-  item_to_be_transfer.val = Some(Item::new(item_type, count~))
-  let map = force_get_current_map()
-  let transfer_position = battle_copper.get_transfer_position(
-    item_to_be_transfer.val.unwrap(),
-    map,
-  )
-  for position in transfer_position {
-    set_attack_block(position)
-    setted_transfer_blocks.add(position)
-  }
-}
-
-///|
-/// 前端：当玩家取消或结束转移
-/// 后端：清除可转移的地块
-fn handle_on_transfer_end() -> Unit {
-  for position in setted_transfer_blocks {
-    clear_block(position)
-    check_and_reset_block(position, Attack)
-  }
-  setted_transfer_blocks.clear()
-  transfer_from_id.val = None
-  item_to_be_transfer.val = None
-}
-
-///|
-/// 前端：当玩家实施转移
-/// 后端：计算转移结果
-fn handle_on_transfer_apply(position : (Int, Int)) -> Unit {
-  let battle_copper = get_battle_copper_by_id(transfer_from_id.val.unwrap())
-  let map = force_get_current_map()
-  guard map.get_occupant(position) is Copper(copper)
-  battle_copper.transfer(copper.id, item_to_be_transfer.val.unwrap())
-  for position in setted_transfer_blocks {
-    clear_block(position)
-    check_and_reset_block(position, Attack)
-  }
-  setted_transfer_blocks.clear()
-  transfer_from_id.val = None
-  item_to_be_transfer.val = None
-}
-
-///|
-/// 前端：当玩家拾取地上的物品
-/// 后端：计算拾取结果
-/// 注意这里的 index 是地图块上的资源索引，从 0 开始。
-/// 这个 event 开始的时候，前端应该已经开始尝试拾取资源了（资源在 click 的时候就已经给前端了）
-/// 前端只需要在 event 执行完毕后刷新资源栏即可（比如再发送一次 click 事件来获取）
-fn handle_on_copper_pick_up(id : Int, index : Int) -> Unit {
-  // 检查是否是友方召唤物（敌人实体）
-  if enemy_map.contains(id) {
-    // 友方召唤物没有背包，直接提示无法拾取
-    @global_msg.msg_info.broadcast({
-      type_msg: "cannot_pick_up_item",
-      content: ({ "message": "无法拾取该物品" } : Json).stringify(),
-    })
-    return
-  }
-  let battle_copper = get_battle_copper_by_id(id)
-  let map = force_get_current_map()
-  let map_block = map.global_position_to_room_position(battle_copper.position)
-  guard map_block is Some((room, position))
-  let resource = room.blocks[position.0][position.1].resources
-  let item = resource[index]
-  if battle_copper.inventory.check_can_add_item(item.item_type) {
-    battle_copper.inventory.add_item(item)
-    room.blocks[position.0][position.1].resources.remove(index) |> ignore
-
-    // 如果该格子没有资源了，清除资源标记
-    if room.blocks[position.0][position.1].resources.length() == 0 {
-      clear_resource_marker(battle_copper.position)
-    }
-  } else {
-    @global_msg.msg_info.broadcast({
-      type_msg: "cannot_pick_up_item",
-      content: ({ "message": "无法拾取该物品" } : Json).stringify(),
-    })
-  }
-}
-
-///|
-/// 前端：当玩家丢出物品
-/// 后端：计算丢出结果
-fn handle_on_copper_drop_item(id : Int, index : Int) -> Unit {
-  let battle_copper = get_battle_copper_by_id(id)
-  let item = battle_copper.inventory.items[index]
-  battle_copper.inventory.remove_item(index) |> ignore
-  let map = force_get_current_map()
-  map.add_resource(battle_copper.position, item)
-
-  // 在该位置放置资源标记
-  put_resource_marker(battle_copper.position)
-}
-
-///|
-/// 前端：当玩家合成物品
-/// 后端：尝试合成灵光火花
-fn handle_on_copper_craft(id : Int) -> Unit {
-  let battle_copper = get_battle_copper_by_id(id)
-  let success = battle_copper.inventory.craft()
-  if success {
-    @global_msg.msg_info.broadcast({
-      type_msg: "craft_success",
-      content: ({ "message": "合成成功：获得灵光火花" } : Json).stringify(),
-    })
-  } else {
-    @global_msg.msg_info.broadcast({
-      type_msg: "craft_failed",
-      content: ({ "message": "合成失败：材料不足" } : Json).stringify(),
-    })
-  }
-}
-
-///|
-/// 前端：当玩家装备物品
-/// 后端：计算装备结果
-/// index 为装备在物品栏中的索引，前端应该限制只能选中装备
-fn handle_on_copper_equip_item(id : Int, index : Int) -> Unit {
-  let battle_copper = get_battle_copper_by_id(id)
-  let item = battle_copper.inventory.items[index]
-  guard item.item_type is Equipment(equipment)
-  let (new_equipment_slot, success) = battle_copper.copper.equipment_slot.equip(
-    equipment,
-  )
-  if success {
-    battle_copper.copper.equipment_slot = new_equipment_slot
-    battle_copper.copper.attribute = battle_copper.copper.attribute.merge(
-      equipment.equipment_base.attribute,
-    )
-  } else {
-    @global_msg.msg_info.broadcast({
-      type_msg: "equipment_slot_full",
-      content: ({ "message": "装备槽已满" } : Json).stringify(),
-    })
-  }
-}
-
-///|
-/// 前端：当玩家卸下装备
-/// 后端：计算卸下结果
-/// index 为装备在装备槽中的索引（从 0 开始），这个操作是可能会失败的，前端需要记得刷新一下装备栏
-fn handle_on_copper_unequip_item(id : Int, index : Int) -> Unit {
-  let battle_copper = get_battle_copper_by_id(id)
-  let equipment_slot_before = battle_copper.copper.equipment_slot
-  let equipment = match index {
-    0 => equipment_slot_before.slot1.unwrap()
-    1 => equipment_slot_before.slot2.unwrap()
-    _ => abort("Invalid index")
-  }
-  let negative_attribute = @attribute.Attribute::new(
-    health=-equipment.equipment_base.attribute.health,
-    speed=-equipment.equipment_base.attribute.speed,
-    attack=-equipment.equipment_base.attribute.attack,
-    defense=-equipment.equipment_base.attribute.defense,
-    dodge=-equipment.equipment_base.attribute.dodge,
-  )
-  if battle_copper.inventory.check_can_add_item(Equipment(equipment)) {
-    let equipment_slot = battle_copper.copper.equipment_slot.unequip(index)
-    battle_copper.copper.equipment_slot = equipment_slot
-    battle_copper.copper.attribute = battle_copper.copper.attribute.merge(
-      negative_attribute,
-    )
-  } else {
-    @global_msg.msg_info.broadcast({
-      type_msg: "inventory_full",
-      content: ({ "message": "背包已满" } : Json).stringify(),
-    })
-  }
-}
-
 // 共鸣者召唤流程：
 // 1. 玩家点击共鸣者
 // 2. 选择空位召唤敌人
@@ -439,7 +239,6 @@ fn handle_on_copper_unequip_item(id : Int, index : Int) -> Unit {
 fn handle_on_summon_start(id : Int) -> Unit {
   handle_on_move_end()
   handle_on_attack_end()
-  handle_on_transfer_end()
   handle_on_summon_end()
   let battle_copper = get_battle_copper_by_id(id)
   let map = force_get_current_map()
@@ -462,10 +261,10 @@ fn handle_on_summon_apply(
   let enemy_base = enemy_info_map.get(name).unwrap()
   let resource_cost = enemy_base.summon_cost
   let battle_copper = get_battle_copper_by_id(id)
-  if battle_copper.inventory.check_resource_cost_in_inventory(resource_cost) {
-    battle_copper.inventory.consume_resource_cost(resource_cost)
+  if @global.global.bag.resources.check_resource_cost(resource_cost) {
+    @global.global.bag.resources.consume_resource_cost(resource_cost)
     let summoned_enemy = Enemy::new(enemy_base, position, true)
-    map.add_occupant(position, Occupant::Enemy(summoned_enemy))
+    map.add_occupant(position, Enemy(summoned_enemy))
     set_enemy(summoned_enemy, summoned_enemy.id, position)
     summoned_enemy.update_move_and_attack_and_summon_status()
     battle_copper.can_summon = false
@@ -517,7 +316,6 @@ fn handle_on_get_structure_menu() -> Unit {
 fn handle_on_structure_build_start(id : Int, name : String) -> Unit {
   handle_on_move_end()
   handle_on_attack_end()
-  handle_on_transfer_end()
   handle_on_summon_end()
   let battle_copper = get_battle_copper_by_id(id)
   let map = force_get_current_map()
@@ -541,8 +339,8 @@ fn handle_on_structure_build_apply(
   let structure_base = structure_info_map.get(name).unwrap()
   let resource_cost = structure_base.cost
   let battle_copper = get_battle_copper_by_id(id)
-  if battle_copper.inventory.check_resource_cost_in_inventory(resource_cost) {
-    battle_copper.inventory.consume_resource_cost(resource_cost)
+  if @global.global.bag.resources.check_resource_cost(resource_cost) {
+    @global.global.bag.resources.consume_resource_cost(resource_cost)
     let resource_type = if name == "心源矿钻" {
       let material = map.get_occupant(position)
       guard material is Material(material)
@@ -560,6 +358,7 @@ fn handle_on_structure_build_apply(
     )
     map.add_occupant(position, Occupant::Structure(structure))
     set_structure(structure, structure.id, position)
+    battle_copper.can_summon = false
     structure.update_move_and_attack_and_summon_status()
     // 建造成功，清理黄色方块
     handle_on_structure_build_end()

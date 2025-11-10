@@ -1,5 +1,5 @@
 ///|
-struct GlobalResource(Map[@resource.ResourceType, Int])
+struct GlobalResource(Map[@resource.ResourceType, Int]) derive(ToJson)
 
 ///|
 pub fn GlobalResource::new() -> GlobalResource {
@@ -62,4 +62,13 @@ pub fn GlobalResource::consume_resource_cost(
     let (res_type, amount) = res
     global.consume_resource(res_type, amount)
   }
+}
+
+///|
+pub fn GlobalResource::add_resource(
+  global : GlobalResource,
+  resource : @resource.ResourceType,
+  amount : Int,
+) -> Unit {
+  global.0.set(resource, global.get_resource(resource) + amount)
 }

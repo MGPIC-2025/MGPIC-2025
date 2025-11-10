@@ -1,19 +1,13 @@
 ///|
 /// 前端：当敌人被点击
 /// 后端：返回敌人信息以供渲染信息栏
-/// 注意：这里的资源是地图块上的资源，不是敌人背包里的资源
 fn handle_on_click_enemy(id : Int) -> Unit {
   // 清除所有范围显示（切换敌人时）
   handle_on_move_end()
   handle_on_attack_end()
-  handle_on_transfer_end()
   handle_on_summon_end()
   let enemy = enemy_map.get(id).unwrap()
-  let position = enemy.position
   let map = force_get_current_map()
-  let map_block = map.global_position_to_room_position(position)
-  guard map_block is Some((room, position))
-  let resource = room.blocks[position.0][position.1].resources
   // 检查是否有攻击目标
   let has_attack_targets = !enemy.get_attack_targets(map).is_empty()
   @global_msg.msg_info.broadcast({
@@ -21,7 +15,6 @@ fn handle_on_click_enemy(id : Int) -> Unit {
     content: (
       {
         "enemy": enemy.to_json(),
-        "resources": resource.to_json(),
         "has_attack_targets": has_attack_targets,
       } : Json).stringify(),
   })
@@ -33,7 +26,6 @@ fn handle_on_click_enemy(id : Int) -> Unit {
 fn handle_on_enemy_attack_start(map : Map_, id : Int) -> Unit {
   handle_on_move_end()
   handle_on_attack_end()
-  handle_on_transfer_end()
   handle_on_summon_end()
   let enemy = enemy_map.get(id).unwrap()
   let attack_target = enemy.get_attack_targets(map)
@@ -72,14 +64,7 @@ fn handle_on_enemy_attack_apply(
       let result = target_enemy.apply_attack(enemy.enemy_base.attack)
       // 单位被击杀
       if result {
-        let drop_items = target_enemy.get_drop_items()
-        for drop_item in drop_items {
-          map.add_resource(target_enemy.position, drop_item)
-        }
-        // 如果有掉落物，显示资源标记
-        if drop_items.length() > 0 {
-          put_resource_marker(target_enemy.position)
-        }
+        @global.global.bag.add_resource(target_enemy.get_drop_items())
         enemy_map.remove(target_enemy.id)
         remove_unit(target_enemy.id)
         map.remove_occupant(target_enemy.position)
@@ -130,7 +115,6 @@ fn handle_on_enemy_attack_apply(
 fn handle_on_enemy_move_start(map : Map_, id : Int) -> Unit {
   handle_on_move_end()
   handle_on_attack_end()
-  handle_on_transfer_end()
   handle_on_summon_end()
   let enemy = enemy_map.get(id).unwrap()
   let can_move = enemy.get_can_move(map)

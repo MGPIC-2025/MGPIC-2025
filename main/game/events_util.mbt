@@ -11,12 +11,6 @@ let setted_transfer_blocks : Set[(Int, Int)] = Set::new()
 let setted_can_summon_blocks : Set[(Int, Int)] = Set::new()
 
 ///|
-let transfer_from_id : Ref[Int?] = Ref::new(None)
-
-///|
-let item_to_be_transfer : Ref[Item?] = Ref::new(None)
-
-///|
 priv enum IgnoreBlock {
   Attack
   Move

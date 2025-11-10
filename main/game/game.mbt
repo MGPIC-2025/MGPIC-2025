@@ -1,4 +1,7 @@
 ///|
+using @global_resource {type Item}
+
+///|
 let current_game : Ref[Game?] = Ref::new(None)
 
 ///|

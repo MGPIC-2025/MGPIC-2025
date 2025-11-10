@@ -10,12 +10,11 @@ priv enum Occupant {
 ///|
 struct MapBlock {
   mut occupant : Occupant
-  resources : Array[Item]
 }
 
 ///|
 pub fn MapBlock::new() -> MapBlock {
-  { occupant: Empty, resources: [] }
+  { occupant: Empty }
 }
 
 ///|
@@ -192,11 +191,6 @@ fn broadcast_room_content(room : Room) -> Unit {
           set_structure(structure, structure.id, global_pos)
         Material(material) => set_material(material, material.id, global_pos)
       }
-
-      // 如果该格子有地面资源，发送资源标记
-      if room.blocks[x][y].resources.length() > 0 {
-        put_resource_marker(global_pos)
-      }
     }
   }
 }
@@ -211,25 +205,6 @@ fn Map_::add_room(map : Map_, room : Room) -> Unit {
 /// 添加房间但不立即广播（用于游戏初始化）
 fn Map_::add_room_silent(map : Map_, room : Room) -> Unit {
   map.rooms.push(room)
-}
-
-///|
-fn Map_::add_resource(
-  map : Map_,
-  position : (Int, Int),
-  resource : Item,
-) -> Unit {
-  if resource.item_type is Resource(_) {
-    let (room, position) = Map_::force_get_room_position(map, position)
-    for i in 0..<room.blocks[position.0][position.1].resources.length() {
-      if room.blocks[position.0][position.1].resources[i].item_type ==
-        resource.item_type {
-        room.blocks[position.0][position.1].resources[i].count += resource.count
-        return
-      }
-    }
-    room.blocks[position.0][position.1].resources.push(resource)
-  }
 }
 
 ///|

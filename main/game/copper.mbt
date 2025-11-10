@@ -12,7 +12,6 @@ priv struct BattleCopper {
   mut position : (Int, Int)
   mut now_health : Float
   attribute : @attribute.Attribute
-  inventory : Inventory
 } derive(ToJson)
 
 ///|
@@ -31,20 +30,17 @@ fn BattleCopper::new(
     CraftsMan | Resonator => false
     _ => true
   }
-  let inventory = Inventory::new(5)
-  // 给铜偶初始背包添加一些心源火花用于召唤
-  inventory.add_item(Item::new(Resource(@resource.SpiritalSpark), count=5))
   let battle_copper = BattleCopper::{
     id: @id.id_pool.get_id(),
     copper,
     original_id,
     can_move: true,
     can_attack,
-    can_summon: copper.copper_type is Resonator,
+    can_summon: copper.copper_type is Resonator ||
+    copper.copper_type is CraftsMan,
     position,
     now_health: copper.attribute.health,
     attribute: copper.attribute,
-    inventory,
   }
   battle_copper_map.set(battle_copper.id, battle_copper)
   battle_copper
@@ -148,30 +144,6 @@ fn BattleCopper::get_can_move(
 }
 
 ///|
-fn BattleCopper::get_transfer_position(
-  battle_copper : BattleCopper,
-  item : Item,
-  map : Map_,
-) -> Array[(Int, Int)] {
-  let result = []
-  let offset = [(-1, 0), (1, 0), (0, -1), (0, 1)]
-  for offset_ in offset {
-    let position = (
-      battle_copper.position.0 + offset_.0,
-      battle_copper.position.1 + offset_.1,
-    )
-    if map.is_occupy(position) {
-      if map.get_occupant(position) is Copper(copper) {
-        if copper.inventory.check_can_add_item(item.item_type) {
-          result.push(position)
-        }
-      }
-    }
-  }
-  result
-}
-
-///|
 fn BattleCopper::get_summon_position(
   battle_copper : BattleCopper,
   map : Map_,
@@ -212,26 +184,11 @@ fn BattleCopper::get_structure_build_position(
       }
       // 普通建筑：需要空地且没有资源
       // 先用 is_occupy_or_out_of_map 检查是否安全访问
-    } else if !map.is_occupy_or_out_of_map(position) &&
-      map.force_get_map_block(position).resources.is_empty() {
+    } else if !map.is_occupy_or_out_of_map(position) {
       result.push(position)
     }
   }
   result
-}
-
-///|
-fn BattleCopper::transfer(
-  battle_copper : BattleCopper,
-  to_id : Int,
-  item : Item,
-) -> Unit {
-  let target_copper = get_battle_copper_by_id(to_id)
-  battle_copper.inventory.add_item({
-    item_type: item.item_type,
-    count: -item.count,
-  })
-  target_copper.inventory.add_item(item)
 }
 
 ///|

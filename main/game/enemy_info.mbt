@@ -14,8 +14,8 @@ let enemy_list : Array[EnemyBase] = [
     asset_url: "/assets/enemy/goblin/goblin.webp",
     model_url: "/assets/enemy/goblin/goblin.glb",
     drop_items: [
-      (Item::new(Resource(HeartCrystalDust), count=1), 0.5),
-      (Item::new(Resource(RefinedCopper), count=2), 0.6),
+      (Item::new(Resource(@resource.HeartCrystalDust), count=1), 0.5),
+      (Item::new(Resource(@resource.RefinedCopper), count=2), 0.6),
       (
         Item::new(
           Equipment(

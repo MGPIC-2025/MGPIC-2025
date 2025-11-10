@@ -45,6 +45,26 @@ async function get_resource() {
   return {};
 }
 
+async function craft() {
+  // 等待 main.js 加载完成
+  await mainModulePromise;
+
+  if (mainModule?.global_craft) {
+    return JSON.parse(mainModule.global_craft());
+  }
+  return { type: 'error', content: '后端未加载' };
+}
+
+async function get_bag() {
+  // 等待 main.js 加载完成
+  await mainModulePromise;
+
+  if (mainModule?.global_get_bag) {
+    return JSON.parse(mainModule.global_get_bag());
+  }
+  return {};
+}
+
 async function get_copper_list() {
   // 等待 main.js 加载完成
   await mainModulePromise;
@@ -95,6 +115,8 @@ async function eventloop(msg) {
 
 export {
   gacha,
+  craft,
+  get_bag,
   get_resource,
   get_copper_list,
   upgrade_copper,

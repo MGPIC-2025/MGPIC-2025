@@ -1,8 +1,17 @@
 ///|
+pub fn global_get_bag() -> String {
+  @global.global.get_bag()
+}
+
+///|
 pub fn global_get_resource() -> String {
   @global.global.get_resource()
 }
 
+///|
+pub fn global_craft() -> String {
+  @global.global.craft()
+}
 ///|
 pub fn global_get_copper_list() -> String {
   @global.global.get_copper_list()

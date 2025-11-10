@@ -34,8 +34,8 @@ fn handle_game_round_pass() -> Unit {
   reset_states()
   enemy_ai()
   animate_reset()
-  resource_gen()
   summon_enemy_while_game_round_pass()
+  resource_generate()
 }
 
 ///|
@@ -96,7 +96,7 @@ fn reset_states() -> Unit {
       _ => true
     }
     battle_copper.can_summon = match battle_copper.copper.copper_type {
-      Resonator => true
+      Resonator | CraftsMan => true
       _ => false
     }
     battle_copper.update_move_and_attack_and_summon_status()
@@ -114,9 +114,6 @@ fn reset_states() -> Unit {
   // 恢复建筑状态
   for structure in structure_map.values() {
     if structure.owned {
-      if structure.structure_base.can_move {
-        structure.can_move = true
-      }
       if structure.structure_base.can_attack {
         structure.can_attack = true
       }
@@ -217,13 +214,12 @@ fn enemy_ai() -> Unit {
 }
 
 ///|
-fn resource_gen() -> Unit {
+fn resource_generate() -> Unit {
   for structure in structure_map.values() {
     if structure.structure_base.name == "心源矿钻" {
-      structure.storage = match structure.storage {
-        Some(item) => Some({ item_type: item.item_type, count: item.count + 2 })
-        None =>
-          Some(Item::new(Resource(structure.resource_type.unwrap()), count=2))
+      let resource_type = structure.resource_type
+      if resource_type is Some(resource_type) {
+        @global.global.bag.resources.add_resource(resource_type, 2)
       }
     }
   }
