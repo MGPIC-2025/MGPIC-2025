@@ -219,6 +219,16 @@ fn resource_generate() -> Unit {
       let resource_type = structure.resource_type
       if resource_type is Some(resource_type) {
         @global.global.bag.resources.add_resource(resource_type, 2)
+        // 通知前端显示资源产出特效
+        @global_msg.msg_info.broadcast({
+          type_msg: "drill_resource_generate",
+          content: (
+            {
+              "position": structure.position,
+              "resource_type": resource_type.to_string(),
+              "amount": 2,
+            } : Json).stringify(),
+        })
       }
     }
   }

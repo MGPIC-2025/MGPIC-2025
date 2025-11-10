@@ -579,18 +579,6 @@ export function registerAllHandlers() {
     }
   });
 
-  // display_can_build: 显示可建造状态（青色圈圈）（同步处理）
-  messageQueue.registerHandler('display_can_build', (data, context) => {
-    const { id, can_build } = data;
-    const canBuild = can_build === 'true' || can_build === true;
-    log(`[Handler] display_can_build id=${id}, can_build=${canBuild}`);
-
-    // 在模型脚下添加/移除青色圈圈指示器
-    if (context.onDisplayCanBuild) {
-      context.onDisplayCanBuild(id, canBuild);
-    }
-  });
-
   // update_health: 更新单位血量显示（同步处理）
   messageQueue.registerHandler('update_health', (data, context) => {
     const { id, now_health, max_health } = data;
@@ -792,22 +780,6 @@ export function registerAllHandlers() {
     }
   });
 
-  // set_build_blocks: 设置地图块为可建造（青色）（同步处理）
-  let buildBlockCount = 0;
-  messageQueue.registerHandler('set_build_blocks', (data, context) => {
-    const { position } = data;
-    buildBlockCount++;
-
-    if (context.onSetBuildBlock) {
-      context.onSetBuildBlock(position);
-    }
-
-    // 只在第一个或每10个时输出日志
-    if (buildBlockCount === 1 || buildBlockCount % 10 === 0) {
-      log(`[Handler] 建造范围已显示 ${buildBlockCount} 个地块`);
-    }
-  });
-
   // clear_block: 清除地板块状态（同步处理）
   let clearBlockCount = 0;
   let lastClearTime = Date.now();
@@ -975,6 +947,25 @@ export function registerAllHandlers() {
     if (context.onShowStructureMenu) {
       context.onShowStructureMenu(filteredContents);
     }
+  });
+
+  // drill_resource_generate: 矿钻产出资源特效（同步处理）
+  messageQueue.registerHandler('drill_resource_generate', (data, context) => {
+    const { position, resource_type, amount } = data;
+    log(`[Handler] 矿钻产出资源: 位置=${JSON.stringify(position)}, 类型=${resource_type}, 数量=${amount}`);
+
+    // 构建资源变化对象
+    const resourceChanges = {
+      [resource_type]: parseInt(amount)
+    };
+
+    // 显示资源获取特效
+    if (context.onShowResourceGain) {
+      context.onShowResourceGain(position, resourceChanges);
+    }
+
+    // 触发资源更新
+    emitEvent(EventTypes.UPDATE_RESOURCES);
   });
 
   // Message handlers registered

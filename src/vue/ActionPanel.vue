@@ -55,6 +55,7 @@ const copperInfo = computed(() => {
     canMove: props.copper.can_move,
     canAttack: props.copper.can_attack,
     canSummon: props.copper.can_summon,
+    canBuild: props.copper.can_build,
     position: props.copper.position,
     copperType: props.copper.copper?.copper_type || '',
   };
@@ -289,10 +290,11 @@ defineExpose({ cancelAction, handleSelectCopper, showBuildMenu });
     <!-- 操作三角图标（野生敌人不显示操作按钮） -->
     <TriPanel
       v-if="!props.copper.isEnemy"
+      :copper-type="copperInfo?.copperType"
       :can-move="copperInfo?.canMove !== false"
       :can-attack="copperInfo?.canAttack !== false"
       :can-summon="copperInfo?.canSummon !== false"
-      :can-build="copperInfo?.copperType === 'CraftsMan'"
+      :can-build="copperInfo?.canBuild !== false"
       @move="handleMove"
       @wait="handleWait"
       @attack="handleAttack"

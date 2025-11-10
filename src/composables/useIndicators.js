@@ -5,22 +5,20 @@ import * as THREE from 'three';
  * 处理移动范围、攻击范围、召唤范围等地板标记
  */
 export function useIndicators(scene) {
-  // 指示器存储：{ move: [...], attack: [...], summon: [...], build: [...] }
+  // 指示器存储：{ move: [...], attack: [...], summon: [...] }
   const indicators = {
     move: [],
     attack: [],
-    summon: [],
-    build: [],
+    summon: [], // 召唤和建造共用此类型
   };
 
   /**
    * 指示器类型配置（匹配GameScene原有颜色）
    */
   const indicatorConfig = {
-    move: { color: 0x44ff44, opacity: 0.6 }, // 亮绿色
-    attack: { color: 0xff4444, opacity: 0.6 }, // 亮红色
-    summon: { color: 0xffff00, opacity: 0.6 }, // 黄色
-    build: { color: 0x00ffff, opacity: 0.6 }, // 青色
+    move: { color: 0x44ff44, opacity: 0.6 },    // 亮绿色
+    attack: { color: 0xff4444, opacity: 0.6 },  // 亮红色
+    summon: { color: 0xffff00, opacity: 0.6 },  // 黄色（召唤和建造共用）
   };
 
   /**

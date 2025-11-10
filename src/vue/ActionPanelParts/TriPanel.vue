@@ -1,7 +1,9 @@
 <script setup>
+import { computed } from 'vue';
 import { getAssetUrl } from '../../utils/resourceLoader.js';
 
 const props = defineProps({
+  copperType: { type: String, default: '' },
   canMove: { type: Boolean, default: true },
   canAttack: { type: Boolean, default: true },
   canSummon: { type: Boolean, default: false },
@@ -10,12 +12,32 @@ const props = defineProps({
 
 const emit = defineEmits(['move', 'wait', 'attack', 'summon', 'build']);
 
+// 根据铜偶类型决定右侧按钮显示什么
+// 工匠：建造，共鸣：召唤，其他：攻击
+const rightButtonType = computed(() => {
+  if (props.copperType === 'CraftsMan') return 'build';
+  if (props.copperType === 'Resonator') return 'summon';
+  return 'attack';
+});
+
+const rightButtonTitle = computed(() => {
+  if (rightButtonType.value === 'build') return props.canBuild ? '建造' : '本回合已建造';
+  if (rightButtonType.value === 'summon') return props.canSummon ? '召唤' : '本回合已召唤';
+  return props.canAttack ? '攻击' : '本回合已攻击';
+});
+
+const rightButtonLocked = computed(() => {
+  if (rightButtonType.value === 'build') return !props.canBuild;
+  if (rightButtonType.value === 'summon') return !props.canSummon;
+  return !props.canAttack;
+});
+
 const hexSrc = getAssetUrl('ui/your-image.png');
 const moveIconSrc = getAssetUrl('ui/boot.png');
 const waitIconSrc = getAssetUrl('ui/mushroom.png');
 const attackIconSrc = getAssetUrl('ui/sword.png');
-const summonIconSrc = getAssetUrl('ui/currentcupper.png'); // 使用现有资源作为召唤图标
-const buildIconSrc = getAssetUrl('ui/panel.png'); // 使用面板图标作为建造图标
+const summonIconSrc = getAssetUrl('ui/currentcupper.png');
+const buildIconSrc = '/assets/build.png';
 
 function onMove() {
   if (!props.canMove) return;
@@ -26,19 +48,17 @@ function onWait() {
   emit('wait');
 }
 
-function onAttack() {
-  if (!props.canAttack) return;
-  emit('attack');
-}
-
-function onSummon() {
-  if (!props.canSummon) return;
-  emit('summon');
-}
-
-function onBuild() {
-  if (!props.canBuild) return;
-  emit('build');
+function onRightButton() {
+  // 根据按钮类型触发不同事件
+  if (rightButtonType.value === 'build') {
+    emit('build');
+  } else if (rightButtonType.value === 'summon') {
+    if (!props.canSummon) return;
+    emit('summon');
+  } else {
+    if (!props.canAttack) return;
+    emit('attack');
+  }
 }
 </script>
 
@@ -62,32 +82,19 @@ function onBuild() {
         <img class="hex-icon" :src="waitIconSrc" alt="移动图标" />
       </div>
 
-      <!-- 右：根据是否能召唤显示召唤或攻击 -->
+      <!-- 右：根据铜偶类型显示 攻击/召唤/建造 -->
       <div
-        v-if="canSummon"
         class="hex right"
-        :title="canSummon ? '召唤' : '本回合已召唤'"
-        :class="{ 'is-locked': canSummon === false }"
-        @click="onSummon"
+        :title="rightButtonTitle"
+        :class="{ 'is-locked': rightButtonLocked }"
+        @click="onRightButton"
       >
         <img class="hex-bg" :src="hexSrc" alt="六边形背景" />
-        <img class="hex-icon" :src="summonIconSrc" alt="召唤图标" />
-      </div>
-      <div
-        v-else
-        class="hex right"
-        :title="canAttack ? '攻击' : '本回合已攻击'"
-        :class="{ 'is-locked': canAttack === false }"
-        @click="onAttack"
-      >
-        <img class="hex-bg" :src="hexSrc" alt="六边形背景" />
-        <img class="hex-icon" :src="attackIconSrc" alt="攻击图标" />
-      </div>
-
-      <!-- 下：建造（仅工匠可见） -->
-      <div v-if="canBuild" class="hex bottom" title="建造" @click="onBuild">
-        <img class="hex-bg" :src="hexSrc" alt="六边形背景" />
-        <img class="hex-icon" src="/assets/build.png" alt="建造图标" />
+        <img 
+          class="hex-icon" 
+          :src="rightButtonType === 'build' ? buildIconSrc : rightButtonType === 'summon' ? summonIconSrc : attackIconSrc" 
+          :alt="rightButtonType === 'build' ? '建造图标' : rightButtonType === 'summon' ? '召唤图标' : '攻击图标'" 
+        />
       </div>
     </div>
   </div>
