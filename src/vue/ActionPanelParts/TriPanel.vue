@@ -5,7 +5,7 @@ const props = defineProps({
   canMove: { type: Boolean, default: true },
   canAttack: { type: Boolean, default: true },
   canSummon: { type: Boolean, default: false },
-  canBuild: { type: Boolean, default: true }, // 所有铜偶都能建造
+  canBuild: { type: Boolean, default: false }, 
 });
 
 const emit = defineEmits(['move', 'wait', 'attack', 'summon', 'build']);
@@ -84,11 +84,11 @@ function onBuild() {
         <img class="hex-icon" :src="attackIconSrc" alt="攻击图标" />
       </div>
 
-      <!-- 下：建造 -->
+      <!-- 下：建造（仅工匠可见） -->
       <div
+        v-if="canBuild"
         class="hex bottom"
-        :title="canBuild ? '建造' : '无法建造'"
-        :class="{ 'is-locked': canBuild === false }"
+        title="建造"
         @click="onBuild"
       >
         <img class="hex-bg" :src="hexSrc" alt="六边形背景" />
