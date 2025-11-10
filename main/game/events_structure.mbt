@@ -52,7 +52,7 @@ fn handle_on_structure_attack_apply(
     Enemy(enemy) => {
       let result = enemy.apply_attack(structure.structure_base.attribute.attack)
       if result {
-        @global.global.bag.add_resource(enemy.get_drop_items())
+        @global.global.val.bag.add_resource(enemy.get_drop_items())
         enemy_map.remove(enemy.id)
         remove_unit(enemy.id)
         map.remove_occupant(enemy.position)

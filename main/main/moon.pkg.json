@@ -2,7 +2,8 @@
   "import": [
     "Lampese/MGPIC_2025/global",
     "Lampese/MGPIC_2025/global_msg",
-    "Lampese/MGPIC_2025/game"
+    "Lampese/MGPIC_2025/game",
+    "Lampese/MGPIC_2025/save"
   ],
   "link": {
     "js": {
@@ -15,6 +16,8 @@
         "global_get_copper_list",
         "global_info_subscribe",
         "global_upgrade_copper",
+        "global_import_save",
+        "global_export_save",
         "eventloop"
       ]
     }

@@ -10,6 +10,14 @@ pub fn Global::new() -> Global {
 }
 
 ///|
+pub fn Global::from_existing(
+  warehouse : @warehouse.Warehouse,
+  bag : @global_resource.Bag,
+) -> Global {
+  { warehouse, bag }
+}
+
+///|
 pub fn Global::get_resource(global : Global) -> String {
   let resource = global.bag.resources
   (
@@ -87,4 +95,4 @@ pub fn Global::craft(global : Global) -> String {
 }
 
 ///|
-pub let global : Global = Global::new()
+pub let global : Ref[Global] = Ref::new(Global::new())

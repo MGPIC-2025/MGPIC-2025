@@ -2,7 +2,7 @@
 pub struct Equipment {
   equipment_base : EquipmentBase
   id : Int
-} derive(Eq, ToJson)
+} derive(Eq, ToJson, FromJson)
 
 ///|
 pub fn Equipment::new(equipment_base : EquipmentBase) -> Equipment {
@@ -15,7 +15,7 @@ pub struct EquipmentBase {
   description : String
   resource_url : String
   attribute : @attribute.Attribute
-} derive(Eq, ToJson)
+} derive(Eq, ToJson, FromJson)
 
 ///|
 pub let equipment_list : FixedArray[EquipmentBase] = [

@@ -12,7 +12,7 @@ import { getSettings, updateSetting } from './utils/gameSettings.js';
 
 // 导入glue.js以触发消息处理器注册
 import './glue.js';
-import { info_subscribe } from './glue.js';
+import { info_subscribe, export_save, import_save } from './glue.js';
 
 const isPaused = ref(false);
 const overlay = ref(null);
@@ -180,37 +180,73 @@ function onToggleMusic() {
   musicOn.value = !musicOn.value;
   log('[App] 音乐开关:', musicOn.value ? '开启' : '关闭');
 }
-function onDownloadSave() {
+async function onDownloadSave() {
   try {
-    const data = { version: 1, savedAt: Date.now(), payload: {} };
-    const blob = new Blob([JSON.stringify(data, null, 2)], {
+    log('[App] 开始导出存档...');
+    const saveData = await export_save();
+
+    if (saveData.type === 'error') {
+      log('[App] 导出存档失败:', saveData.content);
+      alert('导出存档失败: ' + saveData.content);
+      return;
+    }
+
+    log('[App] 存档导出成功，准备下载...');
+    const blob = new Blob([JSON.stringify(saveData, null, 2)], {
       type: 'application/json',
     });
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
-    a.download = 'save.json';
+    const timestamp = new Date()
+      .toISOString()
+      .replace(/[:.]/g, '-')
+      .slice(0, -5);
+    a.download = `mgpic-save-${timestamp}.json`;
     a.click();
     URL.revokeObjectURL(a.href);
-  } catch (_) {}
+    log('[App] 存档已下载');
+  } catch (error) {
+    log('[App] 下载存档时出错:', error);
+    alert('下载存档失败，请重试');
+  }
 }
 function onUploadSave() {
   try {
     fileInput.value && fileInput.value.click();
   } catch (_) {}
 }
-function onFileChange(ev) {
+async function onFileChange(ev) {
   try {
     const file = ev.target && ev.target.files && ev.target.files[0];
     if (!file) return;
+
+    log('[App] 开始读取存档文件...');
     const reader = new FileReader();
-    reader.onload = () => {
+    reader.onload = async () => {
       try {
-        JSON.parse(String(reader.result || '{}'));
-      } catch (_) {}
+        const saveDataStr = String(reader.result || '{}');
+        const saveData = JSON.parse(saveDataStr);
+
+        log('[App] 存档文件解析成功，准备导入...');
+        await import_save(saveDataStr);
+        log('[App] 存档导入完成');
+        alert('存档导入成功！');
+      } catch (error) {
+        log('[App] 导入存档失败:', error);
+        alert('导入存档失败: ' + error.message);
+      }
+      ev.target.value = '';
+    };
+    reader.onerror = () => {
+      log('[App] 读取文件失败');
+      alert('读取文件失败，请重试');
       ev.target.value = '';
     };
     reader.readAsText(file);
-  } catch (_) {}
+  } catch (error) {
+    log('[App] 上传存档时出错:', error);
+    alert('上传存档失败，请重试');
+  }
 }
 
 onMounted(() => {

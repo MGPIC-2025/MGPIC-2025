@@ -102,6 +102,23 @@ async function info_subscribe(callback) {
   }
 }
 
+async function import_save(save) {
+  // 等待 main.js 加载完成
+  await mainModulePromise;
+  if (mainModule?.global_import_save) {
+    mainModule.global_import_save(save);
+  }
+}
+
+async function export_save() {
+  // 等待 main.js 加载完成
+  await mainModulePromise;
+  if (mainModule?.global_export_save) {
+    return JSON.parse(mainModule.global_export_save());
+  }
+  return { type: 'error', content: '后端未加载' };
+}
+
 async function eventloop(msg) {
   // 等待 main.js 加载完成
   await mainModulePromise;
@@ -121,6 +138,8 @@ export {
   get_copper_list,
   upgrade_copper,
   info_subscribe,
+  import_save,
+  export_save,
   eventloop,
   messageQueue,
 };

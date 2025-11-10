@@ -62,7 +62,7 @@ fn handle_on_enemy_attack_apply(
       let result = target_enemy.apply_attack(enemy.enemy_base.attack)
       // 单位被击杀
       if result {
-        @global.global.bag.add_resource(target_enemy.get_drop_items())
+        @global.global.val.bag.add_resource(target_enemy.get_drop_items())
         enemy_map.remove(target_enemy.id)
         remove_unit(target_enemy.id)
         map.remove_occupant(target_enemy.position)

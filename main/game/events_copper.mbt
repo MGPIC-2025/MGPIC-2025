@@ -61,7 +61,7 @@ fn handle_on_attack_apply(id : Int, position : (Int, Int), map : Map_) -> Unit {
       let result = enemy.apply_attack(battle_copper.attribute.attack)
       // 单位被击杀
       if result {
-        @global.global.bag.add_resource(enemy.get_drop_items())
+        @global.global.val.bag.add_resource(enemy.get_drop_items())
         enemy_map.remove(enemy.id)
         remove_unit(enemy.id)
         map.remove_occupant(enemy.position)
@@ -258,8 +258,8 @@ fn handle_on_summon_apply(
   let enemy_base = enemy_info_map.get(name).unwrap()
   let resource_cost = enemy_base.summon_cost
   let battle_copper = get_battle_copper_by_id(id)
-  if @global.global.bag.resources.check_resource_cost(resource_cost) {
-    @global.global.bag.resources.consume_resource_cost(resource_cost)
+  if @global.global.val.bag.resources.check_resource_cost(resource_cost) {
+    @global.global.val.bag.resources.consume_resource_cost(resource_cost)
     let summoned_enemy = Enemy::new(enemy_base, position, true)
     map.add_occupant(position, Enemy(summoned_enemy))
     set_enemy(summoned_enemy, summoned_enemy.id, position)
@@ -336,8 +336,8 @@ fn handle_on_structure_build_apply(
   let structure_base = structure_info_map.get(name).unwrap()
   let resource_cost = structure_base.cost
   let battle_copper = get_battle_copper_by_id(id)
-  if @global.global.bag.resources.check_resource_cost(resource_cost) {
-    @global.global.bag.resources.consume_resource_cost(resource_cost)
+  if @global.global.val.bag.resources.check_resource_cost(resource_cost) {
+    @global.global.val.bag.resources.consume_resource_cost(resource_cost)
     let resource_type = if name == "心源矿钻" {
       let material = map.get_occupant(position)
       guard material is Material(material)

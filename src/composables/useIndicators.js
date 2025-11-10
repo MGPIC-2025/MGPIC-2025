@@ -16,9 +16,9 @@ export function useIndicators(scene) {
    * 指示器类型配置（匹配GameScene原有颜色）
    */
   const indicatorConfig = {
-    move: { color: 0x44ff44, opacity: 0.6 },    // 亮绿色
-    attack: { color: 0xff4444, opacity: 0.6 },  // 亮红色
-    summon: { color: 0xffff00, opacity: 0.6 },  // 黄色（召唤和建造共用）
+    move: { color: 0x44ff44, opacity: 0.6 }, // 亮绿色
+    attack: { color: 0xff4444, opacity: 0.6 }, // 亮红色
+    summon: { color: 0xffff00, opacity: 0.6 }, // 黄色（召唤和建造共用）
   };
 
   /**

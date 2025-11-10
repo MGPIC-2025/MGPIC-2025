@@ -2,7 +2,7 @@
 /// 前端：当游戏开始，注意玩家需要选择三个铜偶加入游戏，这个界面由 @fgeygfe 来做，就是给一个界面从铜偶仓库里面选出来三个，然后给出他们的 id 就好
 /// 后端：根据 id 生成铜偶，并将其加入游戏，放置铜偶在地图的开始位置，设置铜偶的朝向为朝向前方
 fn handle_on_game_start(ids : Array[Int]) -> Unit {
-  let warehouse = @global.global.warehouse
+  let warehouse = @global.global.val.warehouse
   let copper_1 = BattleCopper::new(warehouse.get_copper(ids[0]), ids[0], (0, 3))
   let copper_2 = BattleCopper::new(warehouse.get_copper(ids[1]), ids[1], (0, 4))
   let copper_3 = BattleCopper::new(warehouse.get_copper(ids[2]), ids[2], (0, 5))
@@ -218,7 +218,7 @@ fn resource_generate() -> Unit {
     if structure.structure_base.name == "心源矿钻" {
       let resource_type = structure.resource_type
       if resource_type is Some(resource_type) {
-        @global.global.bag.resources.add_resource(resource_type, 2)
+        @global.global.val.bag.resources.add_resource(resource_type, 2)
         // 通知前端显示资源产出特效
         @global_msg.msg_info.broadcast({
           type_msg: "drill_resource_generate",

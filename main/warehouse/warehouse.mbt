@@ -16,6 +16,11 @@ pub fn Warehouse::new() -> Warehouse {
 }
 
 ///|
+pub fn Warehouse::empty() -> Warehouse {
+  { coppers: @moonbitlang/core/immut/hashmap.HashMap::new() }
+}
+
+///|
 pub fn Warehouse::add_copper(
   warehouse : Warehouse,
   copper : @coppers.Copper,

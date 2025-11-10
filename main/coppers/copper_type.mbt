@@ -5,4 +5,4 @@ pub enum CopperType {
   CraftsMan
   Mechanic
   Resonator
-} derive(ToJson)
+} derive(ToJson, FromJson)

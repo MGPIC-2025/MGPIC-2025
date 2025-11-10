@@ -10,6 +10,14 @@ pub fn Bag::new() -> Bag {
 }
 
 ///|
+pub fn Bag::from_existing(
+  resources : GlobalResource,
+  equipments : Array[@equipment.Equipment],
+) -> Bag {
+  { resources, equipments }
+}
+
+///|
 pub fn Bag::add_resource(bag : Bag, resource : Array[Item]) -> Unit {
   for item in resource {
     match item.item_type {

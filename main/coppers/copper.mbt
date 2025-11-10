@@ -8,7 +8,7 @@ pub(all) struct Copper {
   copper_type : CopperType
   mut equipment_slot : EquipmentSlot
   copper_info : CopperInfo
-} derive(ToJson)
+} derive(ToJson, FromJson)
 
 ///|
 pub struct CopperInfo {
@@ -19,7 +19,7 @@ pub struct CopperInfo {
   model_url : String
   skill : Skill?
   attack_range : Int?
-} derive(ToJson)
+} derive(ToJson, FromJson)
 
 ///|
 pub fn summon_copper_from_info(name : String) -> Copper {

@@ -15,6 +15,19 @@ pub fn GlobalResource::new() -> GlobalResource {
 }
 
 ///|
+pub fn GlobalResource::empty() -> GlobalResource {
+  GlobalResource(
+    Map::from_array([
+      (@resource.SpiritalSpark, 0),
+      (@resource.RecallGear, 0),
+      (@resource.ResonantCrystal, 0),
+      (@resource.RefinedCopper, 0),
+      (@resource.HeartCrystalDust, 0),
+    ]),
+  )
+}
+
+///|
 pub fn GlobalResource::get_resource(
   global : GlobalResource,
   resource : @resource.ResourceType,

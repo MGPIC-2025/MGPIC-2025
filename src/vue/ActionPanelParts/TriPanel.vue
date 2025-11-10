@@ -20,8 +20,10 @@ const rightButtonType = computed(() => {
 });
 
 const rightButtonTitle = computed(() => {
-  if (rightButtonType.value === 'build') return props.canSummon ? '建造' : '本回合已建造';
-  if (rightButtonType.value === 'summon') return props.canSummon ? '召唤' : '本回合已召唤';
+  if (rightButtonType.value === 'build')
+    return props.canSummon ? '建造' : '本回合已建造';
+  if (rightButtonType.value === 'summon')
+    return props.canSummon ? '召唤' : '本回合已召唤';
   return props.canAttack ? '攻击' : '本回合已攻击';
 });
 
@@ -90,10 +92,22 @@ function onRightButton() {
         @click="onRightButton"
       >
         <img class="hex-bg" :src="hexSrc" alt="六边形背景" />
-        <img 
-          class="hex-icon" 
-          :src="rightButtonType === 'build' ? buildIconSrc : rightButtonType === 'summon' ? summonIconSrc : attackIconSrc" 
-          :alt="rightButtonType === 'build' ? '建造图标' : rightButtonType === 'summon' ? '召唤图标' : '攻击图标'" 
+        <img
+          class="hex-icon"
+          :src="
+            rightButtonType === 'build'
+              ? buildIconSrc
+              : rightButtonType === 'summon'
+                ? summonIconSrc
+                : attackIconSrc
+          "
+          :alt="
+            rightButtonType === 'build'
+              ? '建造图标'
+              : rightButtonType === 'summon'
+                ? '召唤图标'
+                : '攻击图标'
+          "
         />
       </div>
     </div>
