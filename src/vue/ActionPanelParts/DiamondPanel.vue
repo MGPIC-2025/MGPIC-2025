@@ -12,25 +12,7 @@ const props = defineProps({
     type: Object,
     required: true,
   },
-  inventoryItems: {
-    type: Array,
-    default: () => [],
-  },
-  inventoryCapacity: {
-    type: Number,
-    default: 5,
-  },
 });
-
-const emit = defineEmits(['inventory-click']);
-
-function handleInventoryClick() {
-  // 如果背包容量为0，不发射事件（不可点击）
-  if (props.inventoryCapacity === 0) {
-    return;
-  }
-  emit('inventory-click');
-}
 
 const diamondPanelRef = ref(null);
 
@@ -83,21 +65,6 @@ onMounted(async () => {
 <template>
   <div ref="diamondPanelRef" class="diamond-panel">
     <div class="diamond-row diamond-row--top">
-      <div
-        class="diamond border-blue"
-        :class="{ 'diamond--disabled': inventoryCapacity === 0 }"
-        @click="handleInventoryClick"
-        :title="inventoryCapacity === 0 ? '此单位没有背包' : '打开背包'"
-      >
-        <div class="diamond-content">
-          <div class="diamond-text">
-            <div class="diamond-label">背包</div>
-            <div class="diamond-value">
-              {{ inventoryItems.length }}/{{ inventoryCapacity }}
-            </div>
-          </div>
-        </div>
-      </div>
       <div class="diamond border-orange-red">
         <div class="diamond-content">
           <div class="diamond-text">
