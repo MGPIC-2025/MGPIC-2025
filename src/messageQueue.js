@@ -175,6 +175,7 @@ export function registerAllHandlers() {
             health: enemy.enemy_base.health,
             attack: enemy.enemy_base.attack,
             defense: enemy.enemy_base.defense,
+            speed: enemy.enemy_base.speed,
           },
         },
       };

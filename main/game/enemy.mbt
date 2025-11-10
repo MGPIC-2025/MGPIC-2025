@@ -21,7 +21,7 @@ priv struct EnemyBase {
   defense : Float
   dodge : Float
   attack_range : Int
-  move_range : Int
+  speed : Int
   name : String
   enemy_type : String
   description : String
@@ -154,7 +154,7 @@ fn Enemy::find_nearest_attack_target(enemy : Enemy) -> CanAttackTarget? {
 
 ///|
 fn Enemy::get_can_move(enemy : Enemy, map : Map_) -> Array[(Int, Int)] {
-  let offset = generate_offset(enemy.enemy_base.move_range)
+  let offset = generate_offset(enemy.enemy_base.speed)
   let can_move = []
   for offset_ in offset {
     let position = (enemy.position.0 + offset_.0, enemy.position.1 + offset_.1)

@@ -190,7 +190,7 @@ fn enemy_ai() -> Unit {
           path_finder_map,
           enemy.position,
           target_position,
-          enemy.enemy_base.move_range,
+          enemy.enemy_base.speed,
           enemy.enemy_base.attack_range,
         )
         if next_position is Some(next_position) {
