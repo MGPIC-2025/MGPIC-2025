@@ -1431,6 +1431,18 @@ function setupMessageQueue() {
           modelScale = 1.0;
       }
 
+      // 立即添加占位符到models数组，防止竞态条件导致重复创建
+      const placeholder = {
+        id: actualId,
+        object: null,
+        name: enemy.enemy_base?.enemy_type || `Enemy_${actualId}`,
+        type: isOwned ? 'summon' : 'enemy',
+        position: position,
+        isOwned: isOwned,
+        isLoading: true,
+      };
+      models.push(placeholder);
+
       // 尝试加载GLTF模型
       let obj = await loadEnemyModel(enemyName, position, modelScale);
 
@@ -1458,14 +1470,9 @@ function setupMessageQueue() {
       obj.userData.modelId = actualId; // 设置ID以便点击检测
       scene.add(obj);
 
-      models.push({
-        id: actualId,
-        object: obj,
-        name: enemy.enemy_base?.enemy_type || `Enemy_${actualId}`,
-        type: isOwned ? 'summon' : 'enemy', // 友方召唤物标记为summon
-        position: position, // 保存位置用于死亡特效
-        isOwned: isOwned, // 保存是否为友方召唤物
-      });
+      // 更新占位符对象
+      placeholder.object = obj;
+      placeholder.isLoading = false;
 
       // 创建血条（所有敌人和召唤物都需要）
       if (

@@ -195,17 +195,23 @@ fn enemy_ai() -> Unit {
         )
         if next_position is Some(next_position) {
           animate_move(enemy.id)
+          // 保存旧位置用于计算方向
+          let old_position = enemy.position
+          // 先从地图移除旧位置
+          map.remove_occupant(enemy.position)
+          // 更新敌人位置
+          enemy.position = next_position
+          // 在地图添加新位置
+          map.add_occupant(enemy.position, Enemy(enemy))
           // 根据位置改变敌人的朝向
           change_direction(
             enemy.id,
             convert_direction_to_unit_direction(
-              get_direction_by_position(enemy.position, next_position),
+              get_direction_by_position(old_position, next_position),
             ),
           )
+          // 最后调用前端移动
           move_to(enemy.id, next_position)
-          map.remove_occupant(enemy.position)
-          enemy.position = next_position
-          map.add_occupant(enemy.position, Occupant::Enemy(enemy))
         }
       }
     }

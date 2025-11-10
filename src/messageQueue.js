@@ -526,6 +526,9 @@ export function registerAllHandlers() {
       const targetZ = gridZ;
       const targetY = model.object.position.y;
 
+      // 更新模型的网格坐标（用于掉落物位置等）
+      model.position = [gridX, gridZ];
+
       // 注意：朝向由后端的 change_direction 消息控制
       // move_to 之前后端会先发送 change_direction，所以这里不需要自动旋转
 
