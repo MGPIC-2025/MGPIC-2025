@@ -47,3 +47,11 @@ export function getItemIcon(item) {
   }
   return '';
 }
+
+export function getResourceName(resourceType) {
+  return RESOURCE_META[resourceType]?.name || resourceType;
+}
+
+export function getResourceIcon(resourceType) {
+  return RESOURCE_META[resourceType]?.icon || '';
+}
