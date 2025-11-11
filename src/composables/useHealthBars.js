@@ -24,25 +24,27 @@ export function useHealthBars(scene, camera) {
     const barWidth = 1.0;
     const barHeight = 0.1;
 
-    // 背景（红色）
+    // 背景（红色）- 使用不透明材质避免混合问题
     const bgGeometry = new THREE.PlaneGeometry(barWidth, barHeight);
     const bgMaterial = new THREE.MeshBasicMaterial({
       color: 0x440000,
       side: THREE.DoubleSide,
       depthTest: false,
-      transparent: true,
-      opacity: 0.8,
+      depthWrite: false,
+      transparent: false, // 背景不透明，避免混合
+      toneMapped: false,
     });
     const background = new THREE.Mesh(bgGeometry, bgMaterial);
 
-    // 前景血条（根据血量显示颜色）
+    // 前景血条（根据血量显示颜色）- 使用不透明材质
     const barGeometry = new THREE.PlaneGeometry(barWidth, barHeight);
     const barMaterial = new THREE.MeshBasicMaterial({
       color: getHealthColor(currentHp, maxHp),
       side: THREE.DoubleSide,
       depthTest: false,
-      transparent: true,
-      opacity: 0.9,
+      depthWrite: false,
+      transparent: false, // 前景不透明，避免混合
+      toneMapped: false, // 禁用色调映射，确保颜色一致
     });
     const bar = new THREE.Mesh(barGeometry, barMaterial);
     bar.position.z = 0.001; // 稍微前移，避免Z-fighting
@@ -52,6 +54,11 @@ export function useHealthBars(scene, camera) {
     container.add(background);
     container.add(bar);
     container.renderOrder = 999; // 确保血条在最上层
+    
+    // 设置渲染顺序，确保前景在背景之上
+    background.renderOrder = 999;
+    bar.renderOrder = 1000; // 前景血条在背景之上
+    
     scene.add(container);
 
     // 存储
