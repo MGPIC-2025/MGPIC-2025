@@ -5,11 +5,11 @@
 
 const SETTINGS_KEY = 'mgpic_game_settings';
 
-// 默认设置
+// 默认设置（Mobile分支固定使用虚拟摇杆）
 const DEFAULT_SETTINGS = {
-  // 控制模式：'touchpad' = 触控板模式（需要按住鼠标），'mouse' = 鼠标模式（直接移动）
-  controlMode: 'touchpad',
-  // 鼠标灵敏度
+  // 控制模式：Mobile分支固定为'mobile'（虚拟摇杆）
+  controlMode: 'mobile',
+  // 鼠标灵敏度（保留但不使用）
   mouseSensitivity: 0.002,
 };
 

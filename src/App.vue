@@ -22,7 +22,6 @@ const overlayHistory = ref([]);
 const currentPuppetIndex = ref(0);
 const showStartMenu = ref(true);
 const showGameScene = ref(false); // 控制游戏场景显示
-const controlMode = ref('touchpad'); // 控制模式
 const destroyStartMenu = ref(false); // 控制是否完全销毁StartMenu以释放内存
 let startMenuDestroyTimer = null;
 
@@ -86,9 +85,6 @@ function closeGameScene() {
 }
 
 function openSettings() {
-  // 打开设置时，加载当前设置
-  const settings = getSettings();
-  controlMode.value = settings.controlMode;
   showSettingsOverlay.value = true;
   isPaused.value = true;
 }
@@ -99,17 +95,6 @@ function closeSettings() {
     window.__START_MENU_RESUME__ && window.__START_MENU_RESUME__();
     isPaused.value = false;
   }
-}
-
-function setControlMode(mode) {
-  controlMode.value = mode;
-  updateSetting('controlMode', mode);
-
-  // 通知 GameScene 更新控制模式
-  if (window.updateControlMode) {
-    window.updateControlMode(mode);
-  }
-  log(`[App] 设置控制模式: ${mode}`);
 }
 
 function goBack() {
@@ -368,29 +353,6 @@ onBeforeUnmount(() => {
           </button>
         </div>
         <div class="settings__content">
-          <!-- 控制模式设置 -->
-          <div class="settings__section">
-            <div class="settings__section-title">视角控制模式</div>
-            <div class="settings__control-options">
-              <button
-                class="settings__control-btn"
-                :class="{ active: controlMode === 'touchpad' }"
-                @click="setControlMode('touchpad')"
-              >
-                <span class="control-title">触控板模式（推荐）</span>
-                <span class="control-desc">按住拖动视角</span>
-              </button>
-              <button
-                class="settings__control-btn"
-                :class="{ active: controlMode === 'mouse' }"
-                @click="setControlMode('mouse')"
-              >
-                <span class="control-title">鼠标模式（实验性）</span>
-                <span class="control-desc">直接转动视角</span>
-              </button>
-            </div>
-          </div>
-
           <button class="settings__item" @click="onDownloadSave">
             <span class="settings__icon">
               <svg

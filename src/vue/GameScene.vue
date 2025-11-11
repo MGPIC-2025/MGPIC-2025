@@ -29,6 +29,7 @@ import TurnSystem from './ActionPanelParts/TurnSystem.vue';
 import SummonModal from './ActionPanelParts/SummonModal.vue';
 import StructurePanel from './StructurePanel.vue';
 import ResourcePanel from './ResourcePanel.vue';
+import VirtualControls from './VirtualControls.vue';
 
 const props = defineProps({
   isGameMode: {
@@ -92,9 +93,14 @@ const keys = {
 const moveSpeed = 0.2;
 const rotationSpeed = 0.003;
 
-// 从设置中读取控制模式和灵敏度
-const controlMode = ref(getSetting('controlMode') || 'touchpad');
-const mouseSensitivity = ref(getSetting('mouseSensitivity') || 0.002);
+// Mobile分支：固定使用虚拟摇杆控制模式
+const controlMode = ref('mobile');
+const mouseSensitivity = ref(0.002);
+
+// 虚拟摇杆控制状态
+const virtualMoveInput = ref({ x: 0, y: 0 });
+const virtualRotateInput = ref({ x: 0, y: 0 });
+const virtualVerticalInput = ref({ up: false, down: false });
 
 // 更新控制模式（供设置面板调用）
 window.updateControlMode = mode => {
@@ -106,6 +112,19 @@ window.updateControlMode = mode => {
 window.updateMouseSensitivity = sensitivity => {
   mouseSensitivity.value = sensitivity;
 };
+
+// 虚拟控制事件处理
+function handleVirtualMove(movement) {
+  virtualMoveInput.value = movement;
+}
+
+function handleVirtualRotate(rotation) {
+  virtualRotateInput.value = rotation;
+}
+
+function handleVirtualVerticalMove(vertical) {
+  virtualVerticalInput.value = vertical;
+}
 
 // 键盘事件处理
 function handleKeyDown(event) {
@@ -2092,28 +2111,67 @@ function onWindowResize() {
 function animate() {
   requestAnimationFrame(animate);
 
-  // 第一人称移动控制
-  if (keys.w || keys.a || keys.s || keys.d || keys.shift || keys.space) {
+  // 第一人称移动控制（键盘或虚拟摇杆）
+  const hasKeyboardInput = keys.w || keys.a || keys.s || keys.d || keys.shift || keys.space;
+  const hasVirtualInput = controlMode.value === 'mobile' && 
+    (Math.abs(virtualMoveInput.value.x) > 0.01 || 
+     Math.abs(virtualMoveInput.value.y) > 0.01 ||
+     virtualVerticalInput.value.up || 
+     virtualVerticalInput.value.down);
+  
+  if (hasKeyboardInput || hasVirtualInput) {
     const velocity = new THREE.Vector3();
 
-    // 根据相机朝向计算移动方向
+    // 键盘输入
     if (keys.w) velocity.z -= 1; // 向前
     if (keys.s) velocity.z += 1; // 向后
     if (keys.a) velocity.x -= 1; // 向左
     if (keys.d) velocity.x += 1; // 向右
 
+    // 虚拟摇杆输入（左摇杆）
+    if (controlMode.value === 'mobile') {
+      velocity.x += virtualMoveInput.value.x;
+      velocity.z += virtualMoveInput.value.y; // 摇杆Y轴对应前后移动
+    }
+
     // 垂直移动
     if (keys.shift) velocity.y -= 1; // 向下
     if (keys.space) velocity.y += 1; // 向上
+    if (controlMode.value === 'mobile') {
+      if (virtualVerticalInput.value.up) velocity.y += 1;
+      if (virtualVerticalInput.value.down) velocity.y -= 1;
+    }
 
     // 应用相机旋转到水平移动
     velocity.applyQuaternion(camera.quaternion);
 
-    // 重置Y轴，只保留水平移动
-    velocity.y = keys.shift ? -1 : keys.space ? 1 : 0;
+    // 重置Y轴，只保留水平移动（如果没有垂直移动输入）
+    const hasVerticalInput = keys.shift || keys.space || 
+      (controlMode.value === 'mobile' && (virtualVerticalInput.value.up || virtualVerticalInput.value.down));
+    if (hasVerticalInput) {
+      velocity.y = (keys.shift || (controlMode.value === 'mobile' && virtualVerticalInput.value.down)) ? -1 : 1;
+    } else {
+      velocity.y = 0;
+    }
 
     // 移动相机位置
     camera.position.add(velocity.multiplyScalar(moveSpeed));
+  }
+
+  // 虚拟摇杆视角控制（右摇杆）
+  if (controlMode.value === 'mobile' && 
+      (Math.abs(virtualRotateInput.value.x) > 0.01 || Math.abs(virtualRotateInput.value.y) > 0.01)) {
+    const rotateSpeed = 0.05; // 虚拟摇杆旋转速度
+    yaw -= virtualRotateInput.value.x * rotateSpeed;
+    pitch -= virtualRotateInput.value.y * rotateSpeed;
+
+    // 限制上下旋转角度
+    pitch = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, pitch));
+
+    // 应用旋转到相机
+    camera.rotation.order = 'YXZ';
+    camera.rotation.y = yaw;
+    camera.rotation.x = pitch;
   }
 
   // 处理聚焦（简化版，不使用controls）
@@ -3149,6 +3207,14 @@ const panel8Src = `url('/assets/panel8.png')`;
     <!-- 全局资源面板 -->
     <ResourcePanel v-if="isGameMode" />
 
+    <!-- 虚拟摇杆控制（手机模式） -->
+    <VirtualControls
+      v-if="isGameMode"
+      :visible="true"
+      @move="handleVirtualMove"
+      @rotate="handleVirtualRotate"
+      @verticalMove="handleVirtualVerticalMove"
+    />
 
     <!-- 铜偶操作面板（仅游戏模式显示） -->
     <ActionPanel
