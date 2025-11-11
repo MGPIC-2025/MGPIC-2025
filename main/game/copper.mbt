@@ -132,9 +132,26 @@ fn BattleCopper::get_can_move(
     )
     // 允许：1) 地图内未占用的位置，或 2) 超出地图边界1格的位置（但不允许2格或更多）
     let distance_to_room = map.distance_to_nearest_room(position)
-    if distance_to_room <= 1 && !map.is_occupy(position) {
-      can_move.push(position)
+    if distance_to_room > 1 || map.is_occupy(position) {
+      continue
     }
+
+    // 对于对角线移动，需要检查是否有相邻的"中转"位置可达
+    let dx = offset_.0
+    let dy = offset_.1
+    if dx != 0 && dy != 0 {
+      // 对角线移动：检查两个相邻位置至少有一个距离房间<=1且未被占用
+      let mid_pos1 = (battle_copper.position.0 + dx, battle_copper.position.1)
+      let mid_pos2 = (battle_copper.position.0, battle_copper.position.1 + dy)
+      let mid1_distance = map.distance_to_nearest_room(mid_pos1)
+      let mid2_distance = map.distance_to_nearest_room(mid_pos2)
+      let mid1_valid = mid1_distance <= 1 && !map.is_occupy(mid_pos1)
+      let mid2_valid = mid2_distance <= 1 && !map.is_occupy(mid_pos2)
+      if !mid1_valid && !mid2_valid {
+        continue // 两个中转位置都不可达，不能对角线移动
+      }
+    }
+    can_move.push(position)
   }
   can_move
 }
