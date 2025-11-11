@@ -151,7 +151,7 @@ onMounted(async () => {
       >
         <div class="diamond-content">
           <div class="diamond-text">
-            <div class="diamond-label">资源</div>
+            <div class="diamond-label">合成</div>
             <div class="diamond-label">与</div>
             <div class="diamond-label">装备</div>
           </div>

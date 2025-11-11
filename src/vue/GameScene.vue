@@ -28,6 +28,7 @@ import ActionPanel from './ActionPanel.vue';
 import TurnSystem from './ActionPanelParts/TurnSystem.vue';
 import SummonModal from './ActionPanelParts/SummonModal.vue';
 import StructurePanel from './StructurePanel.vue';
+import ResourcePanel from './ResourcePanel.vue';
 
 const props = defineProps({
   isGameMode: {
@@ -3158,6 +3159,9 @@ const panel8Src = `url('/assets/panel8.png')`;
     >
       撤退
     </button>
+
+    <!-- 全局资源面板 -->
+    <ResourcePanel v-if="isGameMode" />
 
 
     <!-- 铜偶操作面板（仅游戏模式显示） -->
