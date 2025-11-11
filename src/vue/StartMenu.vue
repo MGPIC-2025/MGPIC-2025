@@ -34,7 +34,6 @@ const startBg = ref(
   getAssetUrl('ui/Gemini_Generated_Image_gtrehogtrehogtre (1).png')
 );
 // 按钮背景面板（使用像素清晰的 border-image）
-import { getAssetUrl } from '../utils/resourceLoader.js';
 const panel5Src = `url('${getAssetUrl('@assets/ui/panel4.png')}')`;
 
 // 对外事件（仅对外通知 started；设置改为本地弹层）

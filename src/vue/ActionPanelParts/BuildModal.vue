@@ -84,7 +84,6 @@ function formatCost(costData) {
 }
 
 // 背景图片路径（CSS border-image 需要 url() 包裹）
-import { getAssetUrl } from '../../utils/resourceLoader.js';
 const panel11Src = `url('${getAssetUrl('@assets/ui/panel11.png')}')`;
 const panel7Src = `url('${getAssetUrl('@assets/ui/panel7.png')}')`;
 const panel8Src = `url('${getAssetUrl('@assets/ui/panel8.png')}')`;

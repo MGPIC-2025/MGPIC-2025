@@ -37,7 +37,6 @@ const hexSrc = getAssetUrl('ui/your-image.png');
 const moveIconSrc = getAssetUrl('ui/boot.png');
 const waitIconSrc = getAssetUrl('ui/mushroom.png');
 const attackIconSrc = getAssetUrl('ui/sword.png');
-import { getAssetUrl } from '../../utils/resourceLoader.js';
 const summonIconSrc = getAssetUrl('@assets/ui/summon.png');
 const buildIconSrc = getAssetUrl('@assets/ui/build.png');
 

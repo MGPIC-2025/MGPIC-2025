@@ -46,7 +46,6 @@ const positionText = computed(() => {
 const isInventoryDisabled = computed(() => isEnemyUnit.value === true);
 
 // 名称背景面板资源（使用本地 /assets 路径，避免走 R2 CDN）
-import { getAssetUrl } from '../../utils/resourceLoader.js';
 const namePanelSrc = `url('${getAssetUrl('@assets/ui/panel4.png')}')`;
 // 后端资源数据（和 ResourcePanel 一样的后端绑定方式）
 const resources = ref({

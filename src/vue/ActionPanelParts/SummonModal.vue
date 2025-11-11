@@ -4,7 +4,6 @@ import { getAssetUrl } from '../../utils/resourceLoader.js';
 import log from '../../log.js';
 
 // 背景图片路径（CSS border-image 需要 url() 包裹）
-import { getAssetUrl } from '../../utils/resourceLoader.js';
 const panel6Src = `url('${getAssetUrl('@assets/ui/panel6.png')}')`;
 
 const props = defineProps({

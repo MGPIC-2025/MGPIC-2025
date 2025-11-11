@@ -7,7 +7,6 @@ import { getAssetUrl } from '../utils/resourceLoader.js';
 import DiamondPanel from './ActionPanelParts/DiamondPanel.vue';
 import InventoryModal from './ActionPanelParts/InventoryModal.vue';
 import HealthBar from './ActionPanelParts/HealthBar.vue';
-import { getAssetUrl } from '../utils/resourceLoader.js';
 import TriPanel from './ActionPanelParts/TriPanel.vue';
 import BuildModal from './ActionPanelParts/BuildModal.vue';
 

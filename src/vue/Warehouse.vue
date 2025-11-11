@@ -428,7 +428,6 @@ async function upgradeSelected() {
 }
 
 // 背景图片路径（CSS border-image 需要 url() 包裹）
-import { getAssetUrl } from '../utils/resourceLoader.js';
 const panel3Src = `url('${getAssetUrl('@assets/ui/panel3.png')}')`;
 const panel4Src = `url('${getAssetUrl('@assets/ui/panel4.png')}')`;
 const panel5Src = `url('${getAssetUrl('@assets/ui/panel5.png')}')`;
