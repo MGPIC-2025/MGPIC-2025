@@ -1,4 +1,7 @@
 ///|
+using @resource {type ResourceCost}
+
+///|
 let enemy_list : Array[EnemyBase] = [
   {
     level: 1,
@@ -14,7 +17,7 @@ let enemy_list : Array[EnemyBase] = [
     asset_url: "/assets/enemy/goblin/goblin.webp",
     model_url: "/assets/enemy/goblin/goblin.glb",
     drop_items: [(RecallGear, (0, 1)), (RefinedCopper, (1, 1))],
-    summon_cost: @resource.ResourceCost::new([(@resource.SpiritalSpark, 1)]),
+    summon_cost: ResourceCost::new([(RefinedCopper, 2), (RecallGear, 1)]),
   },
   {
     level: 1,
@@ -30,7 +33,7 @@ let enemy_list : Array[EnemyBase] = [
     asset_url: "/assets/enemy/cruiser/cruiser.webp",
     model_url: "/assets/enemy/cruiser/cruiser.glb",
     drop_items: [(ResonantCrystal, (0, 1)), (HeartCrystalDust, (1, 1))],
-    summon_cost: @resource.ResourceCost::new([(@resource.SpiritalSpark, 1)]),
+    summon_cost: ResourceCost::new([(RefinedCopper, 1), (HeartCrystalDust, 2)]),
   },
   {
     level: 2,
@@ -46,7 +49,11 @@ let enemy_list : Array[EnemyBase] = [
     asset_url: "/assets/enemy/scout/scout.webp",
     model_url: "/assets/enemy/scout/scout.glb",
     drop_items: [(RecallGear, (1, 2)), (RefinedCopper, (0, 1))],
-    summon_cost: @resource.ResourceCost::new([(@resource.SpiritalSpark, 1)]),
+    summon_cost: ResourceCost::new([
+      (RefinedCopper, 3),
+      (RecallGear, 2),
+      (HeartCrystalDust, 1),
+    ]),
   },
   {
     level: 2,
@@ -62,7 +69,11 @@ let enemy_list : Array[EnemyBase] = [
     asset_url: "/assets/enemy/horn/horn.webp",
     model_url: "/assets/enemy/horn/horn.glb",
     drop_items: [(ResonantCrystal, (1, 2)), (HeartCrystalDust, (0, 1))],
-    summon_cost: @resource.ResourceCost::new([(@resource.SpiritalSpark, 1)]),
+    summon_cost: ResourceCost::new([
+      (RecallGear, 2),
+      (ResonantCrystal, 3),
+      (SpiritalSpark, 1),
+    ]),
   },
   {
     level: 3,
@@ -82,7 +93,12 @@ let enemy_list : Array[EnemyBase] = [
       (ResonantCrystal, (1, 2)),
       (RefinedCopper, (0, 1)),
     ],
-    summon_cost: @resource.ResourceCost::new([(@resource.SpiritalSpark, 1)]),
+    summon_cost: ResourceCost::new([
+      (RecallGear, 4),
+      (ResonantCrystal, 2),
+      (RefinedCopper, 8),
+      (SpiritalSpark, 3),
+    ]),
   },
   {
     level: 3,
@@ -98,7 +114,12 @@ let enemy_list : Array[EnemyBase] = [
     asset_url: "/assets/enemy/assassin/assassin.webp",
     model_url: "/assets/enemy/assassin/assassin.glb",
     drop_items: [(RecallGear, (1, 2)), (ResonantCrystal, (0, 1))],
-    summon_cost: @resource.ResourceCost::new([(@resource.SpiritalSpark, 1)]),
+    summon_cost: ResourceCost::new([
+      (RecallGear, 2),
+      (HeartCrystalDust, 6),
+      (RefinedCopper, 6),
+      (SpiritalSpark, 1),
+    ]),
   },
   {
     level: 4,
@@ -118,7 +139,12 @@ let enemy_list : Array[EnemyBase] = [
       (ResonantCrystal, (1, 3)),
       (RefinedCopper, (1, 2)),
     ],
-    summon_cost: @resource.ResourceCost::new([(@resource.SpiritalSpark, 1)]),
+    summon_cost: ResourceCost::new([
+      (RecallGear, 6),
+      (ResonantCrystal, 4),
+      (RefinedCopper, 12),
+      (SpiritalSpark, 3),
+    ]),
   },
   {
     level: 4,
@@ -138,7 +164,12 @@ let enemy_list : Array[EnemyBase] = [
       (ResonantCrystal, (2, 3)),
       (HeartCrystalDust, (1, 2)),
     ],
-    summon_cost: @resource.ResourceCost::new([(@resource.SpiritalSpark, 1)]),
+    summon_cost: ResourceCost::new([
+      (RecallGear, 10),
+      (ResonantCrystal, 10),
+      (HeartCrystalDust, 10),
+      (SpiritalSpark, 3),
+    ]),
   },
   {
     level: 5,
@@ -158,7 +189,12 @@ let enemy_list : Array[EnemyBase] = [
       (ResonantCrystal, (2, 4)),
       (RefinedCopper, (1, 2)),
     ],
-    summon_cost: @resource.ResourceCost::new([(@resource.SpiritalSpark, 1)]),
+    summon_cost: ResourceCost::new([
+      (RecallGear, 10),
+      (ResonantCrystal, 10),
+      (RefinedCopper, 15),
+      (SpiritalSpark, 5),
+    ]),
   },
   {
     level: 5,
@@ -178,7 +214,12 @@ let enemy_list : Array[EnemyBase] = [
       (ResonantCrystal, (2, 3)),
       (HeartCrystalDust, (1, 2)),
     ],
-    summon_cost: @resource.ResourceCost::new([(@resource.SpiritalSpark, 1)]),
+    summon_cost: ResourceCost::new([
+      (RecallGear, 10),
+      (ResonantCrystal, 15),
+      (RefinedCopper, 10),
+      (SpiritalSpark, 5),
+    ]),
   },
   {
     level: 5,
@@ -198,7 +239,13 @@ let enemy_list : Array[EnemyBase] = [
       (ResonantCrystal, (3, 5)),
       (RefinedCopper, (1, 2)),
     ],
-    summon_cost: @resource.ResourceCost::new([(@resource.SpiritalSpark, 1)]),
+    summon_cost: ResourceCost::new([
+      (RecallGear, 15),
+      (ResonantCrystal, 15),
+      (HeartCrystalDust, 20),
+      (RefinedCopper, 20),
+      (SpiritalSpark, 8),
+    ]),
   },
   {
     level: 6,
@@ -219,7 +266,13 @@ let enemy_list : Array[EnemyBase] = [
       (RefinedCopper, (2, 3)),
       (HeartCrystalDust, (2, 3)),
     ],
-    summon_cost: @resource.ResourceCost::new([(@resource.SpiritalSpark, 1)]),
+    summon_cost: ResourceCost::new([
+      (RecallGear, 30),
+      (ResonantCrystal, 30),
+      (HeartCrystalDust, 30),
+      (RefinedCopper, 30),
+      (SpiritalSpark, 10),
+    ]),
   },
   {
     level: 6,
@@ -240,7 +293,13 @@ let enemy_list : Array[EnemyBase] = [
       (RefinedCopper, (3, 4)),
       (HeartCrystalDust, (3, 4)),
     ],
-    summon_cost: @resource.ResourceCost::new([(@resource.SpiritalSpark, 1)]),
+    summon_cost: ResourceCost::new([
+      (RecallGear, 40),
+      (ResonantCrystal, 40),
+      (HeartCrystalDust, 40),
+      (RefinedCopper, 40),
+      (SpiritalSpark, 15),
+    ]),
   },
 ]
 
