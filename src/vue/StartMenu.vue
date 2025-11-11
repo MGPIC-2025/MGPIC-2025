@@ -33,6 +33,8 @@ const controlMode = ref('touchpad');
 const startBg = ref(
   getAssetUrl('ui/Gemini_Generated_Image_gtrehogtrehogtre (1).png')
 );
+// 按钮背景面板（使用像素清晰的 border-image）
+const panel5Src = `url('/assets/panel4.png')`;
 
 // 对外事件（仅对外通知 started；设置改为本地弹层）
 const emit = defineEmits(['started']);
@@ -461,12 +463,19 @@ onBeforeUnmount(() => {
 .startmenu-btn {
   pointer-events: auto;
   padding: 20px 64px;
-  border-radius: 20px;
-  border: none;
-  background: #2a1a0f;
-  color: #fff;
+  box-sizing: border-box;
+  border-style: solid;
+  border-width: 12px;
+  border-image-source: v-bind(panel5Src);
+  border-image-slice: 8 fill;
+  border-image-width: 12px;
+  border-image-outset: 0;
+  border-image-repeat: stretch;
+  background-color: transparent;
+  color: #fff3ef;
   font-size: 32px;
-  font-weight: 800;
+  font-weight: 900;
+  letter-spacing: 2px;
   cursor: pointer;
   box-shadow: 0 12px 28px rgba(0, 0, 0, 0.35);
   width: min(560px, 64vw);
