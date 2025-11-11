@@ -87,7 +87,8 @@ function initThreeIfNeeded() {
         return;
       }
     }
-    renderer.setSize(w, h, false);
+    // 更新 canvas 的样式以匹配容器，避免在高 DPI / 大屏幕下出现位置或缩放偏差
+    renderer.setSize(w, h, true);
     camera.aspect = w / Math.max(1, h);
     camera.updateProjectionMatrix();
   };
@@ -155,14 +156,11 @@ function fitCameraToObject(object) {
   box.getSize(size);
   box.getCenter(center);
   object.position.sub(center);
+  // 将对象居中到原点（移除手动偏移，手动偏移会在不同分辨率下表现不一致）
+  object.position.add(new THREE.Vector3(0, 0, 0));
 
-  // 调整模型位置，使其更居中
-  const offsetX = -0.3; // 移除X轴偏移，使模型居中
-  const offsetY = 0.3; // 移除Y轴偏移，使模型居中
-  const offsetZ = 0; // 移除Z轴偏移，使模型居中
-  object.position.add(new THREE.Vector3(offsetX, offsetY, offsetZ));
-
-  const shrink = 0.55; // 稍微增大模型尺寸
+  // 适度缩放模型以适配视野（放大一些以在大屏上更明显）
+  const shrink = 0.8;
   object.scale.multiplyScalar(shrink);
 
   const canvas = renderer?.domElement;
@@ -171,7 +169,7 @@ function fitCameraToObject(object) {
   const aspect = Math.max(1e-6, w / Math.max(1, h));
   const vFov = camera.fov * (Math.PI / 180);
   const hFov = 2 * Math.atan(Math.tan(vFov / 2) * aspect);
-  const padding = 1.2; // 稍微增加边距
+  const padding = 1.05; // 略减边距以让模型更靠近画面（放大效果更明显）
   const distV = size.y / 2 / Math.tan(vFov / 2);
   const distH = size.x / 2 / Math.tan(hFov / 2);
   const dist = padding * Math.max(distV, distH, 0.1);
