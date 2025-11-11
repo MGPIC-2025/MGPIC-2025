@@ -64,7 +64,9 @@ fn Room::new(
     )
     boss_borned.val = true
   } else {
-    level -= 1
+    if level == 6 {
+      level = 5
+    }
     // 中心点设置为怪物生成器
     blocks[4][4].occupant = Structure(
       Structure::new(
