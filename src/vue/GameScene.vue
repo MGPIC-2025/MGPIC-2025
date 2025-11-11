@@ -2975,12 +2975,12 @@ function showCreditsScreen() {
   log('[GameScene] 显示制作团队名单');
   showCredits.value = true;
 
-  // 5秒后自动关闭制作团队名单并返回菜单
+  // 25秒后自动关闭制作团队名单并返回菜单（与动画时长一致）
   setTimeout(() => {
     log('[GameScene] 制作团队名单播放完毕，返回菜单');
     showCredits.value = false;
     emit('back');
-  }, 5000);
+  }, 25000);
 }
 
 // 跳过制作团队名单
@@ -3161,25 +3161,39 @@ async function confirmWithdraw() {
 
         <div class="credits-content">
           <div class="credits-section">
-            <h2>游戏设计</h2>
-            <p>MGPIC Team</p>
+            <h2>游戏策划</h2>
+            <p>孙翊轩（总策划）</p>
+            <p>张俊皓（数值/玩法）</p>
+            <p>崔雅晴</p>
           </div>
 
           <div class="credits-section">
             <h2>程序开发</h2>
             <p>Backend Developer</p>
+            <p>孙翊轩</p>
+            <p>张楠</p>
+            <p>曾斯奇</p>
             <p>Frontend Developer</p>
+            <p>王珏</p>
+            <p>张楠</p>
+            <p>曾斯奇</p>
           </div>
 
           <div class="credits-section">
             <h2>美术设计</h2>
+            <p>Character Artist</p>
+            <p>曾斯奇</p>
             <p>3D Artist</p>
+            <p>孙翊轩</p>
+            <p>曾斯奇</p>
             <p>UI Designer</p>
+            <p>王珏</p>
           </div>
 
           <div class="credits-section">
             <h2>音乐音效</h2>
             <p>Sound Designer</p>
+            <p>曾斯奇</p>
           </div>
 
           <div class="credits-section">
@@ -3187,9 +3201,10 @@ async function confirmWithdraw() {
             <p>所有参与测试的玩家</p>
           </div>
         </div>
-
-        <button class="skip-credits-button" @click="skipCredits">跳过</button>
       </div>
+
+      <!-- 固定的跳过按钮 -->
+      <button class="skip-credits-button" @click="skipCredits">跳过</button>
     </div>
 
     <!-- 撤退确认对话框 -->
@@ -3473,9 +3488,10 @@ async function confirmWithdraw() {
   inset: 0;
   background: linear-gradient(180deg, #000000 0%, #1a1a2e 50%, #000000 100%);
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
   z-index: 25000;
+  overflow: hidden;
   animation: fadeIn 0.5s ease-out;
 }
 
@@ -3483,8 +3499,12 @@ async function confirmWithdraw() {
   width: 100%;
   max-width: 800px;
   padding: 40px;
+  padding-top: 100vh;
+  padding-bottom: 100vh;
   text-align: center;
-  animation: creditsScroll 5s ease-in-out;
+  overflow-y: hidden;
+  position: relative;
+  animation: creditsScroll 25s linear forwards;
 }
 
 .credits-title {
@@ -3541,40 +3561,36 @@ async function confirmWithdraw() {
 .skip-credits-button {
   position: fixed;
   bottom: 40px;
-  right: 40px;
-  background: rgba(255, 255, 255, 0.2);
-  border: 2px solid rgba(255, 255, 255, 0.4);
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(255, 215, 0, 0.3);
+  border: 2px solid rgba(255, 215, 0, 0.6);
   border-radius: 12px;
   color: white;
-  font-size: 18px;
+  font-size: 20px;
   font-weight: 700;
-  padding: 12px 32px;
+  padding: 14px 40px;
   cursor: pointer;
   transition: all 0.2s;
   backdrop-filter: blur(10px);
+  z-index: 26000;
+  box-shadow: 0 4px 12px rgba(255, 215, 0, 0.4);
 }
 
 .skip-credits-button:hover {
-  background: rgba(255, 255, 255, 0.3);
-  border-color: rgba(255, 255, 255, 0.6);
-  transform: translateY(-2px);
+  background: rgba(255, 215, 0, 0.5);
+  border-color: rgba(255, 215, 0, 0.9);
+  transform: translateX(-50%) translateY(-2px);
+  box-shadow: 0 6px 16px rgba(255, 215, 0, 0.6);
 }
 
 @keyframes creditsScroll {
   0% {
-    transform: translateY(100px);
-    opacity: 0;
-  }
-  20% {
-    transform: translateY(0);
-    opacity: 1;
-  }
-  80% {
     transform: translateY(0);
     opacity: 1;
   }
   100% {
-    transform: translateY(-50px);
+    transform: translateY(-100%);
     opacity: 1;
   }
 }
