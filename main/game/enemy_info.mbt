@@ -1,7 +1,4 @@
 ///|
-using @resource {type ResourceCost}
-
-///|
 let enemy_list : Array[EnemyBase] = [
   {
     level: 1,

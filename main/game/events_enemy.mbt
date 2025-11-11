@@ -10,7 +10,7 @@ fn handle_on_click_enemy(id : Int) -> Unit {
   let map = force_get_current_map()
   // 检查是否有攻击目标
   let has_attack_targets = !enemy.get_attack_targets(map).is_empty()
-  @global_msg.msg_info.broadcast({
+  msg_info.broadcast({
     type_msg: "handle_on_click_enemy",
     content: (
       { "enemy": enemy.to_json(), "has_attack_targets": has_attack_targets } :
@@ -62,7 +62,7 @@ fn handle_on_enemy_attack_apply(
       let result = target_enemy.apply_attack(enemy.enemy_base.attack)
       // 单位被击杀
       if result {
-        @global.global.val.bag.add_resource(target_enemy.get_drop_items())
+        global.val.bag.add_resource(target_enemy.get_drop_items())
         enemy_map.remove(target_enemy.id)
         remove_unit(target_enemy.id)
         map.remove_occupant(target_enemy.position)

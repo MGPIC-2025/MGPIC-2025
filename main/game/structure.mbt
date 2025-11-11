@@ -8,7 +8,7 @@ priv struct Structure {
   position : (Int, Int)
   mut can_attack : Bool // 是否可以攻击
   // 如果是心源矿钻，则需要记录资源类型
-  resource_type : @resource.ResourceType?
+  resource_type : ResourceType?
   mut now_health : Float
   structure_base : StructureBase
 } derive(ToJson)
@@ -24,19 +24,19 @@ struct StructureBase {
   description : String
   asset_url : String
   model_url : String
-  attribute : @attribute.Attribute
-  cost : @resource.ResourceCost
+  attribute : Attribute
+  cost : ResourceCost
 } derive(ToJson)
 
 ///|
 fn Structure::new(
   structure_base : StructureBase,
   owned~ : Bool,
-  resource_type~ : @resource.ResourceType?,
+  resource_type~ : ResourceType?,
   position : (Int, Int),
 ) -> Structure {
   let structure = {
-    id: @id.id_pool.get_id(),
+    id: id_pool.get_id(),
     owned,
     position,
     can_attack: structure_base.can_attack,

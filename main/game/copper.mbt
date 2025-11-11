@@ -5,14 +5,14 @@ let battle_copper_map : Map[Int, BattleCopper] = Map::new()
 priv struct BattleCopper {
   id : Int
   original_id : Int
-  copper : @coppers.Copper
+  copper : Copper
   mut can_move : Bool // 可移动状态，如果为 false，前端应该不允许点击移动按钮
   mut can_attack : Bool // 可攻击状态，如果为 false，前端应该不允许点击攻击按钮
   mut can_summon : Bool // 可召唤状态，如果为 false，前端应该不允许点击召唤按钮
   mut can_build : Bool // 可建造状态，如果为 false，前端应该不允许点击建造按钮
   mut position : (Int, Int)
   mut now_health : Float
-  attribute : @attribute.Attribute
+  attribute : Attribute
 } derive(ToJson)
 
 ///|
@@ -22,7 +22,7 @@ fn get_battle_copper_by_id(id : Int) -> BattleCopper {
 
 ///|
 fn BattleCopper::new(
-  copper : @coppers.Copper,
+  copper : Copper,
   original_id : Int,
   position : (Int, Int),
 ) -> BattleCopper {
@@ -32,7 +32,7 @@ fn BattleCopper::new(
     _ => true
   }
   let battle_copper = BattleCopper::{
-    id: @id.id_pool.get_id(),
+    id: id_pool.get_id(),
     copper,
     original_id,
     can_move: true,
@@ -55,7 +55,7 @@ fn BattleCopper::apply_attack(
   battle_copper : BattleCopper,
   attack : Float,
 ) -> Bool {
-  if @rand.check_probability(battle_copper.attribute.dodge.to_double() / 100) {
+  if check_probability(battle_copper.attribute.dodge.to_double() / 100) {
     return false
   }
   let damage = calculate_damage(attack, battle_copper.attribute.defense)
