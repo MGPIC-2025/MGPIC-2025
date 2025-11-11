@@ -199,7 +199,7 @@ async function loadPuppetModel(puppet) {
   log('[PuppetModelView] Puppet name:', puppet.name);
   log('[PuppetModelView] Puppet data:', puppet);
 
-  // 如果 modelUrl 为空，且没有从 webp 推导的逻辑
+  // 如果 modelUrl 为空，且没有从 png 推导的逻辑
   // （StartGame 和 Warehouse 都确保 modelUrl 被正确设置）
   if (!modelUrl || modelUrl.trim() === '') {
     log('[PuppetModelView] No model URL found');

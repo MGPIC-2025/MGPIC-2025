@@ -346,7 +346,7 @@ export async function preloadAssets(paths) {
         // 3D 模型预加载 - 使用重试机制
         await loadResourceWithRetry(url);
         log(` 3D模型预加载成功: ${url}`);
-      } else if (path.match(/\.(webp|png|jpg|jpeg)$/)) {
+      } else if (path.match(/\.(png|png|jpg|jpeg)$/)) {
         // 图片预加载 - 使用重试机制
         await loadResourceWithRetry(url);
         log(` 图片预加载成功: ${url}`);
@@ -417,11 +417,11 @@ async function loadAssetList(priorities = ['high', 'medium']) {
     // 备用资源列表（如果自动生成失败）
     return [
       'logo.glb',
-      'frontend_resource/start_game.webp',
-      'frontend_resource/copper_warehouse.webp',
-      'frontend_resource/game_wiki.webp',
-      'frontend_resource/Tutorial.webp',
-      'frontend_resource/gacha.webp',
+      'frontend_resource/start_game.png',
+      'frontend_resource/copper_warehouse.png',
+      'frontend_resource/game_wiki.png',
+      'frontend_resource/Tutorial.png',
+      'frontend_resource/gacha.png',
     ];
   }
 }
@@ -660,7 +660,7 @@ export function getCopperModelUrl(copperType, copperName) {
  */
 export function getCopperIconUrl(copperType, copperName) {
   return getAssetUrl(
-    `copper/${copperType.toLowerCase()}/${copperName}/${copperName}.webp`
+    `copper/${copperType.toLowerCase()}/${copperName}/${copperName}.png`
   );
 }
 
@@ -706,7 +706,7 @@ export function getMaterialModelUrl(modelUrl) {
  * @returns {string} 图标 URL
  */
 export function getEquipmentIconUrl(equipmentName) {
-  return getAssetUrl(`equipment/${equipmentName}.webp`);
+  return getAssetUrl(`equipment/${equipmentName}.png`);
 }
 
 /**

@@ -35,10 +35,10 @@ function openEncyclopedia() {
   emit('openEncyclopedia');
 }
 
-const bgStart = ref(getAssetUrl('@assets/frontend_resource/start_game.webp'));
-const bgWarehouse = ref(getAssetUrl('@assets/frontend_resource/copper_warehouse.webp'));
-const bgWiki = ref(getAssetUrl('@assets/frontend_resource/game_wiki.webp'));
-const bgTutorial = ref(getAssetUrl('@assets/frontend_resource/Tutorial.webp'));
+const bgStart = ref(getAssetUrl('@assets/frontend_resource/start_game.png'));
+const bgWarehouse = ref(getAssetUrl('@assets/frontend_resource/copper_warehouse.png'));
+const bgWiki = ref(getAssetUrl('@assets/frontend_resource/game_wiki.png'));
+const bgTutorial = ref(getAssetUrl('@assets/frontend_resource/Tutorial.png'));
 // 使用 Vite 的静态资源导入方式
 const bgHall = ref(
   getAssetUrl('ui/Gemini_Generated_Image_gtrehogtrehogtre (1).png')

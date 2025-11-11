@@ -78,7 +78,7 @@ function getEnemyTypeLabel(type) {
           <p class="cost-text">
             <img
               class="cost-icon"
-              :src="getAssetUrl('resource/spiritual_spark.webp')"
+              :src="getAssetUrl('resource/spiritual_spark.png')"
               alt="心源火花"
             />
             消耗：<strong>1 个心源火花</strong>

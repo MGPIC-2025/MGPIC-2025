@@ -151,7 +151,7 @@ function runDrawSequence() {
             >
               <div class="card-face card-back">
                 <img
-                  :src="getAssetUrl('frontend_resource/gacha.webp')"
+                  :src="getAssetUrl('frontend_resource/gacha.png')"
                   alt="back"
                 />
               </div>
@@ -176,14 +176,14 @@ function runDrawSequence() {
         </div>
         <img
           class="draw-card__img"
-          :src="getAssetUrl('frontend_resource/gacha.webp')"
+          :src="getAssetUrl('frontend_resource/gacha.png')"
           alt="card"
         />
       </div>
       <div class="draw-cost">
         <img
           class="draw-cost__icon"
-          :src="getAssetUrl('resource/spiritual_spark.webp')"
+          :src="getAssetUrl('resource/spiritual_spark.png')"
           alt="cost"
         />
         <span class="draw-cost__times">X 10</span>

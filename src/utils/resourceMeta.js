@@ -3,27 +3,27 @@ import { getAssetUrl } from './resourceLoader.js';
 export const RESOURCE_META = {
   HeartCrystalDust: {
     name: '心晶尘',
-    icon: getAssetUrl('resource/heart_crystal_dust.webp'),
+    icon: getAssetUrl('resource/heart_crystal_dust.png'),
   },
   RecallGear: {
     name: '回响齿轮',
-    icon: getAssetUrl('resource/recall_gear.webp'),
+    icon: getAssetUrl('resource/recall_gear.png'),
   },
   ResonantCrystal: {
     name: '共鸣星晶',
     icon: getAssetUrl(
-      'resource/resonant_star_crystal/resonant_star_crystal.webp'
+      'resource/resonant_star_crystal/resonant_star_crystal.png'
     ),
   },
   RefinedCopper: {
     name: '精炼铜锭',
     icon: getAssetUrl(
-      'resource/refined_copper_ingot/refined_copper_ingot.webp'
+      'resource/refined_copper_ingot/refined_copper_ingot.png'
     ),
   },
   SpiritalSpark: {
     name: '灵性火花',
-    icon: getAssetUrl('resource/spiritual_spark.webp'),
+    icon: getAssetUrl('resource/spiritual_spark.png'),
   },
 };
 
