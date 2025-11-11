@@ -88,8 +88,13 @@ fn summon_enemy_while_game_round_pass() -> Unit {
             0,
             empty_positions.length() - 1,
           )]
-        let enemy = Enemy::new(enemy, position, false)
+        let global_position = (
+          room.index_position.0 + position.0,
+          room.index_position.1 + position.1,
+        )
+        let enemy = Enemy::new(enemy, global_position, false)
         room.blocks[position.0][position.1].occupant = Enemy(enemy)
+        set_enemy(enemy, enemy.id, global_position)
       }
     }
   }

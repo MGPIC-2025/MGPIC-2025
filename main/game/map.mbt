@@ -27,7 +27,7 @@ fn Map_::new(escape_set : Set[(Int, Int)]) -> Map_ {
   let room = Room::new(1, (0, 0), escape_set)
   let map = Map_::{ rooms: [] }
   // 游戏初始化时不立即广播，等放置铜偶后统一广播
-  Map_::add_room_silent(map, room)
+  Map_::add_room(map, room)
   map
 }
 
@@ -36,7 +36,7 @@ fn Map_::force_get_map_block(map : Map_, position : (Int, Int)) -> MapBlock {
   let room = Map_::find_position_in_map(map, position)
   guard room is Some(room)
   guard map.global_position_to_room_position(position) is Some((_, position))
-  return room.blocks[position.0][position.1]
+  room.blocks[position.0][position.1]
 }
 
 ///|
@@ -195,15 +195,7 @@ fn broadcast_room_content(room : Room) -> Unit {
   }
 }
 
-///|
 fn Map_::add_room(map : Map_, room : Room) -> Unit {
-  map.rooms.push(room)
-  broadcast_room_content(room)
-}
-
-///|
-/// 添加房间但不立即广播（用于游戏初始化）
-fn Map_::add_room_silent(map : Map_, room : Room) -> Unit {
   map.rooms.push(room)
 }
 
