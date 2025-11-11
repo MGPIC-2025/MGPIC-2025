@@ -7,6 +7,7 @@ import { getAssetUrl } from '../utils/resourceLoader.js';
 import DiamondPanel from './ActionPanelParts/DiamondPanel.vue';
 import InventoryModal from './ActionPanelParts/InventoryModal.vue';
 import HealthBar from './ActionPanelParts/HealthBar.vue';
+import { getAssetUrl } from '../utils/resourceLoader.js';
 import TriPanel from './ActionPanelParts/TriPanel.vue';
 import BuildModal from './ActionPanelParts/BuildModal.vue';
 
@@ -36,9 +37,9 @@ const swordImgSrc = computed(() => `url('${getAssetUrl('ui/sword.png')}')`);
 const redPanelBg = computed(() => `url('${getAssetUrl('ui/red.png')}')`);
 const bootImgSrc = computed(() => `url('${getAssetUrl('ui/boot.png')}')`);
 const greenPanelBg = computed(() => `url('${getAssetUrl('ui/green.png')}')`);
-const buildImgSrc = computed(() => `url('/assets/build.png')`);
-const summonImgSrc = computed(() => `url('/assets/summon.png')`);
-const closeIconSrc = '/assets/close.png';
+const buildImgSrc = computed(() => `url('${getAssetUrl('@assets/ui/build.png')}')`);
+const summonImgSrc = computed(() => `url('${getAssetUrl('@assets/ui/summon.png')}')`);
+const closeIconSrc = getAssetUrl('@assets/ui/close.png');
 
 // 三角操作面板已独立为组件 TriPanel
 

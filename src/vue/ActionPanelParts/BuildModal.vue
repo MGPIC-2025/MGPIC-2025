@@ -84,11 +84,12 @@ function formatCost(costData) {
 }
 
 // 背景图片路径（CSS border-image 需要 url() 包裹）
-const panel11Src = `url('/assets/panel11.png')`;
-const panel7Src = `url('/assets/panel7.png')`;
-const panel8Src = `url('/assets/panel8.png')`;
-const panel5Src = `url('/assets/panel5.png')`;
-const panel12Src = `url('/assets/panel12.png')`;
+import { getAssetUrl } from '../../utils/resourceLoader.js';
+const panel11Src = `url('${getAssetUrl('@assets/ui/panel11.png')}')`;
+const panel7Src = `url('${getAssetUrl('@assets/ui/panel7.png')}')`;
+const panel8Src = `url('${getAssetUrl('@assets/ui/panel8.png')}')`;
+const panel5Src = `url('${getAssetUrl('@assets/ui/panel5.png')}')`;
+const panel12Src = `url('${getAssetUrl('@assets/ui/panel12.png')}')`;
 </script>
 
 <template>
@@ -98,7 +99,7 @@ const panel12Src = `url('/assets/panel12.png')`;
         <div class="modal-header">
           <h2 class="modal-title">🔨 选择建造目标</h2>
           <button class="close-btn" @click="handleClose" title="关闭">
-            <img src="/assets/close.png" alt="关闭" />
+            <img :src="getAssetUrl('@assets/ui/close.png')" alt="关闭" />
           </button>
         </div>
 

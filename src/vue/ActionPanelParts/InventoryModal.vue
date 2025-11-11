@@ -177,14 +177,14 @@ function handleCraft() {
                   <!-- 锁定状态 -->
                   <img
                     v-else-if="equipmentItems[index]?.locked"
-                    src="/assets/lock.png"
+                    :src="getAssetUrl('@assets/ui/lock.png')"
                     alt="未解锁"
                     class="equipment-icon"
                   />
                   <!-- 空槽（加号图标） -->
                   <img
                     v-else-if="equipmentItems[index]?.icon === '＋'"
-                    src="/assets/jia.png"
+                    :src="getAssetUrl('@assets/ui/jia.png')"
                     alt="空槽"
                     class="equipment-icon"
                   />

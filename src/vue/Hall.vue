@@ -35,10 +35,10 @@ function openEncyclopedia() {
   emit('openEncyclopedia');
 }
 
-const bgStart = ref(getAssetUrl('frontend_resource/start_game.webp'));
-const bgWarehouse = ref(getAssetUrl('frontend_resource/copper_warehouse.webp'));
-const bgWiki = ref(getAssetUrl('frontend_resource/game_wiki.webp'));
-const bgTutorial = ref(getAssetUrl('frontend_resource/Tutorial.webp'));
+const bgStart = ref(getAssetUrl('@assets/frontend_resource/start_game.webp'));
+const bgWarehouse = ref(getAssetUrl('@assets/frontend_resource/copper_warehouse.webp'));
+const bgWiki = ref(getAssetUrl('@assets/frontend_resource/game_wiki.webp'));
+const bgTutorial = ref(getAssetUrl('@assets/frontend_resource/Tutorial.webp'));
 // 使用 Vite 的静态资源导入方式
 const bgHall = ref(
   getAssetUrl('ui/Gemini_Generated_Image_gtrehogtrehogtre (1).png')
@@ -50,9 +50,7 @@ const imagesLoaded = ref(false);
 // 音乐播放相关
 const audioRef = ref(null);
 // 音乐文件路径：优先使用本地 assets 文件夹，如果不存在则使用 R2 CDN
-const musicUrl = import.meta.env.DEV
-  ? '/assets/hall.mp3' // 开发环境使用本地路径
-  : getAssetUrl('assets/hall.mp3'); // 生产环境使用 R2 CDN
+const musicUrl = getAssetUrl('@assets/frontend_resource/hall.mp3');
 
 onMounted(() => {
   // 图片已通过 resourceLoader 预缓存，直接显示 UI

@@ -45,10 +45,8 @@ const emit = defineEmits(['back']);
 
 // 音乐播放相关
 const audioRef = ref(null);
-// 音乐文件路径：优先使用本地 assets 文件夹，如果不存在则使用 R2 CDN
-const musicUrl = import.meta.env.DEV
-  ? '/assets/gamescene.mp3' // 开发环境使用本地路径
-  : getAssetUrl('assets/gamescene.mp3'); // 生产环境使用 R2 CDN
+// 音乐文件路径：统一使用远程R2（由 getAssetUrl 适配域名）
+const musicUrl = getAssetUrl('@assets/frontend_resource/gamescene.mp3');
 
 // 音效播放相关
 const moveSoundRef = ref(null);
@@ -57,24 +55,12 @@ const attackSoundRef = ref(null);
 const attackEnemySoundRef = ref(null);
 const meHurtSoundRef = ref(null);
 const enemyHurtSoundRef = ref(null);
-const moveSoundUrl = import.meta.env.DEV
-  ? '/assets/move.mp3'
-  : getAssetUrl('assets/move.mp3');
-const moveEnemySoundUrl = import.meta.env.DEV
-  ? '/assets/move_enemy.mp3'
-  : getAssetUrl('assets/move_enemy.mp3');
-const attackSoundUrl = import.meta.env.DEV
-  ? '/assets/attack.mp3'
-  : getAssetUrl('assets/attack.mp3');
-const attackEnemySoundUrl = import.meta.env.DEV
-  ? '/assets/attack_enemy.mp3'
-  : getAssetUrl('assets/attack_enemy.mp3');
-const meHurtSoundUrl = import.meta.env.DEV
-  ? '/assets/me_hurt.mp3'
-  : getAssetUrl('assets/me_hurt.mp3');
-const enemyHurtSoundUrl = import.meta.env.DEV
-  ? '/assets/enemy_hurt.mp3'
-  : getAssetUrl('assets/enemy_hurt.mp3');
+const moveSoundUrl = getAssetUrl('@assets/frontend_resource/move.mp3');
+const moveEnemySoundUrl = getAssetUrl('@assets/frontend_resource/move_enemy.mp3');
+const attackSoundUrl = getAssetUrl('@assets/frontend_resource/attack.mp3');
+const attackEnemySoundUrl = getAssetUrl('@assets/frontend_resource/attack_enemy.mp3');
+const meHurtSoundUrl = getAssetUrl('@assets/frontend_resource/me_hurt.mp3');
+const enemyHurtSoundUrl = getAssetUrl('@assets/frontend_resource/enemy_hurt.mp3');
 
 let scene, camera, renderer, controls;
 let models = [];

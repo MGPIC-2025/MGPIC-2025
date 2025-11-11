@@ -364,7 +364,7 @@ onBeforeUnmount(() => {
             @click="closeSettings"
             aria-label="关闭"
           >
-            <img src="/assets/close.png" alt="关闭" />
+            <img :src="getAssetUrl('@assets/ui/close.png')" alt="关闭" />
           </button>
         </div>
         <div class="settings__content">

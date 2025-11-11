@@ -52,7 +52,8 @@ const healthColor = computed(() => {
 // UI 资源
 const panelSrc = getAssetUrl('ui/panel.png');
 // 背景图片路径（CSS border-image 需要 url() 包裹）
-const panel11Src = `url('/assets/panel11.png')`;
+import { getAssetUrl } from '../utils/resourceLoader.js';
+const panel11Src = `url('${getAssetUrl('@assets/ui/panel11.png')}')`;
 
 // 计算是否处于操作模式（最小化）
 const isInActionMode = computed(() => props.actionMode !== null);

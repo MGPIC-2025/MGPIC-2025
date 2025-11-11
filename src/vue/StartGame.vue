@@ -30,10 +30,8 @@ const previewContainer = ref(null);
 
 // 音乐播放相关
 const audioRef = ref(null);
-// 音乐文件路径：优先使用本地 assets 文件夹，如果不存在则使用 R2 CDN
-const musicUrl = import.meta.env.DEV
-  ? '/assets/startgame.mp3' // 开发环境使用本地路径
-  : getAssetUrl('assets/startgame.mp3'); // 生产环境使用 R2 CDN
+// 统一使用远程R2
+const musicUrl = getAssetUrl('@assets/frontend_resource/startgame.mp3');
 
 let scene, camera, renderer, controls;
 let gltfLoader;
@@ -410,14 +408,14 @@ onBeforeUnmount(() => {
 });
 
 // 背景图片路径（CSS border-image 需要 url() 包裹）
-const panel1Src = `url('/assets/panel1.png')`;
-const panel2Src = `url('/assets/panel2.png')`;
-const panel3Src = `url('/assets/panel3.png')`;
-const panel6Src = `url('/assets/panel6.png')`;
-const panel7Src = `url('/assets/panel7.png')`;
-const panel8Src = `url('/assets/panel8.png')`;
-const panel9Src = `url('/assets/panel9.png')`;
-const panel10Src = `url('/assets/panel10.png')`;
+const panel1Src = `url('${getAssetUrl('@assets/ui/panel1.png')}')`;
+const panel2Src = `url('${getAssetUrl('@assets/ui/panel2.png')}')`;
+const panel3Src = `url('${getAssetUrl('@assets/ui/panel3.png')}')`;
+const panel6Src = `url('${getAssetUrl('@assets/ui/panel6.png')}')`;
+const panel7Src = `url('${getAssetUrl('@assets/ui/panel7.png')}')`;
+const panel8Src = `url('${getAssetUrl('@assets/ui/panel8.png')}')`;
+const panel9Src = `url('${getAssetUrl('@assets/ui/panel9.png')}')`;
+const panel10Src = `url('${getAssetUrl('@assets/ui/panel10.png')}')`;
 </script>
 
 <template>
@@ -426,7 +424,7 @@ const panel10Src = `url('/assets/panel10.png')`;
       <div class="card__header">
         <div class="card__title">开始游戏</div>
         <button class="card__close" @click="close" aria-label="关闭">
-          <img src="/assets/close.png" alt="关闭" />
+          <img :src="getAssetUrl('@assets/ui/close.png')" alt="关闭" />
         </button>
       </div>
 

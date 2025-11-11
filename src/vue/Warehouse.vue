@@ -428,9 +428,11 @@ async function upgradeSelected() {
 }
 
 // 背景图片路径（CSS border-image 需要 url() 包裹）
-const panel3Src = `url('/assets/panel3.png')`;
-const panel4Src = `url('/assets/panel4.png')`;
-const panel5Src = `url('/assets/panel5.png')`;
+import { getAssetUrl } from '../utils/resourceLoader.js';
+const panel3Src = `url('${getAssetUrl('@assets/ui/panel3.png')}')`;
+const panel4Src = `url('${getAssetUrl('@assets/ui/panel4.png')}')`;
+const panel5Src = `url('${getAssetUrl('@assets/ui/panel5.png')}')`;
+const warehouseBgSrc = `url('${getAssetUrl('@assets/frontend_resource/Gemini_Generated_Image_e03q5oe03q5oe03q.png')}')`;
 
 // 音乐播放相关
 const audioRef = ref(null);
@@ -591,13 +593,13 @@ const musicUrl = import.meta.env.DEV
                       />
                       <img
                         v-else-if="item.locked"
-                        src="/assets/lock.png"
+                        :src="getAssetUrl('@assets/ui/lock.png')"
                         alt="未解锁"
                         class="equipment-icon"
                       />
                       <img
                         v-else-if="item.icon === '＋'"
-                        src="/assets/jia.png"
+                        :src="getAssetUrl('@assets/ui/jia.png')"
                         alt="空槽"
                         class="equipment-icon"
                       />
@@ -661,7 +663,7 @@ const musicUrl = import.meta.env.DEV
                 :disabled="selectedPuppet?.level >= 5"
               >
                 <img
-                  src="/assets/upgrade.png"
+                  :src="getAssetUrl('@assets/ui/upgrade.png')"
                   class="upgrade-icon"
                   alt="升级"
                 />
@@ -685,7 +687,7 @@ const musicUrl = import.meta.env.DEV
   position: absolute;
   inset: 0;
   background: #a7a7a7;
-  background-image: url('/assets/Gemini_Generated_Image_e03q5oe03q5oe03q.png');
+  background-image: v-bind(warehouseBgSrc);
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
@@ -696,7 +698,7 @@ const musicUrl = import.meta.env.DEV
 .warehouse__resources {
   height: 80px;
   background: #a7a7a7;
-  background-image: url('/assets/panel1.png');
+  background-image: v-bind(panel4Src);
   background-size: 130% 100%;
   background-position: center;
   background-repeat: no-repeat;
@@ -717,7 +719,7 @@ const musicUrl = import.meta.env.DEV
   align-items: center;
   gap: 14px;
   background: #3a2519;
-  background-image: url('/assets/panel2.png');
+  background-image: v-bind(panel5Src);
   background-size: 100% 100%;
   background-position: center;
   background-repeat: no-repeat;
@@ -758,7 +760,7 @@ const musicUrl = import.meta.env.DEV
   left: 50%;
   transform: translateX(-50%);
   background: #3a2519;
-  background-image: url('/assets/panel2.png');
+  background-image: v-bind(panel5Src);
   background-size: 100% 100%;
   background-position: center;
   background-repeat: no-repeat;
@@ -826,7 +828,7 @@ const musicUrl = import.meta.env.DEV
   color: #6a4931;
   display: inline-block;
   width: fit-content;
-  background-image: url('/assets/panel2.png');
+  background-image: v-bind(panel5Src);
   background-size: 100% 100%;
   background-position: center;
   background-repeat: no-repeat;

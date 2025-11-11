@@ -163,6 +163,8 @@ export function getAssetUrl(path) {
   let clean_path = path;
   if (path.startsWith('/assets/')) {
     clean_path = path.slice(7);
+  } else if (path.startsWith('@assets/')) {
+    clean_path = path.slice(8);
   }
   const baseUrl = getResourceBaseUrl();
   const cleanPath = clean_path.startsWith('/')
