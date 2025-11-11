@@ -13,20 +13,7 @@ let enemy_list : Array[EnemyBase] = [
     description: "哥布林并非铜曜王朝的原生种族，而是一群在王朝崩溃后，趁机潜入地牢的'拾荒者'。它们对心源科技一知半解，但天生对机械有着诡异的亲和力，擅长拆解、偷窃和利用废墟中的一切。它们不是最强大的敌人，但非常狡猾，会设置陷阱、偷走玩家的临时增益，或是呼叫同伴。击败它们有时能获得一些意想不到的小玩意和零件。",
     asset_url: "/assets/enemy/goblin/goblin.webp",
     model_url: "/assets/enemy/goblin/goblin.glb",
-    drop_items: [
-      (Item::new(Resource(@resource.HeartCrystalDust), count=1), 0.5),
-      (Item::new(Resource(@resource.RefinedCopper), count=2), 0.6),
-      (
-        Item::new(
-          Equipment(
-            @equipment.Equipment::new(
-              @equipment.equipment_map["书页的速记羽毛笔"],
-            ),
-          ),
-        ),
-        0.05,
-      ),
-    ],
+    drop_items: [(RecallGear, (0, 1)), (RefinedCopper, (1, 1))],
     summon_cost: @resource.ResourceCost::new([(@resource.SpiritalSpark, 1)]),
   },
   {
@@ -42,20 +29,7 @@ let enemy_list : Array[EnemyBase] = [
     description: "曾是王城负责除锈保养的工役，核心程序错乱后，反而开始传播锈蚀。它们是地牢中最常见的退化力量。",
     asset_url: "/assets/enemy/cruiser/cruiser.webp",
     model_url: "/assets/enemy/cruiser/cruiser.glb",
-    drop_items: [
-      (Item::new(Resource(HeartCrystalDust), count=2), 0.7),
-      (Item::new(Resource(RefinedCopper), count=1), 0.5),
-      (
-        Item::new(
-          Equipment(
-            @equipment.Equipment::new(
-              @equipment.equipment_map["万用齿轮口袋"],
-            ),
-          ),
-        ),
-        0.06,
-      ),
-    ],
+    drop_items: [(ResonantCrystal, (0, 1)), (HeartCrystalDust, (1, 1))],
     summon_cost: @resource.ResourceCost::new([(@resource.SpiritalSpark, 1)]),
   },
   {
@@ -71,21 +45,7 @@ let enemy_list : Array[EnemyBase] = [
     description: "朝军队用来巡逻和送信的自动机械犬。失控后，它们依然在漫无目的地'巡逻'，并将任何移动单位视为入侵者。",
     asset_url: "/assets/enemy/scout/scout.webp",
     model_url: "/assets/enemy/scout/scout.glb",
-    drop_items: [
-      (Item::new(Resource(HeartCrystalDust), count=2), 0.6),
-      (Item::new(Resource(RefinedCopper), count=2), 0.7),
-      (Item::new(Resource(RecallGear), count=1), 0.2),
-      (
-        Item::new(
-          Equipment(
-            @equipment.Equipment::new(
-              @equipment.equipment_map["不稳定的欢乐扳手"],
-            ),
-          ),
-        ),
-        0.08,
-      ),
-    ],
+    drop_items: [(RecallGear, (1, 2)), (RefinedCopper, (0, 1))],
     summon_cost: @resource.ResourceCost::new([(@resource.SpiritalSpark, 1)]),
   },
   {
@@ -101,20 +61,7 @@ let enemy_list : Array[EnemyBase] = [
     description: "皇家乐团的自动乐器成员之一，原本奏响庄严乐章。如今，它的乐曲变成了撕裂耳膜、扰乱心智的噪音攻击。",
     asset_url: "/assets/enemy/horn/horn.webp",
     model_url: "/assets/enemy/horn/horn.glb",
-    drop_items: [
-      (Item::new(Resource(HeartCrystalDust), count=2), 0.7),
-      (Item::new(Resource(ResonantCrystal), count=1), 0.4),
-      (
-        Item::new(
-          Equipment(
-            @equipment.Equipment::new(
-              @equipment.equipment_map["哨歌的共鸣笛"],
-            ),
-          ),
-        ),
-        0.07,
-      ),
-    ],
+    drop_items: [(ResonantCrystal, (1, 2)), (HeartCrystalDust, (0, 1))],
     summon_cost: @resource.ResourceCost::new([(@resource.SpiritalSpark, 1)]),
   },
   {
@@ -131,19 +78,9 @@ let enemy_list : Array[EnemyBase] = [
     asset_url: "/assets/enemy/boxer/boxer.webp",
     model_url: "/assets/enemy/boxer/boxer.glb",
     drop_items: [
-      (Item::new(Resource(HeartCrystalDust), count=3), 0.8),
-      (Item::new(Resource(RefinedCopper), count=3), 0.8),
-      (Item::new(Resource(RecallGear), count=1), 0.3),
-      (
-        Item::new(
-          Equipment(
-            @equipment.Equipment::new(
-              @equipment.equipment_map["锅盖君的绝对防御"],
-            ),
-          ),
-        ),
-        0.10,
-      ),
+      (RecallGear, (1, 3)),
+      (ResonantCrystal, (1, 2)),
+      (RefinedCopper, (0, 1)),
     ],
     summon_cost: @resource.ResourceCost::new([(@resource.SpiritalSpark, 1)]),
   },
@@ -160,21 +97,7 @@ let enemy_list : Array[EnemyBase] = [
     description: "阴影中的守护者，负责处理见不得光的威胁。程序失控后，它们的刺杀名单上写满了所有活物。",
     asset_url: "/assets/enemy/assassin/assassin.webp",
     model_url: "/assets/enemy/assassin/assassin.glb",
-    drop_items: [
-      (Item::new(Resource(HeartCrystalDust), count=2), 0.7),
-      (Item::new(Resource(RefinedCopper), count=2), 0.6),
-      (Item::new(Resource(RecallGear), count=1), 0.4),
-      (
-        Item::new(
-          Equipment(
-            @equipment.Equipment::new(
-              @equipment.equipment_map["毛团的线团堡垒"],
-            ),
-          ),
-        ),
-        0.08,
-      ),
-    ],
+    drop_items: [(RecallGear, (1, 2)), (ResonantCrystal, (0, 1))],
     summon_cost: @resource.ResourceCost::new([(@resource.SpiritalSpark, 1)]),
   },
   {
@@ -191,19 +114,9 @@ let enemy_list : Array[EnemyBase] = [
     asset_url: "/assets/enemy/devourer/devourer.glb",
     model_url: "/assets/enemy/devourer/devourer.glb",
     drop_items: [
-      (Item::new(Resource(HeartCrystalDust), count=4), 0.85),
-      (Item::new(Resource(RefinedCopper), count=4), 0.8),
-      (Item::new(Resource(RecallGear), count=2), 0.5),
-      (
-        Item::new(
-          Equipment(
-            @equipment.Equipment::new(
-              @equipment.equipment_map["钟摆的时之碎片"],
-            ),
-          ),
-        ),
-        0.12,
-      ),
+      (RecallGear, (2, 4)),
+      (ResonantCrystal, (1, 3)),
+      (RefinedCopper, (1, 2)),
     ],
     summon_cost: @resource.ResourceCost::new([(@resource.SpiritalSpark, 1)]),
   },
@@ -221,19 +134,9 @@ let enemy_list : Array[EnemyBase] = [
     asset_url: "/assets/enemy/mirror/mirror.webp",
     model_url: "/assets/enemy/mirror/mirror.glb",
     drop_items: [
-      (Item::new(Resource(HeartCrystalDust), count=3), 0.8),
-      (Item::new(Resource(ResonantCrystal), count=2), 0.6),
-      (Item::new(Resource(RecallGear), count=1), 0.5),
-      (
-        Item::new(
-          Equipment(
-            @equipment.Equipment::new(
-              @equipment.equipment_map["流光溢彩的棱镜"],
-            ),
-          ),
-        ),
-        0.15,
-      ),
+      (RecallGear, (1, 2)),
+      (ResonantCrystal, (2, 3)),
+      (HeartCrystalDust, (1, 2)),
     ],
     summon_cost: @resource.ResourceCost::new([(@resource.SpiritalSpark, 1)]),
   },
@@ -251,19 +154,9 @@ let enemy_list : Array[EnemyBase] = [
     asset_url: "/assets/enemy/guard/guard.webp",
     model_url: "/assets/enemy/guard/guard.glb",
     drop_items: [
-      (Item::new(Resource(HeartCrystalDust), count=4), 0.9),
-      (Item::new(Resource(RefinedCopper), count=5), 0.85),
-      (Item::new(Resource(RecallGear), count=2), 0.6),
-      (
-        Item::new(
-          Equipment(
-            @equipment.Equipment::new(
-              @equipment.equipment_map["锅盖君的绝对防御"],
-            ),
-          ),
-        ),
-        0.15,
-      ),
+      (RecallGear, (2, 4)),
+      (ResonantCrystal, (2, 4)),
+      (RefinedCopper, (1, 2)),
     ],
     summon_cost: @resource.ResourceCost::new([(@resource.SpiritalSpark, 1)]),
   },
@@ -281,19 +174,9 @@ let enemy_list : Array[EnemyBase] = [
     asset_url: "/assets/enemy/demon/demon.webp",
     model_url: "/assets/enemy/demon/demon.glb",
     drop_items: [
-      (Item::new(Resource(HeartCrystalDust), count=5), 0.9),
-      (Item::new(Resource(ResonantCrystal), count=3), 0.75),
-      (Item::new(Resource(RecallGear), count=2), 0.7),
-      (
-        Item::new(
-          Equipment(
-            @equipment.Equipment::new(
-              @equipment.equipment_map["掘掘的幸运罗盘"],
-            ),
-          ),
-        ),
-        0.18,
-      ),
+      (RecallGear, (3, 5)),
+      (ResonantCrystal, (2, 3)),
+      (HeartCrystalDust, (1, 2)),
     ],
     summon_cost: @resource.ResourceCost::new([(@resource.SpiritalSpark, 1)]),
   },
@@ -311,20 +194,9 @@ let enemy_list : Array[EnemyBase] = [
     asset_url: "/assets/enemy/variant/variant.webp",
     model_url: "/assets/enemy/variant/variant.glb",
     drop_items: [
-      (Item::new(Resource(HeartCrystalDust), count=6), 0.95),
-      (Item::new(Resource(RefinedCopper), count=5), 0.85),
-      (Item::new(Resource(ResonantCrystal), count=3), 0.8),
-      (Item::new(Resource(RecallGear), count=3), 0.75),
-      (
-        Item::new(
-          Equipment(
-            @equipment.Equipment::new(
-              @equipment.equipment_map["旋旋的舞会请柬"],
-            ),
-          ),
-        ),
-        0.20,
-      ),
+      (RecallGear, (2, 3)),
+      (ResonantCrystal, (3, 5)),
+      (RefinedCopper, (1, 2)),
     ],
     summon_cost: @resource.ResourceCost::new([(@resource.SpiritalSpark, 1)]),
   },
@@ -342,40 +214,10 @@ let enemy_list : Array[EnemyBase] = [
     asset_url: "/assets/enemy/shatra/shatra.webp",
     model_url: "/assets/enemy/shatra/shatra.glb",
     drop_items: [
-      (Item::new(Resource(HeartCrystalDust), count=15), 1.0),
-      (Item::new(Resource(RefinedCopper), count=10), 1.0),
-      (Item::new(Resource(ResonantCrystal), count=8), 1.0),
-      (Item::new(Resource(RecallGear), count=5), 1.0),
-      (
-        Item::new(
-          Equipment(
-            @equipment.Equipment::new(
-              @equipment.equipment_map["流光溢彩的棱镜"],
-            ),
-          ),
-        ),
-        0.60,
-      ),
-      (
-        Item::new(
-          Equipment(
-            @equipment.Equipment::new(
-              @equipment.equipment_map["掘掘的幸运罗盘"],
-            ),
-          ),
-        ),
-        0.50,
-      ),
-      (
-        Item::new(
-          Equipment(
-            @equipment.Equipment::new(
-              @equipment.equipment_map["旋旋的舞会请柬"],
-            ),
-          ),
-        ),
-        0.50,
-      ),
+      (RecallGear, (4, 6)),
+      (ResonantCrystal, (4, 6)),
+      (RefinedCopper, (2, 3)),
+      (HeartCrystalDust, (2, 3)),
     ],
     summon_cost: @resource.ResourceCost::new([(@resource.SpiritalSpark, 1)]),
   },
@@ -393,50 +235,10 @@ let enemy_list : Array[EnemyBase] = [
     asset_url: "/assets/enemy/glutton/glutton.webp",
     model_url: "/assets/enemy/glutton/glutton.glb",
     drop_items: [
-      (Item::new(Resource(HeartCrystalDust), count=20), 1.0),
-      (Item::new(Resource(RefinedCopper), count=15), 1.0),
-      (Item::new(Resource(ResonantCrystal), count=10), 1.0),
-      (Item::new(Resource(RecallGear), count=8), 1.0),
-      (
-        Item::new(
-          Equipment(
-            @equipment.Equipment::new(
-              @equipment.equipment_map["不稳定的欢乐扳手"],
-            ),
-          ),
-        ),
-        0.40,
-      ),
-      (
-        Item::new(
-          Equipment(
-            @equipment.Equipment::new(
-              @equipment.equipment_map["锅盖君的绝对防御"],
-            ),
-          ),
-        ),
-        0.40,
-      ),
-      (
-        Item::new(
-          Equipment(
-            @equipment.Equipment::new(
-              @equipment.equipment_map["哨歌的共鸣笛"],
-            ),
-          ),
-        ),
-        0.40,
-      ),
-      (
-        Item::new(
-          Equipment(
-            @equipment.Equipment::new(
-              @equipment.equipment_map["钟摆的时之碎片"],
-            ),
-          ),
-        ),
-        0.40,
-      ),
+      (RecallGear, (5, 7)),
+      (ResonantCrystal, (5, 7)),
+      (RefinedCopper, (3, 4)),
+      (HeartCrystalDust, (3, 4)),
     ],
     summon_cost: @resource.ResourceCost::new([(@resource.SpiritalSpark, 1)]),
   },

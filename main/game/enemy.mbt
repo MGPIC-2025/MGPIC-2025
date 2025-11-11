@@ -27,7 +27,7 @@ priv struct EnemyBase {
   description : String
   asset_url : String
   model_url : String
-  drop_items : Array[(Item, Double)]
+  drop_items : Array[(@resource.ResourceType, (Int, Int))]
   summon_cost : @resource.ResourceCost
 } derive(ToJson)
 
@@ -57,10 +57,8 @@ fn Enemy::new(
 fn Enemy::get_drop_items(enemy : Enemy) -> Array[Item] {
   let items = []
   for drop_item in enemy.enemy_base.drop_items {
-    let (item, probability) = drop_item
-    if @rand.check_probability(probability) {
-      items.push(item)
-    }
+    let count = @rand.summon_random_number(drop_item.1.0, drop_item.1.1)
+    items.push(Item::new(Resource(drop_item.0), count~))
   }
   items
 }
