@@ -17,6 +17,10 @@ const props = defineProps({
     type: Number,
     default: 1,
   },
+  isEnemyMoving: {
+    type: Boolean,
+    default: false,
+  },
 });
 
 const emit = defineEmits(['nextCopper', 'endRound', 'selectCopper']);
@@ -188,11 +192,15 @@ onMounted(async () => {
       <button
         class="btn btn-primary"
         @click="handleNextCopper"
-        :disabled="!currentCopperId"
+        :disabled="!currentCopperId || isEnemyMoving"
       >
         下一个
       </button>
-      <button class="btn btn-secondary" @click="handleEndRound">
+      <button
+        class="btn btn-secondary"
+        @click="handleEndRound"
+        :disabled="isEnemyMoving"
+      >
         结束回合
       </button>
     </div>

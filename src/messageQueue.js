@@ -532,6 +532,11 @@ export function registerAllHandlers() {
       // 注意：朝向由后端的 change_direction 消息控制
       // move_to 之前后端会先发送 change_direction，所以这里不需要自动旋转
 
+      // 移动开始时调用回调（用于跟踪敌人移动）
+      if (context.onMoveStart) {
+        context.onMoveStart(id, model);
+      }
+
       // 使用model.js的animateModelMove
       if (context.animateModelMove) {
         await new Promise(resolve => {

@@ -251,6 +251,10 @@ const playerCoppers = ref([]); // 玩家的铜偶列表
 const currentCopperIndex = ref(0);
 const currentActionMode = ref(null); // 'moving' | 'attacking' | 'transferring' | 'summoning' | 'building' | null
 
+// 敌人移动跟踪
+const isEnemyMoving = ref(false); // 是否正在等待敌人移动完成
+const pendingEnemyMoves = ref(new Set()); // 待移动完成的敌人ID集合
+
 // 存储铜偶的 can_build 状态（工匠专用）
 const copperCanBuildMap = new Map(); // { copperId: boolean }
 
@@ -993,6 +997,16 @@ function setupMessageQueue() {
     },
     highlightSelectedCopper,
     createAttackEffect: createAttackEffectFunc, // 攻击特效
+    // 移动开始时的回调（用于跟踪敌人移动）
+    onMoveStart: (id, model) => {
+      if (!props.isGameMode) return;
+      
+      // 如果是野生敌人（type === 'enemy' 且 isOwned === false）且正在跟踪敌人移动，将其添加到跟踪列表
+      if (isEnemyMoving.value && model?.type === 'enemy' && !model?.isOwned) {
+        log(`[GameScene] 开始跟踪野生敌人 ${id} 的移动`);
+        pendingEnemyMoves.value.add(id);
+      }
+    },
     // 移动完成后的回调
     onMoveComplete: id => {
       if (!props.isGameMode) return;
@@ -1011,12 +1025,32 @@ function setupMessageQueue() {
         return;
       }
 
-      // 检查移动的是否是玩家的铜偶（而不是敌人）
+      // 检查是否是野生敌人（type === 'enemy' 且 isOwned === false）
+      const isWildEnemy = model?.type === 'enemy' && !model?.isOwned;
+      if (isWildEnemy) {
+        // 这是野生敌人移动完成
+        if (isEnemyMoving.value && pendingEnemyMoves.value.has(id)) {
+          log(`[GameScene] 野生敌人 ${id} 移动完成`);
+          pendingEnemyMoves.value.delete(id);
+          
+          // 检查是否所有敌人都移动完成
+          if (pendingEnemyMoves.value.size === 0) {
+            log('[GameScene] 所有野生敌人移动完成，允许按钮点击');
+            isEnemyMoving.value = false;
+          }
+        } else {
+          log(`[GameScene] 野生敌人 ${id} 移动完成，不在跟踪列表中`);
+        }
+        return;
+      }
+
+      // 检查移动的是否是玩家的铜偶或友方召唤物
       const isPlayerCopper = playerCoppers.value.some(
         copper => copper.id === id
       );
-      if (!isPlayerCopper) {
-        log('[GameScene] 敌人移动完成，不做处理');
+      const isFriendlySummon = model?.type === 'summon' || model?.isOwned;
+      if (!isPlayerCopper && !isFriendlySummon) {
+        // 既不是铜偶也不是友方召唤物，可能是其他类型，直接返回
         return;
       }
 
@@ -2926,6 +2960,51 @@ function endRound() {
 
   log(`[GameScene] 进入回合 ${currentRound.value}`);
 
+  // 检查是否有野生敌人
+  const wildEnemies = models.filter(
+    m => m.type === 'enemy' && !m.isOwned
+  );
+  log(`[GameScene] 检测到 ${wildEnemies.length} 个野生敌人`);
+
+  if (wildEnemies.length === 0) {
+    // 没有野生敌人，不需要跟踪
+    log('[GameScene] 没有野生敌人，允许按钮点击');
+    isEnemyMoving.value = false;
+  } else {
+    // 开始跟踪敌人移动
+    isEnemyMoving.value = true;
+    pendingEnemyMoves.value.clear();
+    log('[GameScene] 开始跟踪敌人移动，禁用按钮');
+
+    // 设置超时，如果 3 秒后还没有所有敌人移动完成，也允许按钮点击（防止卡死）
+    let timeoutId = setTimeout(() => {
+      if (isEnemyMoving.value && pendingEnemyMoves.value.size > 0) {
+        log('[GameScene] 敌人移动超时，强制允许按钮点击');
+        isEnemyMoving.value = false;
+        pendingEnemyMoves.value.clear();
+      }
+    }, 3000);
+
+    // 如果所有敌人移动完成，清除超时
+    let checkInterval = setInterval(() => {
+      if (!isEnemyMoving.value) {
+        clearTimeout(timeoutId);
+        clearInterval(checkInterval);
+      }
+    }, 100);
+
+    // 检查是否有敌人需要移动：如果 1 秒后还没有敌人开始移动，允许按钮点击
+    // 注意：敌人可能选择攻击而不是移动，所以即使没有 move_to 消息也是正常的
+    setTimeout(() => {
+      if (isEnemyMoving.value && pendingEnemyMoves.value.size === 0) {
+        log('[GameScene] 没有敌人需要移动（可能选择了攻击），允许按钮点击');
+        isEnemyMoving.value = false;
+        clearTimeout(timeoutId);
+        clearInterval(checkInterval);
+      }
+    }, 1000);
+  }
+
   // 新回合开始，自动点击第一个铜偶显示动作面板
   if (playerCoppers.value.length > 0) {
     setTimeout(() => {
@@ -3031,6 +3110,7 @@ async function confirmWithdraw() {
       :currentCopperId="currentCopperId"
       :copperList="playerCoppers"
       :roundNumber="currentRound"
+      :isEnemyMoving="isEnemyMoving"
       @nextCopper="nextCopper"
       @endRound="endRound"
       @selectCopper="handleClickCopper"
