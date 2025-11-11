@@ -160,7 +160,6 @@ function getByPath(root, path) {
 
 const resources = ref([]);
 
-// 获取资源数据（和 ResourcePanel 一样的后端绑定方式）
 async function updateResources() {
   try {
     const resourceData = await get_resource();
@@ -176,8 +175,6 @@ async function updateResources() {
 // 初始化时加载一次
 onMounted(() => {
   updateResources();
-  
-  // 监听资源更新事件（和 ResourcePanel 一样的后端绑定方式）
   onEvent(EventTypes.UPDATE_RESOURCES, updateResources);
 });
 
@@ -427,7 +424,7 @@ async function upgradeSelected() {
   } catch (_) {}
 }
 
-// 背景图片路径（CSS border-image 需要 url() 包裹）
+const panel2Src = `url('${getAssetUrl('@assets/ui/panel2.png')}')`;
 const panel3Src = `url('${getAssetUrl('@assets/ui/panel3.png')}')`;
 const panel4Src = `url('${getAssetUrl('@assets/ui/panel4.png')}')`;
 const panel5Src = `url('${getAssetUrl('@assets/ui/panel5.png')}')`;
@@ -697,7 +694,7 @@ const musicUrl = import.meta.env.DEV
 .warehouse__resources {
   height: 80px;
   background: #a7a7a7;
-  background-image: v-bind(panel4Src);
+  background-image: v-bind(panel5Src);
   background-size: 130% 100%;
   background-position: center;
   background-repeat: no-repeat;
@@ -718,7 +715,7 @@ const musicUrl = import.meta.env.DEV
   align-items: center;
   gap: 14px;
   background: #3a2519;
-  background-image: v-bind(panel5Src);
+  background-image: v-bind(panel2Src);
   background-size: 100% 100%;
   background-position: center;
   background-repeat: no-repeat;
@@ -800,7 +797,7 @@ const musicUrl = import.meta.env.DEV
   min-height: 0;
 }
 .warehouse__sidebar {
-  width: 70%;
+  width: 67%;
   box-sizing: border-box;
   border-style: solid;
   border-width: 12px;
@@ -950,7 +947,7 @@ const musicUrl = import.meta.env.DEV
   color: #6a4931;
 }
 .warehouse__detail {
-  width: 30%;
+  width: 28%;
   box-sizing: border-box;
   border-style: solid;
   border-width: 12px;
@@ -960,7 +957,7 @@ const musicUrl = import.meta.env.DEV
   border-image-outset: 0;
   border-image-repeat: stretch;
   background-color: transparent;
-  margin-left: 0;
+  margin-left: 28px;
   margin-right: 20px;
   margin-top: 0;
   margin-bottom: 20px;

@@ -1,14 +1,6 @@
 <script setup>
-import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
-import {
-  RESOURCE_META,
-  getItemIcon,
-  getItemName,
-  getResourceName,
-} from '../../utils/resourceMeta.js';
+import { computed } from 'vue';
 import { getAssetUrl } from '../../utils/resourceLoader.js';
-import { get_resource } from '../../glue.js';
-import { onEvent, offEvent, EventTypes } from '../../utils/eventBus.js';
 
 const props = defineProps({
   visible: {
@@ -25,64 +17,15 @@ const props = defineProps({
   },
 });
 
-// 后端资源数据（和 ResourcePanel 一样的后端绑定方式）
-const resources = ref({
-  SpiritalSpark: 0,
-  RecallGear: 0,
-  ResonantCrystal: 0,
-  RefinedCopper: 0,
-  HeartCrystalDust: 0,
-});
-
-// 获取资源数据（和 ResourcePanel 一样的后端绑定方式）
-async function updateResources() {
-  try {
-    const resourceData = await get_resource();
-    if (resourceData) {
-      Object.keys(resources.value).forEach(key => {
-        resources.value[key] = resourceData[key] || 0;
-      });
-    }
-  } catch (error) {
-    console.error('[InventoryModal] 获取资源失败:', error);
-  }
-}
-
 // 装备数据（从 props 获取）
 const equipmentItems = computed(() => {
   return props.equipment || [];
 });
 
-// 初始化时加载一次
-onMounted(() => {
-  updateResources();
-  
-  // 监听资源更新事件（和 ResourcePanel 一样的后端绑定方式）
-  onEvent(EventTypes.UPDATE_RESOURCES, updateResources);
-});
-
-// 组件卸载时清理事件监听
-onBeforeUnmount(() => {
-  offEvent(EventTypes.UPDATE_RESOURCES, updateResources);
-});
-
-const emit = defineEmits(['close', 'craft']);
-
-// 合成配方物品类型
-const recipeItems = [
-  'HeartCrystalDust',
-  'RecallGear',
-  'ResonantCrystal',
-  'RefinedCopper',
-];
+const emit = defineEmits(['close']);
 
 function close() {
   emit('close');
-}
-
-function handleCraft() {
-  console.log('[InventoryModal] 合成物品');
-  emit('craft');
 }
 </script>
 
@@ -90,56 +33,9 @@ function handleCraft() {
   <!-- 资源弹窗 -->
   <div v-if="visible" class="inventory-modal" @click.self="close">
     <div class="minecraft-inventory">
-      <div class="inventory-header-mc">
-        <h3>全局资源</h3>
-        <button class="close-btn-mc" @click="close">✕</button>
-      </div>
+      
 
       <div class="inventory-layout">
-        <!-- 合成区域 -->
-        <div class="crafting-section">
-          <div class="crafting-title">合成</div>
-          <div class="crafting-grid">
-            <!-- 2x2 合成网格 -->
-            <div
-              class="craft-slot"
-              v-for="(itemType, i) in recipeItems"
-              :key="i"
-            >
-              <img
-                v-if="RESOURCE_META[itemType]?.icon"
-                :src="RESOURCE_META[itemType].icon"
-                class="craft-icon"
-              />
-              <div class="craft-count">
-                {{ resources[itemType] || 0 }}
-              </div>
-              <!-- 资源名称提示 -->
-              <div class="craft-tooltip">
-                {{ getResourceName(itemType) }}
-              </div>
-            </div>
-          </div>
-          <div class="craft-arrow">→</div>
-          <div class="craft-result">
-            <div class="recipe-display">
-              <img
-                v-if="RESOURCE_META['SpiritalSpark']?.icon"
-                :src="RESOURCE_META['SpiritalSpark'].icon"
-                class="recipe-icon"
-              />
-              <div class="craft-count">
-                {{ resources.SpiritalSpark || 0 }}
-              </div>
-            </div>
-            <!-- 资源名称提示（移到 craft-result 层级以避免被 overflow 裁剪） -->
-            <div class="craft-tooltip">
-              {{ getResourceName('SpiritalSpark') }}
-            </div>
-          </div>
-          <button class="craft-button-mc" @click="handleCraft">合成</button>
-        </div>
-
         <!-- 装备区域 -->
         <div class="inventory-section">
           <div class="equipment-header-mc">
@@ -235,24 +131,6 @@ function handleCraft() {
     inset 0 -4px 0 rgba(0, 0, 0, 0.3);
 }
 
-.inventory-header-mc {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 16px;
-}
-
-.inventory-header-mc h3 {
-  margin: 0;
-  font-size: 18px;
-  color: #6a4931;
-  font-weight: 900;
-  letter-spacing: 2px;
-  flex: 1;
-  text-align: center;
-  padding-left: 28px; /* 向右移动，与关闭按钮宽度对齐 */
-}
-
 .copper-name {
   color: #fff;
 }
@@ -270,24 +148,6 @@ function handleCraft() {
   letter-spacing: 2px;
 }
 
-.close-btn-mc {
-  background: #8b6914;
-  border: 2px solid #666;
-  color: #fff;
-  border-radius: 4px;
-  width: 28px;
-  height: 28px;
-  cursor: pointer;
-  font-size: 16px;
-  font-weight: bold;
-  transition: all 0.2s;
-}
-
-.close-btn-mc:hover {
-  background: #a0801c;
-  border-color: #777;
-}
-
 /* 布局 */
 .inventory-layout {
   display: grid;
@@ -295,157 +155,6 @@ function handleCraft() {
   gap: 20px;
   margin-bottom: 16px;
   place-items: center; /* 水平垂直居中单列项 */
-}
-
-/* 合成区域 */
-.crafting-section {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  gap: 12px;
-  justify-content: center; /* 水平居中合成内容 */
-  width: 100%;
-}
-
-.crafting-title {
-  font-size: 14px;
-  font-weight: 900;
-  letter-spacing: 2px;
-  color: #6a4931;
-  margin-right: 12px;
-}
-
-.crafting-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 44px);
-  grid-template-rows: repeat(2, 44px);
-  gap: 6px;
-}
-
-.craft-slot {
-  width: 44px;
-  height: 44px;
-  background: #c6c6c6;
-  border: 2px solid #8b8b8b;
-  border-top-color: #555;
-  border-left-color: #555;
-  cursor: pointer;
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.craft-icon {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-  padding: 4px;
-  box-sizing: border-box;
-  transition: transform 0.2s ease, filter 0.2s ease;
-}
-
-.craft-slot:hover .craft-icon {
-  transform: scale(1.1) rotate(5deg);
-  filter: brightness(1.2);
-}
-
-.craft-count {
-  position: absolute;
-  bottom: 2px;
-  right: 4px;
-  font-size: 10px;
-  font-weight: 900;
-  letter-spacing: 1px;
-  color: #4488ff;
-  pointer-events: none;
-  z-index: 2;
-}
-
-.craft-tooltip {
-  position: absolute;
-  bottom: calc(100% + 8px);
-  left: 50%;
-  transform: translateX(-50%);
-  background: #100010;
-  border: 2px solid #555;
-  padding: 6px 10px;
-  white-space: nowrap;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.2s ease;
-  z-index: 10;
-  font-size: 12px;
-  color: #6a4931;
-  font-weight: 900;
-  letter-spacing: 1px;
-}
-
-.craft-slot:hover .craft-tooltip,
-.craft-result:hover .craft-tooltip,
-.recipe-display:hover .craft-tooltip {
-  opacity: 1;
-}
-
-.craft-arrow {
-  font-size: 24px;
-  color: #6a4931;
-  text-align: center;
-  font-weight: 900;
-  letter-spacing: 2px;
-}
-
-.craft-result {
-  background: #c6c6c6;
-  border: 2px solid #8b8b8b;
-  border-top-color: #555;
-  border-left-color: #555;
-  width: 80px;
-  height: 80px;
-  padding: 4px;
-  overflow: visible;
-  position: relative;
-}
-
-.recipe-display {
-  width: 100%;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  position: relative;
-}
-
-.recipe-icon {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-  transition: transform 0.2s ease, filter 0.2s ease;
-}
-
-.craft-result:hover .recipe-icon {
-  transform: scale(1.1) rotate(-5deg);
-  filter: brightness(1.2);
-}
-
-.craft-button-mc {
-  padding: 8px 16px;
-  background: #4a4a4a;
-  color: #fef7f5;
-  border: 2px solid #8b8b8b;
-  border-top-color: #555;
-  border-left-color: #555;
-  cursor: pointer;
-  font-weight: 900;
-  letter-spacing: 2px;
-  font-size: 12px;
-  transition: all 0.2s;
-  white-space: nowrap;
-}
-
-.craft-button-mc:hover {
-  background: #5a5a5a;
-  border-color: #999;
 }
 
 /* 资源区域 */
