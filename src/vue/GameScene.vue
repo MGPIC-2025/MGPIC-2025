@@ -255,6 +255,9 @@ const currentActionMode = ref(null); // 'moving' | 'attacking' | 'transferring' 
 const isEnemyMoving = ref(false); // 是否正在等待敌人移动完成
 const pendingEnemyMoves = ref(new Set()); // 待移动完成的敌人ID集合
 
+// 本地输入锁：防止同一单位在移动动画期间再次发送移动
+const isMoveLocked = ref(false);
+
 // 存储铜偶的 can_build 状态（工匠专用）
 const copperCanBuildMap = new Map(); // { copperId: boolean }
 
@@ -1017,6 +1020,8 @@ function setupMessageQueue() {
         log('[GameScene] 建筑移动完成，刷新建筑状态');
         // 重置状态
         currentActionMode.value = null;
+        // 解锁（防止建筑移动后仍被锁定）
+        isMoveLocked.value = false;
 
         // 重新点击建筑刷新状态
         setTimeout(async () => {
@@ -1053,6 +1058,9 @@ function setupMessageQueue() {
         // 既不是铜偶也不是友方召唤物，可能是其他类型，直接返回
         return;
       }
+
+      // 玩家单位或友方召唤物移动完成，解锁移动
+      isMoveLocked.value = false;
 
       log('[GameScene] 移动完成，准备切换铜偶');
       // 重置状态
@@ -2227,6 +2235,12 @@ async function handleFloorClick(mousePos) {
   const raycaster = new THREE.Raycaster();
   raycaster.setFromCamera(mousePos, camera);
 
+  // 若正在锁定移动，直接忽略地板点击（防止连续发送移动）
+  if (currentActionMode.value === 'moving' && isMoveLocked.value) {
+    log('[GameScene] 移动中，忽略新的移动点击');
+    return;
+  }
+
   const intersectPoint = new THREE.Vector3();
   raycaster.ray.intersectPlane(plane, intersectPoint);
 
@@ -2281,6 +2295,10 @@ async function handleFloorClick(mousePos) {
 // 执行移动
 async function handleMoveApply(x, z) {
   if (!selectedCopper.value) return;
+  if (isMoveLocked.value) {
+    log('[GameScene] 已发送移动请求，等待完成，忽略新的移动');
+    return;
+  }
 
   // 判断是铜偶还是友方召唤物
   const isOwnedEnemy = selectedCopper.value.isOwnedEnemy === true;
@@ -2297,6 +2315,10 @@ async function handleMoveApply(x, z) {
       position: { x: String(x), y: String(z) },
     },
   });
+
+  // 发送一次移动后加锁，等待 move_to 动画完成回调再解锁
+  isMoveLocked.value = true;
+
   await eventloop(message);
 
   // 不在这里切换铜偶，等待后端验证成功后的 move_to 消息
@@ -3054,12 +3076,12 @@ function showCreditsScreen() {
   log('[GameScene] 显示制作团队名单');
   showCredits.value = true;
 
-  // 25秒后自动关闭制作团队名单并返回菜单（与动画时长一致）
+  // 5秒后自动关闭制作团队名单并返回菜单
   setTimeout(() => {
     log('[GameScene] 制作团队名单播放完毕，返回菜单');
     showCredits.value = false;
     emit('back');
-  }, 25000);
+  }, 5000);
 }
 
 // 跳过制作团队名单
@@ -3241,39 +3263,25 @@ async function confirmWithdraw() {
 
         <div class="credits-content">
           <div class="credits-section">
-            <h2>游戏策划</h2>
-            <p>孙翊轩（总策划）</p>
-            <p>张俊皓（数值/玩法）</p>
-            <p>崔雅晴</p>
+            <h2>游戏设计</h2>
+            <p>MGPIC Team</p>
           </div>
 
           <div class="credits-section">
             <h2>程序开发</h2>
             <p>Backend Developer</p>
-            <p>孙翊轩</p>
-            <p>张楠</p>
-            <p>曾斯奇</p>
             <p>Frontend Developer</p>
-            <p>王珏</p>
-            <p>张楠</p>
-            <p>曾斯奇</p>
           </div>
 
           <div class="credits-section">
             <h2>美术设计</h2>
-            <p>Character Artist</p>
-            <p>曾斯奇</p>
             <p>3D Artist</p>
-            <p>孙翊轩</p>
-            <p>曾斯奇</p>
             <p>UI Designer</p>
-            <p>王珏</p>
           </div>
 
           <div class="credits-section">
             <h2>音乐音效</h2>
             <p>Sound Designer</p>
-            <p>曾斯奇</p>
           </div>
 
           <div class="credits-section">
@@ -3281,10 +3289,9 @@ async function confirmWithdraw() {
             <p>所有参与测试的玩家</p>
           </div>
         </div>
-      </div>
 
-      <!-- 固定的跳过按钮 -->
-      <button class="skip-credits-button" @click="skipCredits">跳过</button>
+        <button class="skip-credits-button" @click="skipCredits">跳过</button>
+      </div>
     </div>
 
     <!-- 撤退确认对话框 -->
@@ -3568,10 +3575,9 @@ async function confirmWithdraw() {
   inset: 0;
   background: linear-gradient(180deg, #000000 0%, #1a1a2e 50%, #000000 100%);
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: center;
   z-index: 25000;
-  overflow: hidden;
   animation: fadeIn 0.5s ease-out;
 }
 
@@ -3579,12 +3585,8 @@ async function confirmWithdraw() {
   width: 100%;
   max-width: 800px;
   padding: 40px;
-  padding-top: 100vh;
-  padding-bottom: 100vh;
   text-align: center;
-  overflow-y: hidden;
-  position: relative;
-  animation: creditsScroll 25s linear forwards;
+  animation: creditsScroll 5s ease-in-out;
 }
 
 .credits-title {
@@ -3641,36 +3643,40 @@ async function confirmWithdraw() {
 .skip-credits-button {
   position: fixed;
   bottom: 40px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: rgba(255, 215, 0, 0.3);
-  border: 2px solid rgba(255, 215, 0, 0.6);
+  right: 40px;
+  background: rgba(255, 255, 255, 0.2);
+  border: 2px solid rgba(255, 255, 255, 0.4);
   border-radius: 12px;
   color: white;
-  font-size: 20px;
+  font-size: 18px;
   font-weight: 700;
-  padding: 14px 40px;
+  padding: 12px 32px;
   cursor: pointer;
   transition: all 0.2s;
   backdrop-filter: blur(10px);
-  z-index: 26000;
-  box-shadow: 0 4px 12px rgba(255, 215, 0, 0.4);
 }
 
 .skip-credits-button:hover {
-  background: rgba(255, 215, 0, 0.5);
-  border-color: rgba(255, 215, 0, 0.9);
-  transform: translateX(-50%) translateY(-2px);
-  box-shadow: 0 6px 16px rgba(255, 215, 0, 0.6);
+  background: rgba(255, 255, 255, 0.3);
+  border-color: rgba(255, 255, 255, 0.6);
+  transform: translateY(-2px);
 }
 
 @keyframes creditsScroll {
   0% {
+    transform: translateY(100px);
+    opacity: 0;
+  }
+  20% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+  80% {
     transform: translateY(0);
     opacity: 1;
   }
   100% {
-    transform: translateY(-100%);
+    transform: translateY(-50px);
     opacity: 1;
   }
 }
