@@ -411,8 +411,10 @@ onBeforeUnmount(() => {
 
 // 背景图片路径（CSS border-image 需要 url() 包裹）
 const panel1Src = `url('/assets/panel1.png')`;
+const panel2Src = `url('/assets/panel2.png')`;
 const panel3Src = `url('/assets/panel3.png')`;
 const panel6Src = `url('/assets/panel6.png')`;
+const panel7Src = `url('/assets/panel7.png')`;
 const panel8Src = `url('/assets/panel8.png')`;
 const panel9Src = `url('/assets/panel9.png')`;
 const panel10Src = `url('/assets/panel10.png')`;
@@ -423,7 +425,9 @@ const panel10Src = `url('/assets/panel10.png')`;
     <div class="card">
       <div class="card__header">
         <div class="card__title">开始游戏</div>
-        <button class="card__close" @click="close" aria-label="关闭">✕</button>
+        <button class="card__close" @click="close" aria-label="关闭">
+          <img src="/assets/close.png" alt="关闭" />
+        </button>
       </div>
 
       <div class="card__body">
@@ -544,21 +548,18 @@ const panel10Src = `url('/assets/panel10.png')`;
 }
 
 .card__close {
-  width: 36px;
-  height: 36px;
-  border-radius: 8px;
-  background: #4b2e1f;
-  border: 1px solid #5a3525;
+  border: 0;
+  background: transparent;
+  padding: 0;
   cursor: pointer;
-  color: #fff3ef;
-  font-size: 20px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 900;
 }
 .card__close:hover {
-  background: #5a3525;
+  background: transparent;
+}
+.card__close img {
+  width: 24px;
+  height: 24px;
+  image-rendering: pixelated;
 }
 
 .card__body {
@@ -673,8 +674,7 @@ const panel10Src = `url('/assets/panel10.png')`;
 
 .preview__name-text {
   flex: 1;
-  word-wrap: break-word;
-  overflow-wrap: break-word;
+  white-space: nowrap;
   writing-mode: vertical-rl;
   text-orientation: upright;
   color: #6a4931;
@@ -799,19 +799,32 @@ const panel10Src = `url('/assets/panel10.png')`;
 
 .card__footer {
   display: flex;
-  gap: 10px;
-  justify-content: flex-end;
+  gap: 100px;
+  justify-content: center;
   padding: 12px 14px;
-  border-top: 1px solid #4b2e1f;
-  background: #2b1a11;
+  box-sizing: border-box;
+  border-style: solid;
+  border-width: 12px;
+  border-image-source: v-bind(panel2Src);
+  border-image-slice: 8 fill;
+  border-image-width: 12px;
+  border-image-outset: 0;
+  border-image-repeat: stretch;
+  background-color: transparent;
   flex-shrink: 0;
 }
 
 .btn {
   padding: 8px 14px;
-  border-radius: 10px;
-  border: 1px solid #4b2e1f;
-  background: #4b2e1f;
+  box-sizing: border-box;
+  border-style: solid;
+  border-width: 12px;
+  border-image-source: v-bind(panel8Src);
+  border-image-slice: 8 fill;
+  border-image-width: 12px;
+  border-image-outset: 0;
+  border-image-repeat: stretch;
+  background-color: transparent;
   cursor: pointer;
   color: #fff3ef;
   font-weight: 900;
@@ -819,20 +832,19 @@ const panel10Src = `url('/assets/panel10.png')`;
 }
 
 .btn:hover {
-  background: #5a3525;
+  opacity: 0.9;
 }
 
 .btn--primary {
-  background: #f59e0b;
-  color: #fef7f5;
-  border-color: #f59e0b;
+  border-image-source: v-bind(panel7Src);
+  color: #fff3ef;
   box-shadow: 0 6px 16px rgba(245, 158, 11, 0.3);
   font-weight: 900;
   letter-spacing: 2px;
 }
 
 .btn--primary:hover {
-  background: #fbbf24;
+  opacity: 0.9;
 }
 
 .btn[disabled],

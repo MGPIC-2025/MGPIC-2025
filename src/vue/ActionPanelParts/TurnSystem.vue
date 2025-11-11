@@ -43,11 +43,12 @@ const currentCopperInfo = computed(() => {
   if (!props.currentCopperId) return null;
   const copper = props.copperList.find(c => c.id === props.currentCopperId);
   if (!copper) return null;
-  // copperList 中的对象结构是 { id, name, turnDone }
+  // copperList 中的对象结构是 { id, name, level, turnDone, type? }
   return {
     id: copper.id,
     name: copper.name || `铜偶 #${copper.id}`,
-    level: copper.level || 1,
+    level: copper.level ?? 0,
+    isSummon: copper.type === 'summon',
   };
 });
 
@@ -149,12 +150,16 @@ onMounted(async () => {
 
         <section class="section section-body">
           <div class="current-doll" role="status" aria-live="polite">
-            {{
-              currentCopperInfo
-                ? `当前铜偶：${currentCopperInfo.name || `铜偶 #${currentCopperId}`}`
-                : '当前铜偶：—'
-            }}
-            （Lv.{{ currentCopperInfo?.level || 1 }}）
+            <span>
+              {{
+                currentCopperInfo
+                  ? `当前铜偶：${currentCopperInfo.name || `铜偶 #${currentCopperId}`}`
+                  : '当前铜偶：—'
+              }}
+            </span>
+            <span v-if="currentCopperInfo && !currentCopperInfo.isSummon">
+              （Lv.{{ currentCopperInfo.level ?? 0 }}）
+            </span>
           </div>
         </section>
 
@@ -240,7 +245,7 @@ onMounted(async () => {
 
 .turn-system {
   position: fixed;
-  top: 20px;
+  top: 0px;
   left: 50%;
   transform: translateX(-50%);
   z-index: 4000;
@@ -260,6 +265,10 @@ onMounted(async () => {
   left: var(--ribbon-offset-x, 500px);
   top: var(--ribbon-offset-y, 0px);
   z-index: 1;
+  animation:
+    ribbon-fade-in 600ms ease-out,
+    ribbon-float 3000ms ease-in-out 600ms infinite;
+  will-change: transform, opacity;
 }
 .ribbon-cap {
   width: 56px;
@@ -285,6 +294,7 @@ onMounted(async () => {
   background-size: auto 100%;
   background-origin: border-box;
   text-shadow: 0 2px 0 rgba(120, 0, 0, 0.35);
+  animation: ribbon-text-glow 2000ms ease-in-out 600ms infinite;
 }
 
 .panel {
@@ -328,10 +338,11 @@ onMounted(async () => {
   min-width: 140px;
   height: 28px;
   padding: 2px 10px;
-  color: #6a4931;
+  color: #fff3ef;
   font-size: 14px;
-  font-weight: 900;
+  font-weight: 800;
   letter-spacing: 2px;
+  text-shadow: 0 2px 0 rgba(120, 0, 0, 0.35);
   box-sizing: border-box;
   border-style: solid;
   border-width: var(--round-slice, 8px);
@@ -346,11 +357,12 @@ onMounted(async () => {
   min-height: 28px;
   min-width: var(--current-doll-min-width, auto);
   padding: 2px var(--current-doll-padding-x, 8px);
-  color: #6a4931;
+  color: #fff3ef;
   font-size: 14px;
-  font-weight: 900;
+  font-weight: 800;
   letter-spacing: 2px;
   text-align: center;
+  text-shadow: 0 2px 0 rgba(120, 0, 0, 0.35);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -418,8 +430,49 @@ onMounted(async () => {
   }
 }
 
+@keyframes ribbon-fade-in {
+  0% {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes ribbon-float {
+  0% {
+    transform: translateY(0) rotate(-0.5deg);
+  }
+  50% {
+    transform: translateY(-2px) rotate(0.5deg);
+  }
+  100% {
+    transform: translateY(0) rotate(-0.5deg);
+  }
+}
+
+@keyframes ribbon-text-glow {
+  0% {
+    text-shadow: 0 2px 0 rgba(120, 0, 0, 0.35);
+  }
+  50% {
+    text-shadow: 0 2px 4px rgba(180, 0, 0, 0.5), 0 0 8px rgba(255, 200, 0, 0.3);
+  }
+  100% {
+    text-shadow: 0 2px 0 rgba(120, 0, 0, 0.35);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .choice[aria-pressed='true'] {
+    animation: none;
+  }
+  .ribbon {
+    animation: none;
+  }
+  .ribbon-fill {
     animation: none;
   }
 }
@@ -445,8 +498,9 @@ onMounted(async () => {
   border-image-outset: 0;
   border-image-repeat: stretch;
   color: #fff3ef;
-  font-weight: 900;
+  font-weight: 800;
   letter-spacing: 2px;
+  text-shadow: 0 2px 0 rgba(120, 0, 0, 0.35);
   cursor: pointer;
   background: none;
 }
@@ -455,10 +509,10 @@ onMounted(async () => {
   cursor: not-allowed;
 }
 .btn-primary {
-  color: #fef7f5;
+  color: #fff3ef;
 }
 .btn-secondary {
-  color: #fef7f5;
+  color: #fff3ef;
   filter: brightness(0.92);
 }
 </style>

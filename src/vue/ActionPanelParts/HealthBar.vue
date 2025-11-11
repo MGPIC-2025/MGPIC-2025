@@ -60,7 +60,7 @@ const hpText = computed(() => {
 <style scoped>
 /* 血条样式 */
 .health-bar {
-  position: absolute;
+  position: fixed;
   left: 20px;
   bottom: 20px;
   width: min(360px, 40vw);

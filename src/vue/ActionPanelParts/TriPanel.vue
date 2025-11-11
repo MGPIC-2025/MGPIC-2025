@@ -37,7 +37,7 @@ const hexSrc = getAssetUrl('ui/your-image.png');
 const moveIconSrc = getAssetUrl('ui/boot.png');
 const waitIconSrc = getAssetUrl('ui/mushroom.png');
 const attackIconSrc = getAssetUrl('ui/sword.png');
-const summonIconSrc = getAssetUrl('ui/currentcupper.png');
+const summonIconSrc = '/assets/summon.png';
 const buildIconSrc = '/assets/build.png';
 
 function onMove() {

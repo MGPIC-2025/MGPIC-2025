@@ -1,6 +1,8 @@
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
 import { getAssetUrl } from '../../utils/resourceLoader.js';
+import { get_resource } from '../../glue.js';
+import { onEvent, offEvent, EventTypes } from '../../utils/eventBus.js';
 
 // 边框资源（返回完整的url()格式）
 const borderBlueSrc = `url('${getAssetUrl('ui/border-blue.png')}')`;
@@ -24,9 +26,57 @@ const props = defineProps({
 
 const emit = defineEmits(['inventory-click']);
 
+const copperName = computed(() => (props.copperInfo?.name || '').trim());
+const isEnemyUnit = computed(
+  () =>
+    props.copperInfo?.isOwnedEnemy === true || props.copperInfo?.isEnemy === true
+);
+const shouldShowCopperName = computed(
+  () => isEnemyUnit.value && copperName.value !== ''
+);
+const positionText = computed(() => {
+  const position = props.copperInfo?.position;
+  if (!Array.isArray(position) || position.length < 2) {
+    return '--';
+  }
+  return `${position[0]},${position[1]}`;
+});
+
+// 敌人单位时禁用资源与装备入口
+const isInventoryDisabled = computed(() => isEnemyUnit.value === true);
+
+// 名称背景面板资源（使用本地 /assets 路径，避免走 R2 CDN）
+const namePanelSrc = `url('/assets/panel4.png')`;
+// 后端资源数据（和 ResourcePanel 一样的后端绑定方式）
+const resources = ref({
+  SpiritalSpark: 0,
+  RecallGear: 0,
+  ResonantCrystal: 0,
+  RefinedCopper: 0,
+  HeartCrystalDust: 0,
+});
+
+// 获取资源数据（和 ResourcePanel 一样的后端绑定方式）
+async function updateResources() {
+  try {
+    const resourceData = await get_resource();
+    if (resourceData) {
+      Object.keys(resources.value).forEach(key => {
+        resources.value[key] = resourceData[key] || 0;
+      });
+    }
+  } catch (error) {
+    console.error('[DiamondPanel] 获取资源失败:', error);
+  }
+}
+
+// 计算全局资源数量（非零资源的数量）
+const globalResourceCount = computed(() => {
+  return Object.values(resources.value).filter(count => count > 0).length;
+});
+
 function handleInventoryClick() {
-  // 如果背包容量为0，不发射事件（不可点击）
-  if (props.inventoryCapacity === 0) {
+  if (isInventoryDisabled.value) {
     return;
   }
   emit('inventory-click');
@@ -34,8 +84,15 @@ function handleInventoryClick() {
 
 const diamondPanelRef = ref(null);
 
-// 动态加载边框图片并计算 slice 值
+// 初始化时加载资源和边框图片
 onMounted(async () => {
+  // 加载资源数据
+  updateResources();
+  
+  // 监听资源更新事件（和 ResourcePanel 一样的后端绑定方式）
+  onEvent(EventTypes.UPDATE_RESOURCES, updateResources);
+
+  // 动态加载边框图片并计算 slice 值
   if (!diamondPanelRef.value) return;
 
   function loadImage(src) {
@@ -82,19 +139,21 @@ onMounted(async () => {
 
 <template>
   <div ref="diamondPanelRef" class="diamond-panel">
+    <div v-if="shouldShowCopperName" class="diamond-name">
+      {{ copperName }}
+    </div>
     <div class="diamond-row diamond-row--top">
       <div
-        class="diamond border-blue"
-        :class="{ 'diamond--disabled': inventoryCapacity === 0 }"
+        :class="['diamond', 'border-blue', { 'diamond--disabled': isInventoryDisabled }]"
         @click="handleInventoryClick"
-        :title="inventoryCapacity === 0 ? '此单位没有背包' : '打开背包'"
+        :title="isInventoryDisabled ? '敌人单位，无法查看资源与装备' : '打开资源面板（全局资源）'"
+        :aria-disabled="isInventoryDisabled ? 'true' : 'false'"
       >
         <div class="diamond-content">
           <div class="diamond-text">
-            <div class="diamond-label">背包</div>
-            <div class="diamond-value">
-              {{ inventoryItems.length }}/{{ inventoryCapacity }}
-            </div>
+            <div class="diamond-label">资源</div>
+            <div class="diamond-label">与</div>
+            <div class="diamond-label">装备</div>
           </div>
         </div>
       </div>
@@ -103,7 +162,7 @@ onMounted(async () => {
           <div class="diamond-text">
             <div class="diamond-label">位置</div>
             <div class="diamond-value">
-              {{ copperInfo.position[0] }},{{ copperInfo.position[1] }}
+              {{ positionText }}
             </div>
           </div>
         </div>
@@ -141,7 +200,7 @@ onMounted(async () => {
 <style scoped>
 /* 菱形属性面板 */
 .diamond-panel {
-  position: absolute;
+  position: fixed;
   left: 20px;
   bottom: 80px;
   z-index: 6000;
@@ -154,6 +213,32 @@ onMounted(async () => {
   --border-blue-slice: 8;
   --border-green-slice: 8;
   --border-orange-red-slice: 8;
+}
+
+.diamond-name {
+  color: #fff3ef;
+  font-weight: 900;
+  letter-spacing: 2px;
+  text-shadow: 0 2px 0 rgba(0, 0, 0, 0.4);
+  text-align: center;
+  font-size: 14px;
+  padding: 4px 10px;
+  margin-bottom: 2px;
+  transform: translateY(-8px);
+  align-self: center;
+  min-width: 120px;
+  box-sizing: border-box;
+  border-style: solid;
+  border-width: 8px;
+  border-image-source: v-bind(namePanelSrc);
+  border-image-slice: 8 fill;
+  border-image-width: 8px;
+  border-image-outset: 0;
+  border-image-repeat: stretch;
+  background-color: transparent;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .diamond-row {

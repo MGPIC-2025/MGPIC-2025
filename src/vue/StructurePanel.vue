@@ -51,6 +51,8 @@ const healthColor = computed(() => {
 
 // UI 资源
 const panelSrc = getAssetUrl('ui/panel.png');
+// 背景图片路径（CSS border-image 需要 url() 包裹）
+const panel11Src = `url('/assets/panel11.png')`;
 
 // 计算是否处于操作模式（最小化）
 const isInActionMode = computed(() => props.actionMode !== null);
@@ -224,19 +226,23 @@ function handleClose() {
   left: 50%;
   transform: translateX(-50%);
   width: min(520px, 90vw);
-  background: rgba(43, 26, 17, 0.95);
-  border-radius: 12px;
+  box-sizing: border-box;
+  border-style: solid;
+  border-width: 12px;
+  border-image-source: v-bind(panel11Src);
+  border-image-slice: 8 fill;
+  border-image-width: 12px;
+  border-image-outset: 0;
+  border-image-repeat: stretch;
+  background-color: transparent;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
   color: #fff;
   z-index: 1000;
-  border: 2px solid rgba(139, 92, 246, 0.3);
 }
 
 .structure-panel--minimized {
   bottom: 48px;
   width: min(300px, 170vw);
-  background: rgba(239, 68, 68, 0.95);
-  border: 2px solid rgba(239, 68, 68, 0.5);
 }
 
 /* 最小化内容 */
@@ -255,8 +261,10 @@ function handleClose() {
 
 .minimized-name {
   font-size: 16px;
-  font-weight: 700;
-  color: #fff;
+  font-weight: 800;
+  letter-spacing: 2px;
+  color: #fff3ef;
+  text-shadow: 0 2px 0 rgba(120, 0, 0, 0.35);
 }
 
 .minimized-action {
@@ -301,7 +309,10 @@ function handleClose() {
 
 .structure-panel__title {
   font-size: 18px;
-  font-weight: 700;
+  font-weight: 800;
+  letter-spacing: 2px;
+  color: #fff3ef;
+  text-shadow: 0 2px 0 rgba(120, 0, 0, 0.35);
   display: flex;
   align-items: center;
   gap: 8px;

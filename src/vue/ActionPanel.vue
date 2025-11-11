@@ -1,6 +1,6 @@
 <script setup>
 import log from '../log.js';
-import { ref, computed } from 'vue';
+import { ref, computed, watch } from 'vue';
 import { eventloop } from '../glue.js';
 import { getItemName } from '../utils/resourceMeta.js';
 import { getAssetUrl } from '../utils/resourceLoader.js';
@@ -27,10 +27,6 @@ const props = defineProps({
     type: Function,
     default: null,
   },
-  transferTargets: {
-    type: Array,
-    default: () => [],
-  },
 });
 
 const emit = defineEmits(['close', 'action', 'selectCopper']);
@@ -40,6 +36,9 @@ const swordImgSrc = computed(() => `url('${getAssetUrl('ui/sword.png')}')`);
 const redPanelBg = computed(() => `url('${getAssetUrl('ui/red.png')}')`);
 const bootImgSrc = computed(() => `url('${getAssetUrl('ui/boot.png')}')`);
 const greenPanelBg = computed(() => `url('${getAssetUrl('ui/green.png')}')`);
+const buildImgSrc = computed(() => `url('/assets/build.png')`);
+const summonImgSrc = computed(() => `url('/assets/summon.png')`);
+const closeIconSrc = '/assets/close.png';
 
 // 三角操作面板已独立为组件 TriPanel
 
@@ -47,39 +46,117 @@ const greenPanelBg = computed(() => `url('${getAssetUrl('ui/green.png')}')`);
 const panelMode = ref('full');
 const actionMode = ref(null); // 'moving' = 等待选择移动位置, 'attacking' = 等待选择攻击目标
 
-// 背包弹窗状态
+// 资源弹窗状态
 const showInventory = ref(false);
-// 当前传递的物品索引
-const transferringItemIndex = ref(null);
 // 建造弹窗状态
 const showBuildModal = ref(false);
 const structureList = ref([]);
 
-// 铜偶背包物品
-const inventoryItems = computed(() => {
-  if (!props.copper || !props.copper.inventory) return [];
-  return props.copper.inventory.items || [];
-});
+// 注意：inventoryItems 已移除，现在由 InventoryModal 内部管理全局资源数据
 
 const copperInfo = computed(() => {
   if (!props.copper) return null;
+  const derivedName =
+    props.copper.copper?.copper_info?.name ||
+    props.copper.enemy?.enemy_base?.name ||
+    props.copper.enemy_base?.name ||
+    props.copper.name ||
+    `单位 #${props.copper.id}`;
+
   return {
     id: props.copper.id,
-    name: props.copper.copper?.copper_info?.name || '未知铜偶',
-    level: props.copper.copper?.level || 1,
+    name: derivedName,
+    level:
+      props.copper.copper?.level ??
+      props.copper.enemy?.level ??
+      props.copper.enemy_base?.level ??
+      1,
     hp: props.copper.now_health,
-    maxHp: props.copper.copper?.attribute?.health || 100,
-    attack: props.copper.copper?.attribute?.attack || 0,
-    defense: props.copper.copper?.attribute?.defense || 0,
-    speed: props.copper.copper?.attribute?.speed || 0,
+    maxHp:
+      props.copper.copper?.attribute?.health ??
+      props.copper.enemy?.enemy_base?.health ??
+      props.copper.enemy_base?.health ??
+      100,
+    attack:
+      props.copper.copper?.attribute?.attack ??
+      props.copper.enemy?.enemy_base?.attack ??
+      props.copper.enemy_base?.attack ??
+      0,
+    defense:
+      props.copper.copper?.attribute?.defense ??
+      props.copper.enemy?.enemy_base?.defense ??
+      props.copper.enemy_base?.defense ??
+      0,
+    speed:
+      props.copper.copper?.attribute?.speed ??
+      props.copper.enemy?.enemy_base?.speed ??
+      props.copper.enemy_base?.speed ??
+      0,
     canMove: props.copper.can_move,
     canAttack: props.copper.can_attack,
     canSummon: props.copper.can_summon,
-    position: props.copper.position,
+    position:
+      (Array.isArray(props.copper.position) && props.copper.position.length >= 2
+        ? props.copper.position
+        : Array.isArray(props.copper.enemy?.position) &&
+            props.copper.enemy.position.length >= 2
+          ? props.copper.enemy.position
+          : Array.isArray(props.copper.enemy_base?.position) &&
+              props.copper.enemy_base.position.length >= 2
+            ? props.copper.enemy_base.position
+            : [0, 0]),
     inventoryCapacity: props.copper.inventory?.capacity || 0,
-    copperType: props.copper.copper?.copper_type || '',
+    copperType:
+      props.copper.copper?.copper_type ||
+      props.copper.enemy?.enemy_base?.enemy_type ||
+      props.copper.enemy_base?.enemy_type ||
+      '',
+    isOwnedEnemy: props.copper.isOwnedEnemy === true,
+    isEnemy: props.copper.isEnemy === true,
   };
 });
+
+// 计算装备数据（参考 Warehouse.vue 的处理方式）
+const equipmentData = computed(() => {
+  if (!props.copper) return [];
+  
+  const equipmentSlot = props.copper.copper?.equipment_slot || {};
+  const slot1 = equipmentSlot?.slot1 || null;
+  const slot2 = equipmentSlot?.slot2 || null;
+  
+  return [
+    slot1
+      ? {
+          name: slot1.equipment_base?.name || '装备',
+          icon: getAssetUrl(slot1.equipment_base?.resource_url || ''),
+          equipped: true,
+          locked: false,
+        }
+      : { name: '空槽', icon: '＋', equipped: false, locked: false },
+    equipmentSlot?.is_slot2_locked
+      ? { name: '未解锁', icon: '🔒', equipped: false, locked: true }
+      : slot2
+        ? {
+            name: slot2.equipment_base?.name || '装备',
+            icon: getAssetUrl(slot2.equipment_base?.resource_url || ''),
+            equipped: true,
+            locked: false,
+          }
+        : { name: '空槽', icon: '＋', equipped: false, locked: false },
+  ];
+});
+
+// 当切换选择的单位时，重置面板为默认状态
+watch(
+  () => props.copper?.id,
+  (newId, oldId) => {
+    if (newId === oldId) return;
+    panelMode.value = 'full';
+    actionMode.value = null;
+    showInventory.value = false;
+    showBuildModal.value = false;
+  }
+);
 
 async function handleMove() {
   if (!copperInfo.value.canMove) return;
@@ -201,12 +278,8 @@ async function handleBuildConfirm(structureName) {
 }
 
 function handleInventory() {
-  // 检查背包容量，如果为0则不允许打开
-  if (copperInfo.value.inventoryCapacity === 0) {
-    log('[ActionPanel] 背包容量为0，无法打开');
-    return;
-  }
-  log('[ActionPanel] 打开背包');
+  // 资源面板现在显示全局资源，总是可以打开
+  log('[ActionPanel] 打开资源面板（全局资源）');
   showInventory.value = true;
 }
 
@@ -214,16 +287,6 @@ async function handlePickup(index) {
   log(`[ActionPanel] 拾取物品: index=${index}`);
   const message = JSON.stringify({
     type: 'on_copper_pick_up',
-    content: { id: String(copperInfo.value.id), index: String(index) },
-  });
-  await eventloop(message);
-  await refreshCopperState();
-}
-
-async function handleDrop(index) {
-  log(`[ActionPanel] 丢弃物品: index=${index}`);
-  const message = JSON.stringify({
-    type: 'on_copper_drop_item',
     content: { id: String(copperInfo.value.id), index: String(index) },
   });
   await eventloop(message);
@@ -240,70 +303,9 @@ async function handleCraft() {
   await refreshCopperState();
 }
 
-// 处理背包组件的事件
+// 处理资源组件的事件
 async function handleInventoryCraft() {
   await handleCraft();
-}
-async function handleInventoryDrop(index) {
-  await handleDrop(index);
-}
-async function handleInventoryTransfer(index) {
-  if (!copperInfo.value || !inventoryItems.value[index]) return;
-
-  const item = inventoryItems.value[index];
-  const count = item.count || 1;
-
-  // 验证物品数量，防止传递数量为0或负数的物品
-  if (count <= 0) {
-    log(`[ActionPanel] 物品数量不足，无法传递: index=${index}, count=${count}`);
-    return;
-  }
-
-  log(`[ActionPanel] 请求传递物品: index=${index}, count=${count}`);
-
-  // 保存当前传递的物品索引（确保背包保持打开）
-  transferringItemIndex.value = index;
-  actionMode.value = 'transferring';
-  // 确保背包保持打开状态
-  if (!showInventory.value) {
-    showInventory.value = true;
-  }
-
-  // 先通知父组件开始传递，让其设置传递模式（这样 onSetAttackBlock 才能正确识别）
-  emit('action', {
-    type: 'transferStart',
-    copperId: copperInfo.value.id,
-    itemIndex: index,
-  });
-
-  // 等待一小段时间让父组件设置传递模式
-  await new Promise(resolve => setTimeout(resolve, 50));
-
-  // 调用后端获取可传递位置
-  const message = JSON.stringify({
-    type: 'on_transfer_start',
-    content: {
-      id: String(copperInfo.value.id),
-      index: String(index),
-      count: String(count),
-    },
-  });
-  await eventloop(message);
-
-  // 等待后端发送 set_attack_block 消息并收集目标
-  await new Promise(resolve => setTimeout(resolve, 200));
-
-  log(
-    `[ActionPanel] 传递目标数量: ${props.transferTargets?.length || 0}, transferringItemIndex=${transferringItemIndex.value}`
-  );
-
-  // 更新视图
-  if (props.transferTargets && props.transferTargets.length > 0) {
-    log(
-      `[ActionPanel] 传递目标列表:`,
-      props.transferTargets.map(t => t.name)
-    );
-  }
 }
 
 async function refreshCopperState() {
@@ -331,53 +333,7 @@ function close() {
 }
 
 function handleCloseInventory() {
-  // 关闭背包时，如果正在传递，取消传递
-  if (actionMode.value === 'transferring') {
-    transferringItemIndex.value = null;
-    actionMode.value = null;
-    emit('action', { type: 'cancel', copperId: copperInfo.value.id });
-  }
   showInventory.value = false;
-}
-
-async function handleTransferTo(targetPosition) {
-  if (
-    transferringItemIndex.value !== null &&
-    transferringItemIndex.value !== undefined
-  ) {
-    log(`[ActionPanel] 传递到位置: ${targetPosition}`);
-
-    const message = JSON.stringify({
-      type: 'on_transfer_apply',
-      content: {
-        position: {
-          x: String(targetPosition[0]),
-          y: String(targetPosition[1]),
-        },
-      },
-    });
-    await eventloop(message);
-
-    // 发送传递结束消息，清除范围显示
-    const endMessage = JSON.stringify({ type: 'on_transfer_end' });
-    await eventloop(endMessage);
-
-    // 重置传递状态
-    transferringItemIndex.value = null;
-    actionMode.value = null;
-
-    // 通知父组件传递完成，清除传递目标
-    emit('action', { type: 'transferComplete', copperId: copperInfo.value.id });
-
-    // 等待一小段时间确保消息处理完成
-    await new Promise(resolve => setTimeout(resolve, 100));
-
-    // 静默刷新铜偶状态（更新背包数量）
-    await refreshCopperState();
-
-    // 保持背包打开，让用户可以继续传递或手动关闭
-    log('[ActionPanel] 传递完成，背包保持打开');
-  }
 }
 
 // 恢复完整显示逻辑已移除
@@ -389,6 +345,11 @@ function cancelAction() {
   panelMode.value = 'full';
   actionMode.value = null;
   emit('action', { type: 'cancel', copperId: copperInfo.value.id });
+}
+
+function handleMinimizedClose() {
+  cancelAction();
+  close();
 }
 
 // 处理选择铜偶（如果提供了回调函数）
@@ -409,8 +370,8 @@ defineExpose({ cancelAction, handleSelectCopper, showBuildMenu });
     <!-- 菱形属性面板 -->
     <DiamondPanel
       :copper-info="copperInfo"
-      :inventory-items="inventoryItems"
-      :inventory-capacity="copperInfo?.inventoryCapacity || 0"
+      :inventory-items="[]"
+      :inventory-capacity="5"
       @inventory-click="handleInventory"
     />
 
@@ -426,15 +387,26 @@ defineExpose({ cancelAction, handleSelectCopper, showBuildMenu });
       :class="{
         'copper-panel--minimized': panelMode === 'minimized',
         'copper-panel--min-attack':
-          panelMode === 'minimized' &&
-          (actionMode === 'attacking' || actionMode === 'transferring'),
+          panelMode === 'minimized' && actionMode === 'attacking',
         'copper-panel--min-move':
           panelMode === 'minimized' && actionMode === 'moving',
+        'copper-panel--min-summon':
+          panelMode === 'minimized' && actionMode === 'summoning',
+        'copper-panel--min-build':
+          panelMode === 'minimized' && actionMode === 'building',
       }"
       @click.stop
     >
       <!-- 最小化状态 -->
       <div v-if="panelMode === 'minimized'" class="minimized-content">
+        <button
+          class="minimized-close"
+          type="button"
+          @click="handleMinimizedClose"
+          title="关闭"
+        >
+          <img :src="closeIconSrc" alt="关闭" />
+        </button>
         <div class="minimized-info">
           <span class="minimized-name">{{ copperInfo.name }}</span>
           <span class="minimized-action">
@@ -447,27 +419,18 @@ defineExpose({ cancelAction, handleSelectCopper, showBuildMenu });
                     ? '选择召唤位置...'
                     : actionMode === 'building'
                       ? '选择建造位置...'
-                      : actionMode === 'transferring'
-                        ? '选择传递目标...'
-                        : ''
+                      : ''
             }}
           </span>
-        </div>
-        <div class="minimized-actions">
-          <button
-            class="mini-btn mini-btn--cancel"
-            @click="cancelAction"
-            title="取消"
-          >
-            ✕
-          </button>
         </div>
       </div>
 
       <!-- 完整显示状态 -->
       <template v-else>
         <!-- 关闭按钮 -->
-        <button class="close-btn" @click="close" title="关闭">✕</button>
+        <button class="close-btn" @click="close" title="关闭">
+          <img :src="closeIconSrc" alt="关闭" />
+        </button>
 
         <div class="panel-content">
           <!-- 铜偶信息（已移除不再展示） -->
@@ -513,18 +476,13 @@ defineExpose({ cancelAction, handleSelectCopper, showBuildMenu });
     </div>
   </div>
 
-  <!-- 背包弹窗 -->
+  <!-- 资源弹窗 -->
   <InventoryModal
     :visible="showInventory"
     :copper-name="copperInfo?.name || '未知铜偶'"
-    :inventory-items="inventoryItems"
-    :transfer-targets="props.transferTargets || []"
-    :transferring-item-index="transferringItemIndex"
+    :equipment="equipmentData"
     @close="handleCloseInventory"
     @craft="handleInventoryCraft"
-    @drop="handleInventoryDrop"
-    @transfer="handleInventoryTransfer"
-    @transfer-to="handleTransferTo"
   />
 
   <!-- 建造弹窗 -->
@@ -609,18 +567,69 @@ defineExpose({ cancelAction, handleSelectCopper, showBuildMenu });
   image-rendering: pixelated;
 }
 
+.copper-panel--minimized.copper-panel--min-summon {
+  border: none;
+  /* Two-layer background: top = summon badge, bottom = green panel */
+  background-image: v-bind(summonImgSrc), v-bind(greenPanelBg);
+  background-repeat: no-repeat, no-repeat;
+  background-position:
+    8px 8px,
+    center;
+  /* keep green panel slightly expanded to compensate asset margins */
+  background-size:
+    32px 32px,
+    130% 122%;
+  background-origin: padding-box, border-box;
+  background-clip: padding-box, border-box;
+  image-rendering: pixelated;
+}
+
+.copper-panel--minimized.copper-panel--min-build {
+  border: none;
+  /* Two-layer background: top = build badge, bottom = green panel */
+  background-image: v-bind(buildImgSrc), v-bind(greenPanelBg);
+  background-repeat: no-repeat, no-repeat;
+  background-position:
+    8px 8px,
+    center;
+  /* keep green panel slightly expanded to compensate asset margins */
+  background-size:
+    32px 32px,
+    130% 122%;
+  background-origin: padding-box, border-box;
+  background-clip: padding-box, border-box;
+  image-rendering: pixelated;
+}
+
 /* 居中最小化面板文字 */
 .minimized-content {
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 8px;
+  position: relative;
 }
 
 .minimized-info {
   width: 100%;
   text-align: center;
   margin-top: 30px;
+}
+
+.minimized-close {
+  position: absolute;
+  top: 0;
+  right: 0;
+  border: none;
+  background: transparent;
+  padding: 0;
+  cursor: pointer;
+}
+
+.minimized-close img {
+  width: 24px;
+  height: 24px;
+  image-rendering: pixelated;
 }
 
 @keyframes slideUp {
@@ -638,23 +647,20 @@ defineExpose({ cancelAction, handleSelectCopper, showBuildMenu });
   position: absolute;
   top: 12px;
   right: 12px;
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  color: #fff;
-  font-size: 18px;
+  border: none;
+  background: transparent;
+  padding: 0;
   cursor: pointer;
-  transition: all 0.2s;
-  display: flex;
-  align-items: center;
-  justify-content: center;
 }
 
 .close-btn:hover {
-  background: rgba(255, 107, 107, 0.8);
-  transform: scale(1.1);
+  background: transparent;
+}
+
+.close-btn img {
+  width: 24px;
+  height: 24px;
+  image-rendering: pixelated;
 }
 
 .copper-info {

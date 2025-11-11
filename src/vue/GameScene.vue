@@ -28,7 +28,6 @@ import ActionPanel from './ActionPanel.vue';
 import TurnSystem from './ActionPanelParts/TurnSystem.vue';
 import SummonModal from './ActionPanelParts/SummonModal.vue';
 import StructurePanel from './StructurePanel.vue';
-import ResourcePanel from './ResourcePanel.vue';
 
 const props = defineProps({
   isGameMode: {
@@ -248,7 +247,7 @@ const currentBuildingName = ref(null); // 当前选择要建造的建筑名称
 // 回合系统
 const currentRound = ref(1);
 const playerCoppers = ref([]); // 玩家的铜偶列表
-const currentCopperIndex = ref(0);
+const currentCopperIndex = ref(-1);
 const currentActionMode = ref(null); // 'moving' | 'attacking' | 'transferring' | 'summoning' | 'building' | null
 
 // 敌人移动跟踪
@@ -274,7 +273,13 @@ const showCredits = ref(false);
 const showWithdrawDialog = ref(false);
 
 const currentCopperId = computed(() => {
-  if (playerCoppers.value.length === 0) return null;
+  if (
+    playerCoppers.value.length === 0 ||
+    currentCopperIndex.value < 0 ||
+    currentCopperIndex.value >= playerCoppers.value.length
+  ) {
+    return null;
+  }
   const copper = playerCoppers.value[currentCopperIndex.value];
   return copper ? copper.id : null;
 });
@@ -965,22 +970,35 @@ function setupMessageQueue() {
       );
 
       // 保存 can_build 状态到 Map（供游戏开始时的状态圈显示使用）
-      if (copper.copper?.copper_type === 'CraftsMan') {
+      if (copper.copper?.copper_type === 'CraftsMan' && copper.id !== undefined) {
         copperCanBuildMap.set(copper.id, copper.can_build === true);
       }
 
       // 对于工匠，使用 can_build 作为 can_summon 的值（前端统一用 can_summon）
       // 创建新对象以触发 Vue 响应式更新
+      const displayName =
+        copper.copper?.copper_info?.name ||
+        copper.name ||
+        copper.enemy?.enemy_base?.name ||
+        copper.enemy?.enemy_base?.enemy_type ||
+        copper.enemy_base?.name ||
+        copper.enemy_base?.enemy_type ||
+        `单位 #${copper.id}`;
+
       if (copper.copper?.copper_type === 'CraftsMan') {
         log(
           `[GameScene] 检测到工匠，使用 can_build=${copper.can_build} 作为 can_summon`
         );
         selectedCopper.value = {
           ...copper,
+          name: displayName,
           can_summon: copper.can_build === true,
         };
       } else {
-        selectedCopper.value = copper;
+        selectedCopper.value = {
+          ...copper,
+          name: displayName,
+        };
       }
 
       selectedCopperResources.value = resources || [];
@@ -1144,15 +1162,18 @@ function setupMessageQueue() {
 
         // 如果当前选中的是死亡铜偶，清除选中状态
         if (selectedCopper.value && selectedCopper.value.id === id) {
-          selectedCopper.value = null;
+          closeCopperPanel();
         }
 
         // 调整当前铜偶索引
-        if (
-          currentCopperIndex.value >= playerCoppers.value.length &&
-          playerCoppers.value.length > 0
-        ) {
-          currentCopperIndex.value = 0;
+        if (playerCoppers.value.length === 0) {
+          currentCopperIndex.value = -1;
+        } else if (currentCopperIndex.value === index) {
+          currentCopperIndex.value = -1;
+        } else if (currentCopperIndex.value > index) {
+          currentCopperIndex.value -= 1;
+        } else if (currentCopperIndex.value >= playerCoppers.value.length) {
+          currentCopperIndex.value = playerCoppers.value.length - 1;
         }
       }
     },
@@ -1328,20 +1349,12 @@ function setupMessageQueue() {
         const copperData = {
           id: copper.id,
           name: copper.copper.copper_info?.name || `铜偶 #${copper.id}`,
+          level: Number(copper.copper?.level ?? 0),
           turnDone: false,
         };
-        const isFirstCopper = playerCoppers.value.length === 0;
         if (!playerCoppers.value.find(c => c.id === copper.id)) {
           playerCoppers.value.push(copperData);
           log(`[GameScene] 添加玩家铜偶: ${copperData.name}`);
-
-          // 如果是第一个铜偶，自动点击显示动作面板
-          if (isFirstCopper) {
-            setTimeout(() => {
-              log(`[GameScene] 自动点击第一个铜偶: ${copperData.name}`);
-              handleClickCopper(copper.id);
-            }, 500);
-          }
         }
       }
 
@@ -2763,6 +2776,9 @@ async function handleClickEnemy(enemyId, isWildEnemy = false) {
     if (index !== -1) {
       currentCopperIndex.value = index;
     }
+  } else {
+    currentCopperIndex.value = -1;
+    closeCopperPanel();
   }
 
   // 关闭建筑面板
@@ -2973,7 +2989,7 @@ async function nextCopper() {
 // 结束回合
 function endRound() {
   currentRound.value++;
-  currentCopperIndex.value = 0;
+  currentCopperIndex.value = -1;
   selectedCopper.value = null;
   currentActionMode.value = null;
 
@@ -3027,14 +3043,6 @@ function endRound() {
     }, 1000);
   }
 
-  // 新回合开始，自动点击第一个铜偶显示动作面板
-  if (playerCoppers.value.length > 0) {
-    setTimeout(() => {
-      const firstCopper = playerCoppers.value[0];
-      log(`[GameScene] 新回合开始，自动点击第一个铜偶: ${firstCopper.name}`);
-      handleClickCopper(firstCopper.id);
-    }, 500);
-  }
 }
 
 // 处理游戏结束对话框确定按钮
@@ -3120,6 +3128,10 @@ async function confirmWithdraw() {
   // 返回菜单
   emit('back');
 }
+
+// 背景图片路径（CSS border-image 需要 url() 包裹）
+const panel7Src = `url('/assets/panel7.png')`;
+const panel8Src = `url('/assets/panel8.png')`;
 </script>
 
 <template>
@@ -3147,8 +3159,6 @@ async function confirmWithdraw() {
       撤退
     </button>
 
-    <!-- 全局资源面板 -->
-    <ResourcePanel v-if="isGameMode" />
 
     <!-- 铜偶操作面板（仅游戏模式显示） -->
     <ActionPanel
@@ -3415,9 +3425,15 @@ async function confirmWithdraw() {
 }
 
 .game-over-dialog {
-  background: linear-gradient(135deg, #2b1a11 0%, #1f130c 100%);
-  border: 2px solid rgba(255, 255, 255, 0.2);
-  border-radius: 20px;
+  box-sizing: border-box;
+  border-style: solid;
+  border-width: 12px;
+  border-image-source: v-bind(panel7Src);
+  border-image-slice: 8 fill;
+  border-image-width: 12px;
+  border-image-outset: 0;
+  border-image-repeat: stretch;
+  background-color: transparent;
   padding: 40px 60px;
   text-align: center;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
@@ -3433,18 +3449,20 @@ async function confirmWithdraw() {
 }
 
 .withdraw-title {
-  font-size: 42px;
+  font-size: 24px;
   font-weight: 900;
-  color: #ffa500;
+  letter-spacing: 2px;
+  color: #ef4444;
+  text-shadow: 0 2px 0 rgba(120, 0, 0, 0.35);
   margin: 0 0 20px 0;
-  text-shadow: 0 4px 8px rgba(255, 165, 0, 0.4);
 }
 
 .game-over-message {
-  font-size: 24px;
-  color: #ffffff;
+  font-size: 14px;
+  font-weight: 900;
+  letter-spacing: 2px;
+  color: #6a4931;
   margin: 0 0 40px 0;
-  opacity: 0.9;
 }
 
 .game-over-button {
@@ -3472,41 +3490,44 @@ async function confirmWithdraw() {
 /* 对话框按钮组 */
 .dialog-buttons {
   display: flex;
-  gap: 16px;
+  gap: 100px;
   justify-content: center;
 }
 
 .dialog-button {
-  border: none;
-  border-radius: 12px;
-  color: white;
-  font-size: 18px;
-  font-weight: 700;
   padding: 14px 32px;
+  box-sizing: border-box;
+  border-style: solid;
+  border-width: 12px;
+  border-image-slice: 8 fill;
+  border-image-width: 12px;
+  border-image-outset: 0;
+  border-image-repeat: stretch;
+  background-color: transparent;
+  color: #fff3ef;
+  font-size: 14px;
+  font-weight: 900;
+  letter-spacing: 2px;
   cursor: pointer;
   transition: all 0.2s;
   min-width: 140px;
 }
 
 .cancel-button {
-  background: rgba(128, 128, 128, 0.8);
-  box-shadow: 0 4px 12px rgba(128, 128, 128, 0.3);
+  border-image-source: v-bind(panel8Src);
 }
 
 .cancel-button:hover {
-  background: rgba(160, 160, 160, 0.9);
-  transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(128, 128, 128, 0.4);
+  opacity: 0.9;
 }
 
 .confirm-button {
-  background: linear-gradient(135deg, #dc143c 0%, #8b0000 100%);
-  box-shadow: 0 4px 12px rgba(220, 20, 60, 0.4);
+  border-image-source: v-bind(panel7Src);
+  box-shadow: 0 6px 16px rgba(245, 158, 11, 0.3);
 }
 
 .confirm-button:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(220, 20, 60, 0.6);
+  opacity: 0.9;
 }
 
 .dialog-button:active {

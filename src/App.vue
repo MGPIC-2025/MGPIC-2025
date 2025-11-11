@@ -364,20 +364,7 @@ onBeforeUnmount(() => {
             @click="closeSettings"
             aria-label="关闭"
           >
-            <svg
-              width="22"
-              height="22"
-              viewBox="0 0 24 24"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                d="M18 6L6 18M6 6l12 12"
-                stroke="#fff"
-                stroke-width="2"
-                stroke-linecap="round"
-              />
-            </svg>
+            <img src="/assets/close.png" alt="关闭" />
           </button>
         </div>
         <div class="settings__content">
@@ -595,18 +582,18 @@ onBeforeUnmount(() => {
   color: #fff;
 }
 .settings__close {
-  width: 38px;
-  height: 38px;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.12);
   border: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  background: transparent;
+  padding: 0;
   cursor: pointer;
 }
 .settings__close:hover {
-  background: rgba(255, 255, 255, 0.18);
+  background: transparent;
+}
+.settings__close img {
+  width: 24px;
+  height: 24px;
+  image-rendering: pixelated;
 }
 .settings__content {
   padding: 16px 18px;

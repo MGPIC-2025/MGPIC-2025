@@ -18,6 +18,7 @@ import {
   upgrade_copper,
   info_subscribe,
 } from '../glue.js';
+import { onEvent, offEvent, EventTypes } from '../utils/eventBus.js';
 
 const props = defineProps({
   musicOn: {
@@ -159,13 +160,25 @@ function getByPath(root, path) {
 
 const resources = ref([]);
 
-onMounted(async () => {
+// 获取资源数据（和 ResourcePanel 一样的后端绑定方式）
+async function updateResources() {
   try {
-    const plain = await get_resource();
-    resources.value = mapResources(plain);
-  } catch (_) {
+    const resourceData = await get_resource();
+    if (resourceData) {
+      resources.value = mapResources(resourceData);
+    }
+  } catch (error) {
+    console.error('[Warehouse] 获取资源失败:', error);
     resources.value = mapResources({});
   }
+}
+
+// 初始化时加载一次
+onMounted(() => {
+  updateResources();
+  
+  // 监听资源更新事件（和 ResourcePanel 一样的后端绑定方式）
+  onEvent(EventTypes.UPDATE_RESOURCES, updateResources);
 });
 
 // 订阅后端广播信息（如升级错误等）
@@ -254,6 +267,9 @@ onBeforeUnmount(() => {
   if (audioRef.value) {
     audioRef.value.pause();
   }
+  
+  // 清理资源更新事件监听（和 ResourcePanel 一样的后端绑定方式）
+  offEvent(EventTypes.UPDATE_RESOURCES, updateResources);
 });
 
 const puppets = ref([]);
@@ -370,9 +386,8 @@ defineExpose({ handleBack });
 // 后端抽卡结果回调：刷新资源与铜偶列表，展示结果
 async function onGachaResult(payload) {
   try {
-    // 刷新资源
-    const resPlain = await get_resource();
-    resources.value = mapResources(resPlain);
+    // 刷新资源（通过事件总线自动更新，这里可以手动触发一次确保及时更新）
+    await updateResources();
 
     // 刷新铜偶列表
     const listPlain = await get_copper_list();
@@ -398,9 +413,8 @@ async function upgradeSelected() {
   }
 
   try {
-    // 刷新资源（升级消耗的是灵性火花）
-    const resPlain = await get_resource();
-    resources.value = mapResources(resPlain);
+    // 刷新资源（通过事件总线自动更新，这里可以手动触发一次确保及时更新）
+    await updateResources();
 
     // 刷新铜偶列表
     const listPlain = await get_copper_list();
@@ -437,6 +451,7 @@ const musicUrl = import.meta.env.DEV
           <img :src="resource.icon" :alt="resource.name" />
         </div>
         <div class="resource-value">{{ resource.value }}</div>
+        <div class="resource-tooltip">{{ resource.name }}</div>
       </div>
     </div>
 
@@ -592,9 +607,9 @@ const musicUrl = import.meta.env.DEV
                 </div>
               </div>
 
-              <div
-                class="skill-section"
+              <div 
                 v-if="selectedPuppet?.stats?.class !== '工匠'"
+                class="skill-section"
               >
                 <h4 class="section-title">技能</h4>
                 <div class="skill-info">
@@ -670,6 +685,10 @@ const musicUrl = import.meta.env.DEV
   position: absolute;
   inset: 0;
   background: #a7a7a7;
+  background-image: url('/assets/Gemini_Generated_Image_e03q5oe03q5oe03q.png');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
   color: #1a0f00;
   display: flex;
   flex-direction: column;
@@ -678,7 +697,7 @@ const musicUrl = import.meta.env.DEV
   height: 80px;
   background: #a7a7a7;
   background-image: url('/assets/panel1.png');
-  background-size: 110% 100%;
+  background-size: 130% 100%;
   background-position: center;
   background-repeat: no-repeat;
   image-rendering: pixelated;
@@ -693,6 +712,7 @@ const musicUrl = import.meta.env.DEV
   margin-top: 20px;
 }
 .resource-item {
+  position: relative;
   display: flex;
   align-items: center;
   gap: 14px;
@@ -707,6 +727,12 @@ const musicUrl = import.meta.env.DEV
   padding: 10px 16px;
   border-radius: 12px;
   min-width: 100px;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.resource-item:hover {
+  transform: translateY(-4px) scale(1.05);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
 }
 .resource-icon {
   width: 30px;
@@ -725,6 +751,45 @@ const musicUrl = import.meta.env.DEV
   font-weight: 900;
   letter-spacing: 2px;
   color: #6a4931;
+}
+.resource-tooltip {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: #3a2519;
+  background-image: url('/assets/panel2.png');
+  background-size: 100% 100%;
+  background-position: center;
+  background-repeat: no-repeat;
+  image-rendering: pixelated;
+  image-rendering: -moz-crisp-edges;
+  image-rendering: crisp-edges;
+  color: #6a4931;
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: 1px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+  z-index: 1000;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+.resource-tooltip::after {
+  content: '';
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 6px solid transparent;
+  border-bottom-color: #3a2519;
+}
+.resource-item:hover .resource-tooltip {
+  opacity: 1;
+  transform: translateX(-50%) translateY(4px);
 }
 .warehouse__main {
   flex: 1;
@@ -921,14 +986,13 @@ const musicUrl = import.meta.env.DEV
   margin-bottom: 20px;
 }
 .puppet-detail__name {
-  font-size: 14px;
+  font-size: 30px;
   font-weight: 900;
   letter-spacing: 2px;
-  color: #6a4931;
+  color: #3a2519;
   margin: 0;
 }
 .puppet-detail__content {
-  flex: 1;
   display: flex;
   flex-direction: column;
   gap: 20px;
@@ -1007,8 +1071,8 @@ const musicUrl = import.meta.env.DEV
   flex: 0 0 96px;
 }
 .section-title {
-  color: #6a4931;
-  font-size: 14px;
+  color: #3a2519;
+  font-size: 18px;
   font-weight: 900;
   letter-spacing: 2px;
   margin: 0;
@@ -1110,7 +1174,7 @@ const musicUrl = import.meta.env.DEV
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-top: auto;
+  margin-top: 20px;
   padding-top: 20px;
 }
 .upgrade-cost {

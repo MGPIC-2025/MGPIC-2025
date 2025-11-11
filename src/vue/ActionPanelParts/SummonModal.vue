@@ -3,6 +3,9 @@ import { ref, computed } from 'vue';
 import { getAssetUrl } from '../../utils/resourceLoader.js';
 import log from '../../log.js';
 
+// 背景图片路径（CSS border-image 需要 url() 包裹）
+const panel6Src = `url('/assets/panel6.png')`;
+
 const props = defineProps({
   visible: { type: Boolean, default: false },
   copperName: { type: String, default: '共鸣者' },
@@ -176,14 +179,20 @@ function getEnemyTypeLabel(type) {
 }
 
 .summon-modal {
-  background: linear-gradient(135deg, #2b1a11 0%, #1a0f0a 100%);
-  border-radius: 20px;
+  box-sizing: border-box;
+  border-style: solid;
+  border-width: 12px;
+  border-image-source: v-bind(panel6Src);
+  border-image-slice: 8 fill;
+  border-image-width: 12px;
+  border-image-outset: 0;
+  border-image-repeat: stretch;
+  background-color: transparent;
   width: min(900px, 95vw);
   max-height: 85vh;
   display: flex;
   flex-direction: column;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
-  border: 2px solid rgba(255, 200, 100, 0.3);
   animation: slideUp 0.3s ease;
 }
 
@@ -208,10 +217,11 @@ function getEnemyTypeLabel(type) {
 
 .modal-title {
   margin: 0;
-  font-size: 24px;
-  font-weight: 800;
-  color: #ffd700;
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+  font-size: 14px;
+  font-weight: 900;
+  letter-spacing: 2px;
+  color: #fff3ef;
+  text-shadow: 0 2px 0 rgba(120, 0, 0, 0.35);
 }
 
 .close-btn {
@@ -242,19 +252,24 @@ function getEnemyTypeLabel(type) {
 
 .info-text {
   margin: 0 0 8px 0;
-  font-size: 16px;
-  color: #fff;
+  font-size: 14px;
+  font-weight: 900;
+  letter-spacing: 2px;
+  color: #6a4931;
 }
 
 .copper-name {
-  font-weight: 700;
-  color: #ffd700;
+  font-weight: 900;
+  letter-spacing: 2px;
+  color: #6a4931;
 }
 
 .cost-text {
   margin: 0;
   font-size: 14px;
-  color: #ffc870;
+  font-weight: 900;
+  letter-spacing: 2px;
+  color: #6a4931;
   display: flex;
   align-items: center;
   gap: 8px;
@@ -313,9 +328,10 @@ function getEnemyTypeLabel(type) {
 }
 
 .enemy-name {
-  font-size: 18px;
-  font-weight: 700;
-  color: #fff;
+  font-size: 14px;
+  font-weight: 900;
+  letter-spacing: 2px;
+  color: #6a4931;
 }
 
 .enemy-level {
@@ -323,14 +339,16 @@ function getEnemyTypeLabel(type) {
   padding: 2px 8px;
   background: rgba(255, 100, 100, 0.3);
   border-radius: 8px;
-  color: #ffb3b3;
-  font-weight: 600;
+  color: #6a4931;
+  font-weight: 900;
+  letter-spacing: 2px;
 }
 
 .enemy-type {
-  font-size: 12px;
-  color: #ffc870;
-  font-weight: 600;
+  font-size: 14px;
+  font-weight: 900;
+  letter-spacing: 2px;
+  color: #6a4931;
 }
 
 .enemy-stats {
@@ -352,13 +370,16 @@ function getEnemyTypeLabel(type) {
 }
 
 .stat-value {
-  color: #fff;
-  font-weight: 600;
+  color: #6a4931;
+  font-weight: 900;
+  letter-spacing: 2px;
 }
 
 .enemy-desc {
-  font-size: 12px;
-  color: rgba(255, 255, 255, 0.7);
+  font-size: 14px;
+  font-weight: 900;
+  letter-spacing: 2px;
+  color: #6a4931;
   line-height: 1.5;
   margin-top: 8px;
   max-height: 60px;
@@ -377,8 +398,9 @@ function getEnemyTypeLabel(type) {
   color: #1a0f0a;
   padding: 4px 12px;
   border-radius: 12px;
-  font-size: 12px;
-  font-weight: 700;
+  font-size: 14px;
+  font-weight: 900;
+  letter-spacing: 2px;
 }
 
 .modal-footer {
@@ -392,11 +414,13 @@ function getEnemyTypeLabel(type) {
 .btn {
   padding: 12px 32px;
   border-radius: 12px;
-  font-size: 16px;
-  font-weight: 700;
+  font-size: 14px;
+  font-weight: 900;
+  letter-spacing: 2px;
   cursor: pointer;
   transition: all 0.2s;
   border: none;
+  color: #fff3ef;
 }
 
 .btn-cancel {

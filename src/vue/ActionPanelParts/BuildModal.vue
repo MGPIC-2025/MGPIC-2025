@@ -97,7 +97,9 @@ const panel12Src = `url('/assets/panel12.png')`;
       <div class="build-modal" @click.stop>
         <div class="modal-header">
           <h2 class="modal-title">🔨 选择建造目标</h2>
-          <button class="close-btn" @click="handleClose" title="关闭">✕</button>
+          <button class="close-btn" @click="handleClose" title="关闭">
+            <img src="/assets/close.png" alt="关闭" />
+          </button>
         </div>
 
         <div class="modal-info">
@@ -255,23 +257,15 @@ const panel12Src = `url('/assets/panel12.png')`;
 }
 
 .close-btn {
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  color: #fff;
-  font-size: 20px;
+  border: none;
+  background: transparent;
+  padding: 0;
   cursor: pointer;
-  transition: all 0.2s;
-  display: flex;
-  align-items: center;
-  justify-content: center;
 }
-
-.close-btn:hover {
-  background: rgba(255, 107, 107, 0.8);
-  transform: scale(1.1);
+.close-btn img {
+  width: 24px;
+  height: 24px;
+  image-rendering: pixelated;
 }
 
 .modal-info {
