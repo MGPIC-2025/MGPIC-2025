@@ -9,17 +9,8 @@ let structure_info_list : FixedArray[StructureBase] = [
     description: " 一段坚固的、由巨大黄铜板铆接而成的城墙，板上有蒸汽管道加固。墙头有齿轮驱动的可动挡板，墙体内嵌有发出稳定黄光的观察灯。",
     asset_url: "assets/structure/riveted_barrier/riveted_barrier.webp",
     model_url: "assets/structure/riveted_barrier/riveted_barrier.glb",
-    attribute: @attribute.Attribute::new(
-      health=0,
-      speed=0,
-      attack=0,
-      defense=0,
-      dodge=0,
-    ),
-    cost: @resource.ResourceCost::new([
-      (@resource.RefinedCopper, 8),
-      (@resource.RecallGear, 2),
-    ]),
+    attribute: Attribute::new(health=0, speed=0, attack=0, defense=0, dodge=0),
+    cost: ResourceCost::new([(RefinedCopper, 8), (RecallGear, 2)]),
   },
   {
     name: "齿轮箭塔",
@@ -30,17 +21,8 @@ let structure_info_list : FixedArray[StructureBase] = [
     description: "一座细高的塔楼，顶部是一个开放式齿轮组平台，通过传送带将铜质弩箭自动上弦并连续发射。塔身有蒸汽泄压阀，每次齐射都伴随“嘶嘶”声。",
     asset_url: "assets/structure/gear_arrow_tower/gear_arrow_tower.webp",
     model_url: "assets/structure/gear_arrow_tower/gear_arrow_tower.glb",
-    attribute: @attribute.Attribute::new(
-      health=0,
-      speed=0,
-      attack=30,
-      defense=0,
-      dodge=0,
-    ),
-    cost: @resource.ResourceCost::new([
-      (@resource.RefinedCopper, 6),
-      (@resource.RecallGear, 3),
-    ]),
+    attribute: Attribute::new(health=0, speed=0, attack=30, defense=0, dodge=0),
+    cost: @resource.ResourceCost::new([(RefinedCopper, 6), (RecallGear, 3)]),
   },
   {
     name: "心源矿钻",
@@ -51,17 +33,11 @@ let structure_info_list : FixedArray[StructureBase] = [
     description: "一台顶部装有巨大钻头的大型钻井装置，由复杂的齿轮组和活塞驱动。钻头高速旋转，闪烁着蓝光，从地底带出发光的矿石。",
     asset_url: "assets/structure/heart_source_drill/heart_source_mineral_drill.webp",
     model_url: "assets/structure/heart_source_drill/heart_source_mineral_drill.glb",
-    attribute: @attribute.Attribute::new(
-      health=0,
-      speed=0,
-      attack=0,
-      defense=0,
-      dodge=0,
-    ),
-    cost: @resource.ResourceCost::new([
-      (@resource.RefinedCopper, 10),
-      (@resource.RecallGear, 4),
-      (@resource.HeartCrystalDust, 5),
+    attribute: Attribute::new(health=0, speed=0, attack=0, defense=0, dodge=0),
+    cost: ResourceCost::new([
+      (RefinedCopper, 10),
+      (RecallGear, 4),
+      (HeartCrystalDust, 5),
     ]),
   },
   {
@@ -73,17 +49,11 @@ let structure_info_list : FixedArray[StructureBase] = [
     description: "一个由巨大铜线圈缠绕而成的塔状建筑，线圈中央有电弧在不断跳跃。它能够为周围一定范围内的友方建筑提供能量，使其运作更快。",
     asset_url: "assets/structure/charging_coil/charging_coil.webp",
     model_url: "assets/structure/charging_coil/charging_coil.glb",
-    attribute: @attribute.Attribute::new(
-      health=0,
-      speed=0,
-      attack=0,
-      defense=0,
-      dodge=0,
-    ),
-    cost: @resource.ResourceCost::new([
-      (@resource.RefinedCopper, 20),
-      (@resource.RecallGear, 6),
-      (@resource.ResonantCrystal, 10),
+    attribute: Attribute::new(health=0, speed=0, attack=0, defense=0, dodge=0),
+    cost: ResourceCost::new([
+      (RefinedCopper, 20),
+      (RecallGear, 6),
+      (ResonantCrystal, 10),
     ]),
   },
   {
@@ -95,17 +65,11 @@ let structure_info_list : FixedArray[StructureBase] = [
     description: "一个带有可开合顶棚的圆形工坊，内部有多个机械臂。友方铜偶经过时，机械臂会自动为其进行修复和保养，发出叮叮当当的敲打声。",
     asset_url: "assets/structure/repair_workshop/repair_workshop.webp",
     model_url: "assets/structure/repair_workshop/repair_workshop.glb",
-    attribute: @attribute.Attribute::new(
-      health=0,
-      speed=0,
-      attack=25,
-      defense=0,
-      dodge=0,
-    ),
-    cost: @resource.ResourceCost::new([
-      (@resource.RefinedCopper, 8),
-      (@resource.RecallGear, 3),
-      (@resource.HeartCrystalDust, 3),
+    attribute: Attribute::new(health=0, speed=0, attack=25, defense=0, dodge=0),
+    cost: ResourceCost::new([
+      (RefinedCopper, 8),
+      (RecallGear, 3),
+      (HeartCrystalDust, 3),
     ]),
   },
   {
@@ -117,18 +81,12 @@ let structure_info_list : FixedArray[StructureBase] = [
     description: "一座顶部镶嵌着巨大、可转动水晶镜片的塔。它能聚集环境中的心源能量，发射出一道灼热的折射光束，对直线上的敌人造成伤害。",
     asset_url: "assets/structure/mirror_refractory_tower/mirror_light_refraction_tower.webp",
     model_url: "assets/structure/mirror_refractory_tower/mirror_light_refraction_tower.glb",
-    attribute: @attribute.Attribute::new(
-      health=0,
-      speed=0,
-      attack=120,
-      defense=0,
-      dodge=0,
-    ),
-    cost: @resource.ResourceCost::new([
-      (@resource.RefinedCopper, 30),
-      (@resource.ResonantCrystal, 20),
-      (@resource.HeartCrystalDust, 10),
-      (@resource.SpiritalSpark, 8),
+    attribute: Attribute::new(health=0, speed=0, attack=120, defense=0, dodge=0),
+    cost: ResourceCost::new([
+      (RefinedCopper, 30),
+      (ResonantCrystal, 20),
+      (HeartCrystalDust, 10),
+      (SpiritalSpark, 8),
     ]),
   },
   {
@@ -140,17 +98,11 @@ let structure_info_list : FixedArray[StructureBase] = [
     description: "一个悬挂在精致黄铜钟楼里的大钟，钟体刻有共鸣符文。当敌人靠近时，它会自动鸣响，发出可见的声波涟漪。",
     asset_url: "assets/structure/resonance_alarm_bell/resonance_alarm_bell.webp",
     model_url: "assets/structure/resonance_alarm_bell/resonance_alarm_bell.glb",
-    attribute: @attribute.Attribute::new(
-      health=0,
-      speed=0,
-      attack=60,
-      defense=0,
-      dodge=0,
-    ),
-    cost: @resource.ResourceCost::new([
-      (@resource.RefinedCopper, 15),
-      (@resource.RecallGear, 5),
-      (@resource.ResonantCrystal, 8),
+    attribute: Attribute::new(health=0, speed=0, attack=60, defense=0, dodge=0),
+    cost: ResourceCost::new([
+      (RefinedCopper, 15),
+      (RecallGear, 5),
+      (ResonantCrystal, 8),
     ]),
   },
   {
@@ -162,17 +114,11 @@ let structure_info_list : FixedArray[StructureBase] = [
     description: "一个被闪电线圈环绕的巨大铁砧。它会定期引动空气中的能量，召唤一道小范围的闪电风暴，轰击区域内的所有敌人。",
     asset_url: "assets/structure/storm_iron_anvil/storm_anvil.webp",
     model_url: "assets/structure/storm_iron_anvil/storm_anvil.glb",
-    attribute: @attribute.Attribute::new(
-      health=0,
-      speed=0,
-      attack=100,
-      defense=0,
-      dodge=0,
-    ),
-    cost: @resource.ResourceCost::new([
-      (@resource.RefinedCopper, 25),
-      (@resource.ResonantCrystal, 15),
-      (@resource.SpiritalSpark, 5),
+    attribute: Attribute::new(health=0, speed=0, attack=100, defense=0, dodge=0),
+    cost: ResourceCost::new([
+      (RefinedCopper, 25),
+      (ResonantCrystal, 15),
+      (SpiritalSpark, 5),
     ]),
   },
 ]

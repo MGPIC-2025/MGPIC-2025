@@ -72,7 +72,7 @@ fn reset_all_blocks() -> Unit {
 ///|
 /// 游戏回合结束时如果还有充能线圈，则有概率持续生成敌人
 fn summon_enemy_while_game_round_pass() -> Unit {
-  if @rand.check_probability(0.2) {
+  if check_probability(0.2) {
     let map = force_get_current_map()
     for room in map.rooms {
       if Room::is_full(room) {
@@ -84,7 +84,7 @@ fn summon_enemy_while_game_round_pass() -> Unit {
         let enemy = summon_enemy(level)
         // 不再用 escape_set 来判断位置了，直接反选空坐标
         let empty_positions = Room::get_empty_positions(room)
-        let position = empty_positions[@rand.summon_random_number(
+        let position = empty_positions[summon_random_number(
             0,
             empty_positions.length() - 1,
           )]
@@ -237,9 +237,9 @@ fn resource_generate() -> Unit {
     if structure.structure_base.name == "心源矿钻" {
       let resource_type = structure.resource_type
       if resource_type is Some(resource_type) {
-        @global.global.val.bag.resources.add_resource(resource_type, 2)
+        global.val.bag.resources.add_resource(resource_type, 2)
         // 通知前端显示资源产出特效
-        @global_msg.msg_info.broadcast({
+        msg_info.broadcast({
           type_msg: "drill_resource_generate",
           content: (
             {

@@ -3,7 +3,7 @@
 /// 后端：返回结构信息以供渲染信息栏
 fn handle_on_click_structure(id : Int) -> Unit {
   let structure = get_structure_by_id(id)
-  @global_msg.msg_info.broadcast({
+  msg_info.broadcast({
     type_msg: "handle_on_click_structure",
     content: ({ "structure": structure.to_json() } : Json).stringify(),
   })
@@ -52,7 +52,7 @@ fn handle_on_structure_attack_apply(
     Enemy(enemy) => {
       let result = enemy.apply_attack(structure.structure_base.attribute.attack)
       if result {
-        @global.global.val.bag.add_resource(enemy.get_drop_items())
+        global.val.bag.add_resource(enemy.get_drop_items())
         enemy_map.remove(enemy.id)
         remove_unit(enemy.id)
         map.remove_occupant(enemy.position)

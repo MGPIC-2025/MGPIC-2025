@@ -9,7 +9,7 @@ fn handle_on_click_copper(id : Int) -> Unit {
   let battle_copper = get_battle_copper_by_id(id)
   let map = force_get_current_map()
   let has_attack_targets = !battle_copper.get_can_attack(map).is_empty()
-  @global_msg.msg_info.broadcast({
+  msg_info.broadcast({
     type_msg: "handle_on_click_copper",
     content: (
       {
@@ -61,7 +61,7 @@ fn handle_on_attack_apply(id : Int, position : (Int, Int), map : Map_) -> Unit {
       let result = enemy.apply_attack(battle_copper.attribute.attack)
       // 单位被击杀
       if result {
-        @global.global.val.bag.add_resource(enemy.get_drop_items())
+        global.val.bag.add_resource(enemy.get_drop_items())
         enemy_map.remove(enemy.id)
         remove_unit(enemy.id)
         map.remove_occupant(enemy.position)
@@ -268,8 +268,8 @@ fn handle_on_summon_apply(
   let enemy_base = enemy_info_map.get(name).unwrap()
   let resource_cost = enemy_base.summon_cost
   let battle_copper = get_battle_copper_by_id(id)
-  if @global.global.val.bag.resources.check_resource_cost(resource_cost) {
-    @global.global.val.bag.resources.consume_resource_cost(resource_cost)
+  if global.val.bag.resources.check_resource_cost(resource_cost) {
+    global.val.bag.resources.consume_resource_cost(resource_cost)
     let summoned_enemy = Enemy::new(enemy_base, position, true)
     map.add_occupant(position, Enemy(summoned_enemy))
     set_enemy(summoned_enemy, summoned_enemy.id, position)
@@ -300,7 +300,7 @@ fn handle_on_summon_end() -> Unit {
 /// 后端：返回敌人召唤菜单
 /// 需要可以选择敌人以及确定资源消耗
 fn handle_on_get_summon_menu() -> Unit {
-  @global_msg.msg_info.broadcast({
+  msg_info.broadcast({
     type_msg: "get_summon_menu",
     content: ({ "contents": enemy_list.to_json() } : Json).stringify(),
   })
@@ -313,7 +313,7 @@ fn handle_on_get_summon_menu() -> Unit {
 /// 后端：返回结构建造菜单
 /// 需要可以选择结构以及确定资源消耗
 fn handle_on_get_structure_menu() -> Unit {
-  @global_msg.msg_info.broadcast({
+  msg_info.broadcast({
     type_msg: "get_structure_menu",
     content: ({ "contents": structure_info_list.to_json() } : Json).stringify(),
   })
@@ -346,8 +346,8 @@ fn handle_on_structure_build_apply(
   let structure_base = structure_info_map.get(name).unwrap()
   let resource_cost = structure_base.cost
   let battle_copper = get_battle_copper_by_id(id)
-  if @global.global.val.bag.resources.check_resource_cost(resource_cost) {
-    @global.global.val.bag.resources.consume_resource_cost(resource_cost)
+  if global.val.bag.resources.check_resource_cost(resource_cost) {
+    global.val.bag.resources.consume_resource_cost(resource_cost)
     let resource_type = if name == "心源矿钻" {
       let material = map.get_occupant(position)
       guard material is Material(material)
@@ -370,7 +370,7 @@ fn handle_on_structure_build_apply(
     // 建造成功，清理黄色方块
     handle_on_structure_build_end()
   } else {
-    @global_msg.msg_info.broadcast({
+    msg_info.broadcast({
       type_msg: "resource_not_enough",
       content: ({ "message": "资源不足" } : Json).stringify(),
     })

@@ -8,9 +8,6 @@ let taotle_killed : Ref[Bool] = Ref::new(false)
 let xtale_killed : Ref[Bool] = Ref::new(false)
 
 ///|
-using @global_resource {type Item}
-
-///|
 ///w
 let current_game : Ref[Game?] = Ref::new(None)
 

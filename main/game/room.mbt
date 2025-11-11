@@ -11,7 +11,7 @@ let default_enemy_count = [0, 2, 3, 4, 6, 6, 8]
 ///|
 fn summon_enemy(level : Int) -> EnemyBase {
   let can_summon_enemy = enemy_list.filter(enemy => enemy.level <= level)
-  let enemy = can_summon_enemy[@rand.summon_random_number(
+  let enemy = can_summon_enemy[summon_random_number(
       0,
       can_summon_enemy.length() - 1,
     )]
@@ -20,11 +20,11 @@ fn summon_enemy(level : Int) -> EnemyBase {
 
 ///|
 fn sumoon_postion(escape_set : Set[(Int, Int)]) -> (Int, Int) {
-  let mut random_position_x = @rand.summon_random_number(0, 8)
-  let mut random_position_y = @rand.summon_random_number(0, 8)
+  let mut random_position_x = summon_random_number(0, 8)
+  let mut random_position_y = summon_random_number(0, 8)
   while escape_set.contains((random_position_x, random_position_y)) {
-    random_position_x = @rand.summon_random_number(0, 8)
-    random_position_y = @rand.summon_random_number(0, 8)
+    random_position_x = summon_random_number(0, 8)
+    random_position_y = summon_random_number(0, 8)
   }
   (random_position_x, random_position_y)
 }
@@ -90,7 +90,7 @@ fn Room::new(
       )
     }
     // 生成 RefinedCopperIngot
-    if @rand.check_probability(0.7) {
+    if check_probability(0.4) {
       let position = sumoon_postion(escape_set)
       escape_set.add(position)
       blocks[position.0][position.1].occupant = Material(
@@ -98,7 +98,7 @@ fn Room::new(
       )
     }
     // 生成 ResonantStarCrystal
-    if @rand.check_probability(0.7) {
+    if check_probability(0.4) {
       let position = sumoon_postion(escape_set)
       escape_set.add(position)
       blocks[position.0][position.1].occupant = Material(
