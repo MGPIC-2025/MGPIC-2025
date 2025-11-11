@@ -65,6 +65,11 @@ fn handle_on_attack_apply(id : Int, position : (Int, Int), map : Map_) -> Unit {
         enemy_map.remove(enemy.id)
         remove_unit(enemy.id)
         map.remove_occupant(enemy.position)
+        println("deeeebug"+(match force_get_current_map().get_occupant(enemy.position){
+          Empty => "Empty"
+          Enemy(_) => "Enemy"
+          _ => "Other"
+        }))
         if boss_borned.val == true {
           if enemy.enemy_base.name == "（BOSS）废械吞噬者·饕餮" {
             taotle_killed.val = true
@@ -363,7 +368,7 @@ fn handle_on_structure_build_apply(
       resource_type~,
       position,
     )
-    map.add_occupant(position, Occupant::Structure(structure))
+    map.add_occupant(position, Structure(structure))
     set_structure(structure, structure.id, position)
     battle_copper.can_build = false
     structure.update_move_and_attack_and_summon_status()

@@ -73,7 +73,7 @@ fn Room::new(
         structure_info_map["充能线圈"],
         owned=false,
         resource_type=None,
-        (4, 4),
+        (index_position.0 + 4, index_position.1 + 4),
       ),
     )
     for i in 0..<default_enemy_count[level] {

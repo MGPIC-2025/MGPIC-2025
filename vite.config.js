@@ -5,9 +5,8 @@ import { resolve } from 'path';
 import { watch } from 'chokidar';
 
 export default defineConfig(({ mode }) => ({
-  // base 中路径 "./" 是开发环境所用 "/" 才是生产环境
-  // GitHub Pages 需要设置为仓库名路径
-  base: mode === 'production' ? '/MGPIC-2025/' : '/',
+  // 使用相对路径，适用于任意部署路径
+  base: './',
   server: {
     port: 3000,
     open: true,

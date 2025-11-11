@@ -90,6 +90,14 @@ fn summon_enemy_while_game_round_pass() -> Unit {
           )]
         let enemy = Enemy::new(enemy, position, false)
         room.blocks[position.0][position.1].occupant = Enemy(enemy)
+        set_enemy(
+          enemy,
+          enemy.id,
+          (
+            room.index_position.0 + position.0,
+            room.index_position.1 + position.1,
+          ),
+        )
       }
     }
   }
