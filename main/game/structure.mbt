@@ -20,7 +20,6 @@ struct StructureBase {
   // 是否可以攻击，只有玩家建造出的可攻击结构可以攻击
   can_move : Bool
   can_attack : Bool
-  has_storage : Bool
   attack_range : Int
   description : String
   asset_url : String
