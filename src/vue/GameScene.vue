@@ -24,6 +24,17 @@ import { onEvent, offEvent, emitEvent, EventTypes } from '../utils/eventBus.js';
 import { useHealthBars } from '../composables/useHealthBars.js';
 import { useIndicators } from '../composables/useIndicators.js';
 import { useEffects } from '../composables/useEffects.js';
+import { getControlConfig, getSkyboxConfig, getLightingConfig } from '../utils/sceneConfig.js';
+import { getMusicUrl, getSoundUrl } from '../utils/audioConfig.js';
+import {
+  loadSkybox,
+  applyLighting,
+  createCamera,
+  createRenderer,
+  createGLTFLoader,
+  createTestUnits,
+  disposeSkybox,
+} from '../utils/sceneUtils.js';
 import ActionPanel from './ActionPanel.vue';
 import TurnSystem from './ActionPanelParts/TurnSystem.vue';
 import SummonModal from './ActionPanelParts/SummonModal.vue';
@@ -46,8 +57,7 @@ const emit = defineEmits(['back']);
 
 // 音乐播放相关
 const audioRef = ref(null);
-// 音乐文件路径：统一使用远程R2（由 getAssetUrl 适配域名）
-const musicUrl = getAssetUrl('@assets/frontend_resource/gamescene.mp3');
+const musicUrl = getMusicUrl('gameScene');
 
 // 音效播放相关
 const moveSoundRef = ref(null);
@@ -56,16 +66,21 @@ const attackSoundRef = ref(null);
 const attackEnemySoundRef = ref(null);
 const meHurtSoundRef = ref(null);
 const enemyHurtSoundRef = ref(null);
-const moveSoundUrl = getAssetUrl('@assets/frontend_resource/move.mp3');
-const moveEnemySoundUrl = getAssetUrl('@assets/frontend_resource/move_enemy.mp3');
-const attackSoundUrl = getAssetUrl('@assets/frontend_resource/attack.mp3');
-const attackEnemySoundUrl = getAssetUrl('@assets/frontend_resource/attack_enemy.mp3');
-const meHurtSoundUrl = getAssetUrl('@assets/frontend_resource/me_hurt.mp3');
-const enemyHurtSoundUrl = getAssetUrl('@assets/frontend_resource/enemy_hurt.mp3');
+const moveSoundUrl = getSoundUrl('move');
+const moveEnemySoundUrl = getSoundUrl('moveEnemy');
+const attackSoundUrl = getSoundUrl('attack');
+const attackEnemySoundUrl = getSoundUrl('attackEnemy');
+const meHurtSoundUrl = getSoundUrl('meHurt');
+const enemyHurtSoundUrl = getSoundUrl('enemyHurt');
 
 let scene, camera, renderer, controls;
 let models = [];
-let focusState = { focusPosition: null, focusTarget: null, lerpFactor: 0.08 };
+const controlCfgForFocus = getControlConfig();
+let focusState = { 
+  focusPosition: null, 
+  focusTarget: null, 
+  lerpFactor: controlCfgForFocus.focusLerpFactor 
+};
 let raycaster = null;
 let mouse = new THREE.Vector2();
 let gltfLoader = null;
@@ -89,8 +104,10 @@ const keys = {
   shift: false,
   space: false,
 };
-const moveSpeed = 0.2;
-const rotationSpeed = 0.003;
+// 控制配置（从配置文件读取）
+const controlCfg = getControlConfig();
+const moveSpeed = controlCfg.moveSpeed;
+const rotationSpeed = controlCfg.rotationSpeed;
 
 // 从设置中读取控制模式和灵敏度
 const controlMode = ref(getSetting('controlMode') || 'touchpad');
@@ -433,64 +450,52 @@ onBeforeUnmount(() => {
     effectsManager.dispose();
   }
 
+  // 清理天空盒资源
+  if (scene) {
+    disposeSkybox(scene);
+  }
+
   if (renderer) {
     renderer.dispose();
   }
 });
 
+// 场景工具函数已移至 sceneUtils.js
+
 function initScene() {
   // 创建场景
   scene = new THREE.Scene();
-  scene.background = new THREE.Color(0x222222);
+  
+  // 加载圆顶天空盒（使用工具函数）
+  const skyboxCfg = getSkyboxConfig();
+  loadSkybox(scene, skyboxCfg);
 
-  // 创建相机
-  camera = new THREE.PerspectiveCamera(
-    60,
-    window.innerWidth / window.innerHeight,
-    0.1,
-    2000
-  );
-  camera.position.set(0, 5, 10);
+  // 创建相机（使用工具函数）
+  camera = createCamera();
 
   // 初始化raycaster用于点击检测
   raycaster = new THREE.Raycaster();
 
-  // 创建渲染器
-  renderer = new THREE.WebGLRenderer({ antialias: true });
-  renderer.setSize(window.innerWidth, window.innerHeight);
-  renderer.setPixelRatio(window.devicePixelRatio);
-  container.value.appendChild(renderer.domElement);
+  // 创建渲染器（使用工具函数）
+  renderer = createRenderer(container.value);
 
   // 不使用OrbitControls，使用纯第一人称控制
   controls = null;
 
-  // 添加光源
-  const ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
-  scene.add(ambientLight);
+  // 应用环境光照（使用工具函数）
+  const lightingCfg = getLightingConfig();
+  applyLighting(scene, lightingCfg);
 
-  const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
-  directionalLight.position.set(5, 10, 5);
-  scene.add(directionalLight);
-
-  // 网格参数（保留用于其他用途）
-  const floorSize = 10;
-  const gridCellSize = 1; // 全局坐标系统，1单位 = 1网格
-
-  // 初始化GLTF加载器
-  gltfLoader = new GLTFLoader();
-  const dracoLoader = new DRACOLoader();
-  dracoLoader.setDecoderPath(
-    'https://www.gstatic.com/draco/versioned/decoders/1.5.6/'
-  );
-  gltfLoader.setDRACOLoader(dracoLoader);
+  // 初始化GLTF加载器（使用工具函数）
+  gltfLoader = createGLTFLoader();
 
   // 添加点击事件监听（仅游戏模式）
   if (props.isGameMode) {
     window.addEventListener('click', onSceneClick);
   }
 
-  // 创建测试用的立方体（用于后端测试，ID=1和2）
-  createTestUnits();
+  // 创建测试用的立方体（使用工具函数）
+  createTestUnits(scene, models);
 
   // 初始化 Composables（需要在 scene 和 camera 创建后）
   healthBarsManager = useHealthBars(scene, camera);
@@ -503,44 +508,6 @@ function initScene() {
 
   // 窗口大小变化
   window.addEventListener('resize', onWindowResize);
-}
-
-function createTestUnits() {
-  // 创建单位1（蓝色立方体）
-  const geometry1 = new THREE.BoxGeometry(0.8, 0.8, 0.8);
-  const material1 = new THREE.MeshStandardMaterial({ color: 0x4488ff });
-  const cube1 = new THREE.Mesh(geometry1, material1);
-  cube1.position.set(0.5, 0.4, 0.5);
-  scene.add(cube1);
-
-  models.push({
-    id: 1,
-    object: cube1,
-    name: '单位1',
-    type: 'test', // ✅ 标记为测试模型
-  });
-
-  // 创建单位2（红色立方体）
-  const geometry2 = new THREE.BoxGeometry(0.8, 0.8, 0.8);
-  const material2 = new THREE.MeshStandardMaterial({ color: 0xff4444 });
-  const cube2 = new THREE.Mesh(geometry2, material2);
-  cube2.position.set(4.5, 0.4, 4.5);
-  scene.add(cube2);
-
-  models.push({
-    id: 2,
-    object: cube2,
-    name: '单位2',
-    type: 'test', // ✅ 标记为测试模型
-  });
-
-  log(
-    '[GameScene] 创建了测试单位:',
-    models.map(m => `ID=${m.id}`)
-  );
-
-  // 默认显示测试模型（向后兼容）
-  // 当切换到EventLoop模式时会隐藏它们
 }
 
 // 辅助函数：加载铜偶GLTF模型（使用全局缓存）
