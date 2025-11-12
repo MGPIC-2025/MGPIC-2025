@@ -29,6 +29,8 @@ const isReady = ref(false);
 const showButtons = ref(false);
 const showSettings = ref(false);
 const controlMode = ref('touchpad');
+// 检测是否在 Electron 环境
+const isElectron = ref(false);
 // 背景图（用于预览效果）
 const startBg = ref(
   getAssetUrl('ui/Gemini_Generated_Image_gtrehogtrehogtre (1).png')
@@ -277,7 +279,15 @@ onMounted(() => {
   showButtons.value = false;
   isReady.value = false;
 
+  // 检测 Electron 环境
+  isElectron.value = 
+    typeof window !== 'undefined' && 
+    (window.navigator.userAgent.toLowerCase().includes('electron') ||
+     window.process?.type === 'renderer' ||
+     !!(window.require && window.process && window.process.versions && window.process.versions.electron));
+
   log('[StartMenu] 组件挂载，开始加载...');
+  log('[StartMenu] Electron 环境:', isElectron.value);
 
   if (!scene && canvasRef.value) {
     scene = new THREE.Scene();
@@ -335,6 +345,21 @@ onBeforeUnmount(() => {
 
 <template>
   <div class="startmenu">
+    <!-- 顶部提示横幅 (仅在非 Electron 环境显示) -->
+    <div v-if="!isElectron" class="download-banner">
+      <span class="download-banner__text">
+        想要获得帧率更高的游戏体验，请下载本地版本
+      </span>
+      <a
+        href="https://github.com/MGPIC-2025/Cross/releases"
+        target="_blank"
+        rel="noopener noreferrer"
+        class="download-banner__link"
+      >
+        点击下载
+      </a>
+    </div>
+
     <!-- 背景图片层（最底层） -->
     <div
       class="startmenu__bg"
@@ -412,6 +437,86 @@ onBeforeUnmount(() => {
   inset: 0;
   z-index: 10001;
   background: #000;
+}
+
+/* 下载提示横幅 */
+.download-banner {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 10; /* 在所有元素之上 */
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.95) 0%, rgba(118, 75, 162, 0.95) 100%);
+  backdrop-filter: blur(10px);
+  padding: 12px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+  animation: slideDown 0.5s ease-out;
+}
+
+@keyframes slideDown {
+  from {
+    transform: translateY(-100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.download-banner__text {
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+.download-banner__link {
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.2);
+  padding: 6px 16px;
+  border-radius: 20px;
+  text-decoration: none;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.download-banner__link:hover {
+  background: rgba(255, 255, 255, 0.3);
+  border-color: rgba(255, 255, 255, 0.5);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.download-banner__link:active {
+  transform: translateY(0);
+}
+
+@media (max-width: 768px) {
+  .download-banner {
+    flex-direction: column;
+    gap: 8px;
+    padding: 10px 16px;
+  }
+  
+  .download-banner__text {
+    font-size: 12px;
+    text-align: center;
+  }
+  
+  .download-banner__link {
+    font-size: 12px;
+    padding: 5px 14px;
+  }
 }
 
 .startmenu__bg {
