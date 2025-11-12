@@ -212,6 +212,36 @@
         min-width: 160px;
       }
 
+      .safari-btn-highlight {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: #fff;
+        border: 2px solid rgba(102, 126, 234, 0.5);
+        box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+        position: relative;
+        overflow: hidden;
+      }
+
+      .safari-btn-highlight::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+        transition: left 0.6s ease;
+      }
+
+      .safari-btn-highlight:hover::before {
+        left: 100%;
+      }
+
+      .safari-btn-highlight:hover {
+        background: linear-gradient(135deg, #7c8ef5 0%, #8a5bb8 100%);
+        transform: translateY(-2px) scale(1.05);
+        box-shadow: 0 12px 30px rgba(102, 126, 234, 0.6);
+      }
+
       .safari-btn-primary {
         background: #f59e0b;
         color: #2a1a0f;
@@ -260,9 +290,9 @@
         }
       }
     </style>
-    <script type="module" crossorigin src="/MGPIC-2025/assets/index-KIsbecHp.js"></script>
-    <link rel="modulepreload" crossorigin href="/MGPIC-2025/assets/three-DX4CaU0L.js">
-    <link rel="stylesheet" crossorigin href="/MGPIC-2025/assets/index-DCsGWEOn.css">
+    <script type="module" crossorigin src="./assets/index-D10bGkVi.js"></script>
+    <link rel="modulepreload" crossorigin href="./assets/three-Sm3FoWE3.js">
+    <link rel="stylesheet" crossorigin href="./assets/index-DbP-bW6G.css">
   </head>
 
   <body>
@@ -277,11 +307,14 @@
           <strong>Chrome</strong> 浏览器游玩。
         </p>
         <div class="safari-warning-buttons">
-          <button id="continue-safari" class="safari-btn safari-btn-secondary">
-            继续使用 Safari
+          <button id="download-local" class="safari-btn safari-btn-highlight">
+            下载本地版（帧率更高）
           </button>
           <button id="download-chrome" class="safari-btn safari-btn-primary">
             下载 Chrome
+          </button>
+          <button id="continue-safari" class="safari-btn safari-btn-secondary">
+            继续使用 Safari
           </button>
         </div>
       </div>
