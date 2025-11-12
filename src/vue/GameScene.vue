@@ -24,6 +24,23 @@ import { onEvent, offEvent, emitEvent, EventTypes } from '../utils/eventBus.js';
 import { useHealthBars } from '../composables/useHealthBars.js';
 import { useIndicators } from '../composables/useIndicators.js';
 import { useEffects } from '../composables/useEffects.js';
+import { 
+  getControlConfig, 
+  getSkyboxConfig, 
+  getLightingConfig,
+  getGridCellMaterialConfig,
+} from '../utils/sceneConfig.js';
+import { getMusicUrl, getSoundUrl } from '../utils/audioConfig.js';
+import {
+  loadSkybox,
+  applyLighting,
+  createCamera,
+  createRenderer,
+  createGLTFLoader,
+  createTestUnits,
+  createFloor,
+  disposeSkybox,
+} from '../utils/sceneUtils.js';
 import ActionPanel from './ActionPanel.vue';
 import TurnSystem from './ActionPanelParts/TurnSystem.vue';
 import SummonModal from './ActionPanelParts/SummonModal.vue';
@@ -46,8 +63,7 @@ const emit = defineEmits(['back']);
 
 // 音乐播放相关
 const audioRef = ref(null);
-// 音乐文件路径：统一使用远程R2（由 getAssetUrl 适配域名）
-const musicUrl = getAssetUrl('@assets/frontend_resource/gamescene.mp3');
+const musicUrl = getMusicUrl('gameScene');
 
 // 音效播放相关
 const moveSoundRef = ref(null);
@@ -56,16 +72,21 @@ const attackSoundRef = ref(null);
 const attackEnemySoundRef = ref(null);
 const meHurtSoundRef = ref(null);
 const enemyHurtSoundRef = ref(null);
-const moveSoundUrl = getAssetUrl('@assets/frontend_resource/move.mp3');
-const moveEnemySoundUrl = getAssetUrl('@assets/frontend_resource/move_enemy.mp3');
-const attackSoundUrl = getAssetUrl('@assets/frontend_resource/attack.mp3');
-const attackEnemySoundUrl = getAssetUrl('@assets/frontend_resource/attack_enemy.mp3');
-const meHurtSoundUrl = getAssetUrl('@assets/frontend_resource/me_hurt.mp3');
-const enemyHurtSoundUrl = getAssetUrl('@assets/frontend_resource/enemy_hurt.mp3');
+const moveSoundUrl = getSoundUrl('move');
+const moveEnemySoundUrl = getSoundUrl('moveEnemy');
+const attackSoundUrl = getSoundUrl('attack');
+const attackEnemySoundUrl = getSoundUrl('attackEnemy');
+const meHurtSoundUrl = getSoundUrl('meHurt');
+const enemyHurtSoundUrl = getSoundUrl('enemyHurt');
 
 let scene, camera, renderer, controls;
 let models = [];
-let focusState = { focusPosition: null, focusTarget: null, lerpFactor: 0.08 };
+const controlCfgForFocus = getControlConfig();
+let focusState = { 
+  focusPosition: null, 
+  focusTarget: null, 
+  lerpFactor: controlCfgForFocus.focusLerpFactor 
+};
 let raycaster = null;
 let mouse = new THREE.Vector2();
 let gltfLoader = null;
@@ -89,8 +110,10 @@ const keys = {
   shift: false,
   space: false,
 };
-const moveSpeed = 0.2;
-const rotationSpeed = 0.003;
+// 控制配置（从配置文件读取）
+const controlCfg = getControlConfig();
+const moveSpeed = controlCfg.moveSpeed;
+const rotationSpeed = controlCfg.rotationSpeed;
 
 // 从设置中读取控制模式和灵敏度
 const controlMode = ref(getSetting('controlMode') || 'touchpad');
@@ -433,64 +456,55 @@ onBeforeUnmount(() => {
     effectsManager.dispose();
   }
 
+  // 清理天空盒资源
+  if (scene) {
+    disposeSkybox(scene);
+  }
+
   if (renderer) {
     renderer.dispose();
   }
 });
 
+// 场景工具函数已移至 sceneUtils.js
+
 function initScene() {
   // 创建场景
   scene = new THREE.Scene();
-  scene.background = new THREE.Color(0x222222);
+  
+  // 加载圆顶天空盒（使用工具函数）
+  const skyboxCfg = getSkyboxConfig();
+  loadSkybox(scene, skyboxCfg);
 
-  // 创建相机
-  camera = new THREE.PerspectiveCamera(
-    60,
-    window.innerWidth / window.innerHeight,
-    0.1,
-    2000
-  );
-  camera.position.set(0, 5, 10);
+  // 创建相机（使用工具函数）
+  camera = createCamera();
 
   // 初始化raycaster用于点击检测
   raycaster = new THREE.Raycaster();
 
-  // 创建渲染器
-  renderer = new THREE.WebGLRenderer({ antialias: true });
-  renderer.setSize(window.innerWidth, window.innerHeight);
-  renderer.setPixelRatio(window.devicePixelRatio);
-  container.value.appendChild(renderer.domElement);
+  // 创建渲染器（使用工具函数）
+  renderer = createRenderer(container.value);
 
   // 不使用OrbitControls，使用纯第一人称控制
   controls = null;
 
-  // 添加光源
-  const ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
-  scene.add(ambientLight);
+  // 应用环境光照（使用工具函数）
+  const lightingCfg = getLightingConfig();
+  applyLighting(scene, lightingCfg);
 
-  const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
-  directionalLight.position.set(5, 10, 5);
-  scene.add(directionalLight);
+  // 创建地板（使用工具函数）
+  createFloor(scene);
 
-  // 网格参数（保留用于其他用途）
-  const floorSize = 10;
-  const gridCellSize = 1; // 全局坐标系统，1单位 = 1网格
-
-  // 初始化GLTF加载器
-  gltfLoader = new GLTFLoader();
-  const dracoLoader = new DRACOLoader();
-  dracoLoader.setDecoderPath(
-    'https://www.gstatic.com/draco/versioned/decoders/1.5.6/'
-  );
-  gltfLoader.setDRACOLoader(dracoLoader);
+  // 初始化GLTF加载器（使用工具函数）
+  gltfLoader = createGLTFLoader();
 
   // 添加点击事件监听（仅游戏模式）
   if (props.isGameMode) {
     window.addEventListener('click', onSceneClick);
   }
 
-  // 创建测试用的立方体（用于后端测试，ID=1和2）
-  createTestUnits();
+  // 创建测试用的立方体（使用工具函数）
+  createTestUnits(scene, models);
 
   // 初始化 Composables（需要在 scene 和 camera 创建后）
   healthBarsManager = useHealthBars(scene, camera);
@@ -503,44 +517,6 @@ function initScene() {
 
   // 窗口大小变化
   window.addEventListener('resize', onWindowResize);
-}
-
-function createTestUnits() {
-  // 创建单位1（蓝色立方体）
-  const geometry1 = new THREE.BoxGeometry(0.8, 0.8, 0.8);
-  const material1 = new THREE.MeshStandardMaterial({ color: 0x4488ff });
-  const cube1 = new THREE.Mesh(geometry1, material1);
-  cube1.position.set(0.5, 0.4, 0.5);
-  scene.add(cube1);
-
-  models.push({
-    id: 1,
-    object: cube1,
-    name: '单位1',
-    type: 'test', // ✅ 标记为测试模型
-  });
-
-  // 创建单位2（红色立方体）
-  const geometry2 = new THREE.BoxGeometry(0.8, 0.8, 0.8);
-  const material2 = new THREE.MeshStandardMaterial({ color: 0xff4444 });
-  const cube2 = new THREE.Mesh(geometry2, material2);
-  cube2.position.set(4.5, 0.4, 4.5);
-  scene.add(cube2);
-
-  models.push({
-    id: 2,
-    object: cube2,
-    name: '单位2',
-    type: 'test', // ✅ 标记为测试模型
-  });
-
-  log(
-    '[GameScene] 创建了测试单位:',
-    models.map(m => `ID=${m.id}`)
-  );
-
-  // 默认显示测试模型（向后兼容）
-  // 当切换到EventLoop模式时会隐藏它们
 }
 
 // 辅助函数：加载铜偶GLTF模型（使用全局缓存）
@@ -1956,18 +1932,92 @@ function setupMessageQueue() {
         const block = mapBlocks.get(key);
         scene.remove(block);
         block.geometry.dispose();
-        block.material.dispose();
+        if (block.material) {
+          // 清理材质资源
+          if (block.material.map) block.material.map.dispose();
+          if (Array.isArray(block.material)) {
+            block.material.forEach(mat => {
+              if (mat.map) mat.map.dispose();
+              mat.dispose();
+            });
+          } else {
+            block.material.dispose();
+          }
+        }
       }
 
-      // 创建地图块（灰色扁平立方体）
-      const geometry = new THREE.BoxGeometry(0.9, 0.05, 0.9); // ⭐ 高度从0.1降到0.05（更扁）
-      const material = new THREE.MeshBasicMaterial({ color: 0x808080 });
+      // 获取地图块材质配置
+      const cellConfig = getGridCellMaterialConfig();
+      
+      if (!cellConfig.enabled) {
+        // 如果未启用，不创建地图块
+        return;
+      }
+
+      // 创建地图块几何体（使用配置的尺寸）
+      const size = cellConfig.size || 0.9;
+      const height = 0.05; // 保持扁平高度
+      const geometry = new THREE.BoxGeometry(size, height, size);
+
+      // 创建材质（根据配置类型）
+      let material;
+      if (cellConfig.materialType === 'texture' && cellConfig.texture.url) {
+        // 纹理材质
+        const textureLoader = new THREE.TextureLoader();
+        const texture = textureLoader.load(cellConfig.texture.url);
+        texture.colorSpace = THREE.SRGBColorSpace;
+        texture.wrapS = THREE.RepeatWrapping;
+        texture.wrapT = THREE.RepeatWrapping;
+        texture.repeat.set(cellConfig.texture.repeat.x, cellConfig.texture.repeat.y);
+
+        // 纹理材质
+        // 强制设置为不透明，避免透明对象渲染顺序问题导致遮挡血条
+        const opacity = 1.0;  // 强制不透明
+        material = new THREE.MeshStandardMaterial({
+          map: texture,
+          transparent: false,  // 强制不透明
+          opacity: opacity,
+          depthTest: true,   // 明确启用深度测试
+          depthWrite: true,  // 允许写入深度（用于遮挡单位模型）
+        });
+      } else if (cellConfig.materialType === 'standard') {
+        // 标准材质（支持光照）
+        // 强制设置为不透明，避免透明对象渲染顺序问题导致遮挡血条
+        const opacity = 1.0;  // 强制不透明
+        material = new THREE.MeshStandardMaterial({
+          color: cellConfig.standard.color,
+          roughness: cellConfig.standard.roughness,
+          metalness: cellConfig.standard.metalness,
+          transparent: false,  // 强制不透明
+          opacity: opacity,
+          depthTest: true,   // 明确启用深度测试
+          depthWrite: true,  // 允许写入深度（用于遮挡单位模型）
+        });
+      } else {
+        // 基础材质
+        // 强制设置为不透明，避免透明对象渲染顺序问题导致遮挡血条
+        const opacity = 1.0;  // 强制不透明
+        material = new THREE.MeshBasicMaterial({
+          color: cellConfig.basic.color,
+          transparent: false,  // 强制不透明
+          opacity: opacity,
+          depthTest: true,   // 明确启用深度测试
+          depthWrite: true,  // 允许写入深度（用于遮挡单位模型）
+        });
+      }
+
       const block = new THREE.Mesh(geometry, material);
+      
+      // 设置渲染顺序，确保地图块在血条之前渲染（血条的renderOrder是9999）
+      // 使用负值确保地图块先于血条渲染，但保持深度写入以正确遮挡单位模型
+      block.renderOrder = -100;
 
       //  以(0,0)为中心，地图范围 -7 到 7
+      // 使用配置的Y偏移，降低地图块位置，避免遮挡血条
+      const yOffset = cellConfig.yOffset || 0;
       block.position.set(
         position[0], // 格子中心
-        0.025, // ⭐ 地板中心（高度0.05的一半）
+        height / 2 + yOffset, // 地板中心（高度的一半）+ 偏移
         position[1] // 格子中心
       );
 
@@ -3117,8 +3167,8 @@ async function confirmWithdraw() {
 }
 
 // 背景图片路径（CSS border-image 需要 url() 包裹）
-const panel7Src = `url('/assets/panel7.png')`;
-const panel8Src = `url('/assets/panel8.png')`;
+const panel7Src = `url('${getAssetUrl('@assets/ui/panel7.png')}')`;
+const panel8Src = `url('${getAssetUrl('@assets/ui/panel8.png')}')`;
 </script>
 
 <template>

@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { getGridCellMaterialConfig } from '../utils/sceneConfig.js';
 
 /**
  * 地板指示器管理 Composable
@@ -11,6 +12,61 @@ export function useIndicators(scene) {
     attack: [],
     summon: [], // 召唤和建造共用此类型
   };
+
+  // 地图块材质配置
+  const cellMaterialConfig = getGridCellMaterialConfig();
+
+  /**
+   * 创建地图块材质
+   * @param {Object} customConfig - 自定义配置（可选）
+   * @returns {THREE.Material} 材质对象
+   */
+  function createCellMaterial(customConfig = {}) {
+    const config = { ...cellMaterialConfig, ...customConfig };
+    
+    if (!config.enabled) {
+      // 如果未启用，返回透明材质
+      return new THREE.MeshBasicMaterial({
+        transparent: true,
+        opacity: 0,
+      });
+    }
+
+    if (config.materialType === 'texture' && config.texture.url) {
+      // 纹理材质
+      const textureLoader = new THREE.TextureLoader();
+      const texture = textureLoader.load(config.texture.url);
+      texture.colorSpace = THREE.SRGBColorSpace;
+      texture.wrapS = THREE.RepeatWrapping;
+      texture.wrapT = THREE.RepeatWrapping;
+      texture.repeat.set(config.texture.repeat.x, config.texture.repeat.y);
+
+      return new THREE.MeshStandardMaterial({
+        map: texture,
+        side: THREE.DoubleSide,
+        transparent: true,
+        opacity: config.standard?.opacity || 1.0,
+      });
+    } else if (config.materialType === 'standard') {
+      // 标准材质（支持光照）
+      return new THREE.MeshStandardMaterial({
+        color: config.standard.color,
+        roughness: config.standard.roughness,
+        metalness: config.standard.metalness,
+        side: THREE.DoubleSide,
+        transparent: true,
+        opacity: config.standard.opacity,
+      });
+    } else {
+      // 基础材质
+      return new THREE.MeshBasicMaterial({
+        color: config.basic.color,
+        side: THREE.DoubleSide,
+        transparent: true,
+        opacity: config.basic.opacity,
+      });
+    }
+  }
 
   /**
    * 指示器类型配置（匹配GameScene原有颜色）
@@ -28,7 +84,13 @@ export function useIndicators(scene) {
     const [x, z] = position;
     const config = indicatorConfig[type] || indicatorConfig.move;
 
-    const geometry = new THREE.PlaneGeometry(0.9, 0.9); // 0.9x0.9 以留出网格间隙
+    // 使用地图块材质配置的尺寸
+    const size = cellMaterialConfig.size || 0.9;
+    const height = cellMaterialConfig.height || 0.08;
+
+    const geometry = new THREE.PlaneGeometry(size, size);
+    
+    // 创建指示器材质（保持原有的半透明效果）
     const material = new THREE.MeshBasicMaterial({
       color: config.color,
       side: THREE.DoubleSide,
@@ -38,7 +100,7 @@ export function useIndicators(scene) {
 
     const plane = new THREE.Mesh(geometry, material);
     plane.rotation.x = -Math.PI / 2; // 水平放置
-    plane.position.set(x, 0.08, z); // 抬高以确保在地图块上方可见
+    plane.position.set(x, height, z); // 使用配置的高度
     plane.userData = { position, type };
 
     scene.add(plane);
@@ -118,6 +180,7 @@ export function useIndicators(scene) {
   return {
     indicators,
     createIndicator,
+    createCellMaterial,
     clearIndicatorAt,
     clearIndicators,
     clearAllIndicators,
