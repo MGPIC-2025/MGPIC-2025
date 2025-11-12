@@ -24,7 +24,12 @@ import { onEvent, offEvent, emitEvent, EventTypes } from '../utils/eventBus.js';
 import { useHealthBars } from '../composables/useHealthBars.js';
 import { useIndicators } from '../composables/useIndicators.js';
 import { useEffects } from '../composables/useEffects.js';
-import { getControlConfig, getSkyboxConfig, getLightingConfig } from '../utils/sceneConfig.js';
+import { 
+  getControlConfig, 
+  getSkyboxConfig, 
+  getLightingConfig,
+  getGridCellMaterialConfig,
+} from '../utils/sceneConfig.js';
 import { getMusicUrl, getSoundUrl } from '../utils/audioConfig.js';
 import {
   loadSkybox,
@@ -33,6 +38,7 @@ import {
   createRenderer,
   createGLTFLoader,
   createTestUnits,
+  createFloor,
   disposeSkybox,
 } from '../utils/sceneUtils.js';
 import ActionPanel from './ActionPanel.vue';
@@ -485,6 +491,9 @@ function initScene() {
   // 应用环境光照（使用工具函数）
   const lightingCfg = getLightingConfig();
   applyLighting(scene, lightingCfg);
+
+  // 创建地板（使用工具函数）
+  createFloor(scene);
 
   // 初始化GLTF加载器（使用工具函数）
   gltfLoader = createGLTFLoader();
@@ -1923,18 +1932,92 @@ function setupMessageQueue() {
         const block = mapBlocks.get(key);
         scene.remove(block);
         block.geometry.dispose();
-        block.material.dispose();
+        if (block.material) {
+          // 清理材质资源
+          if (block.material.map) block.material.map.dispose();
+          if (Array.isArray(block.material)) {
+            block.material.forEach(mat => {
+              if (mat.map) mat.map.dispose();
+              mat.dispose();
+            });
+          } else {
+            block.material.dispose();
+          }
+        }
       }
 
-      // 创建地图块（灰色扁平立方体）
-      const geometry = new THREE.BoxGeometry(0.9, 0.05, 0.9); // ⭐ 高度从0.1降到0.05（更扁）
-      const material = new THREE.MeshBasicMaterial({ color: 0x808080 });
+      // 获取地图块材质配置
+      const cellConfig = getGridCellMaterialConfig();
+      
+      if (!cellConfig.enabled) {
+        // 如果未启用，不创建地图块
+        return;
+      }
+
+      // 创建地图块几何体（使用配置的尺寸）
+      const size = cellConfig.size || 0.9;
+      const height = 0.05; // 保持扁平高度
+      const geometry = new THREE.BoxGeometry(size, height, size);
+
+      // 创建材质（根据配置类型）
+      let material;
+      if (cellConfig.materialType === 'texture' && cellConfig.texture.url) {
+        // 纹理材质
+        const textureLoader = new THREE.TextureLoader();
+        const texture = textureLoader.load(cellConfig.texture.url);
+        texture.colorSpace = THREE.SRGBColorSpace;
+        texture.wrapS = THREE.RepeatWrapping;
+        texture.wrapT = THREE.RepeatWrapping;
+        texture.repeat.set(cellConfig.texture.repeat.x, cellConfig.texture.repeat.y);
+
+        // 纹理材质
+        // 强制设置为不透明，避免透明对象渲染顺序问题导致遮挡血条
+        const opacity = 1.0;  // 强制不透明
+        material = new THREE.MeshStandardMaterial({
+          map: texture,
+          transparent: false,  // 强制不透明
+          opacity: opacity,
+          depthTest: true,   // 明确启用深度测试
+          depthWrite: true,  // 允许写入深度（用于遮挡单位模型）
+        });
+      } else if (cellConfig.materialType === 'standard') {
+        // 标准材质（支持光照）
+        // 强制设置为不透明，避免透明对象渲染顺序问题导致遮挡血条
+        const opacity = 1.0;  // 强制不透明
+        material = new THREE.MeshStandardMaterial({
+          color: cellConfig.standard.color,
+          roughness: cellConfig.standard.roughness,
+          metalness: cellConfig.standard.metalness,
+          transparent: false,  // 强制不透明
+          opacity: opacity,
+          depthTest: true,   // 明确启用深度测试
+          depthWrite: true,  // 允许写入深度（用于遮挡单位模型）
+        });
+      } else {
+        // 基础材质
+        // 强制设置为不透明，避免透明对象渲染顺序问题导致遮挡血条
+        const opacity = 1.0;  // 强制不透明
+        material = new THREE.MeshBasicMaterial({
+          color: cellConfig.basic.color,
+          transparent: false,  // 强制不透明
+          opacity: opacity,
+          depthTest: true,   // 明确启用深度测试
+          depthWrite: true,  // 允许写入深度（用于遮挡单位模型）
+        });
+      }
+
       const block = new THREE.Mesh(geometry, material);
+      
+      // 设置渲染顺序，确保地图块在血条之前渲染（血条的renderOrder是9999）
+      // 使用负值确保地图块先于血条渲染，但保持深度写入以正确遮挡单位模型
+      block.renderOrder = -100;
 
       //  以(0,0)为中心，地图范围 -7 到 7
+      // 使用配置的Y偏移，降低地图块位置，避免遮挡血条
+      const yOffset = cellConfig.yOffset || 0;
       block.position.set(
         position[0], // 格子中心
-        0.025, // ⭐ 地板中心（高度0.05的一半）
+        height / 2 + yOffset, // 地板中心（高度的一半）+ 偏移
         position[1] // 格子中心
       );
 
@@ -3084,8 +3167,8 @@ async function confirmWithdraw() {
 }
 
 // 背景图片路径（CSS border-image 需要 url() 包裹）
-const panel7Src = `url('/assets/panel7.png')`;
-const panel8Src = `url('/assets/panel8.png')`;
+const panel7Src = `url('${getAssetUrl('@assets/ui/panel7.png')}')`;
+const panel8Src = `url('${getAssetUrl('@assets/ui/panel8.png')}')`;
 </script>
 
 <template>

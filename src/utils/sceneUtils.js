@@ -14,6 +14,8 @@ import {
   getRendererConfig,
   getDracoConfig,
   getTestUnitsConfig,
+  getFloorConfig,
+  getGridCellMaterialConfig,
 } from './sceneConfig.js';
 
 // 存储天空盒对象，以便后续可以移除
@@ -229,6 +231,171 @@ export function createTestUnits(scene, modelsArray) {
   });
 
   log('[SceneUtils] 创建了测试单位:', modelsArray.map(m => `ID=${m.id}`));
+}
+
+/**
+ * 创建地板
+ * @param {THREE.Scene} scene - Three.js场景对象
+ * @param {Object} customConfig - 自定义地板配置（可选）
+ * @returns {THREE.Mesh|null} 地板网格对象，如果未启用则返回null
+ */
+export function createFloor(scene, customConfig = {}) {
+  const config = { ...getFloorConfig(), ...customConfig };
+  
+  if (!config.enabled) {
+    return null;
+  }
+
+  // 创建平面几何体
+  const geometry = new THREE.PlaneGeometry(config.size, config.size);
+
+  let material;
+
+  if (config.materialType === 'texture' && config.texture.url) {
+    // 纹理材质
+    const textureLoader = new THREE.TextureLoader();
+    const texture = textureLoader.load(config.texture.url);
+    texture.colorSpace = THREE.SRGBColorSpace;
+    texture.wrapS = THREE[config.texture.wrapS] || THREE.RepeatWrapping;
+    texture.wrapT = THREE[config.texture.wrapT] || THREE.RepeatWrapping;
+    texture.repeat.set(config.texture.repeat.x, config.texture.repeat.y);
+
+    material = new THREE.MeshStandardMaterial({
+      map: texture,
+      side: THREE.DoubleSide,
+    });
+  } else if (config.materialType === 'color') {
+    // 纯色材质
+    material = new THREE.MeshBasicMaterial({
+      color: config.color.value,
+      side: THREE.DoubleSide,
+    });
+  } else {
+    // 标准材质（支持光照）
+    const materialOptions = {
+      color: config.standard.color,
+      roughness: config.standard.roughness,
+      metalness: config.standard.metalness,
+      side: THREE.DoubleSide,
+    };
+
+    // 加载可选贴图
+    const textureLoader = new THREE.TextureLoader();
+    
+    if (config.standard.normalMap) {
+      const normalMap = textureLoader.load(config.standard.normalMap);
+      normalMap.colorSpace = THREE.SRGBColorSpace;
+      materialOptions.normalMap = normalMap;
+      materialOptions.normalScale = new THREE.Vector2(
+        config.standard.normalScale.x,
+        config.standard.normalScale.y
+      );
+    }
+
+    if (config.standard.roughnessMap) {
+      const roughnessMap = textureLoader.load(config.standard.roughnessMap);
+      roughnessMap.colorSpace = THREE.SRGBColorSpace;
+      materialOptions.roughnessMap = roughnessMap;
+    }
+
+    if (config.standard.aoMap) {
+      const aoMap = textureLoader.load(config.standard.aoMap);
+      aoMap.colorSpace = THREE.SRGBColorSpace;
+      materialOptions.aoMap = aoMap;
+    }
+
+    material = new THREE.MeshStandardMaterial(materialOptions);
+  }
+
+  // 创建地板网格
+  const floor = new THREE.Mesh(geometry, material);
+  floor.position.set(config.position.x, config.position.y, config.position.z);
+  floor.rotation.set(config.rotation.x, config.rotation.y, config.rotation.z);
+  
+  // 设置渲染顺序，确保地板在血条之前渲染（血条的renderOrder是999）
+  // 使用负值确保地板先于血条渲染，但保持深度写入以正确遮挡单位模型
+  floor.renderOrder = -200;
+  
+  // 添加到场景
+  scene.add(floor);
+  
+  log(`[SceneUtils] 地板创建成功（材质类型：${config.materialType}，尺寸：${config.size}）`);
+  
+  return floor;
+}
+
+/**
+ * 创建地图块网格（为每个网格单元创建带材质的地图块）
+ * @param {THREE.Scene} scene - Three.js场景对象
+ * @param {Array} positions - 地图块位置数组 [[x, z], ...]
+ * @param {Object} customConfig - 自定义配置（可选）
+ * @returns {Array} 创建的地图块网格数组
+ */
+export function createGridCells(scene, positions = [], customConfig = {}) {
+  const config = { ...getGridCellMaterialConfig(), ...customConfig };
+  
+  if (!config.enabled || positions.length === 0) {
+    return [];
+  }
+
+  const cells = [];
+  const material = createCellMaterial(config);
+
+  positions.forEach(([x, z]) => {
+    const geometry = new THREE.PlaneGeometry(config.size, config.size);
+    const cell = new THREE.Mesh(geometry, material);
+    cell.rotation.x = -Math.PI / 2; // 水平放置
+    cell.position.set(x, config.height, z);
+    cell.userData = { position: [x, z], type: 'gridCell' };
+    
+    scene.add(cell);
+    cells.push(cell);
+  });
+
+  log(`[SceneUtils] 创建了 ${cells.length} 个地图块`);
+  return cells;
+}
+
+/**
+ * 创建地图块材质（内部辅助函数）
+ * @param {Object} config - 材质配置
+ * @returns {THREE.Material} 材质对象
+ */
+function createCellMaterial(config) {
+  if (config.materialType === 'texture' && config.texture.url) {
+    // 纹理材质
+    const textureLoader = new THREE.TextureLoader();
+    const texture = textureLoader.load(config.texture.url);
+    texture.colorSpace = THREE.SRGBColorSpace;
+    texture.wrapS = THREE.RepeatWrapping;
+    texture.wrapT = THREE.RepeatWrapping;
+    texture.repeat.set(config.texture.repeat.x, config.texture.repeat.y);
+
+    return new THREE.MeshStandardMaterial({
+      map: texture,
+      side: THREE.DoubleSide,
+      transparent: true,
+      opacity: config.standard?.opacity || 1.0,
+    });
+  } else if (config.materialType === 'standard') {
+    // 标准材质（支持光照）
+    return new THREE.MeshStandardMaterial({
+      color: config.standard.color,
+      roughness: config.standard.roughness,
+      metalness: config.standard.metalness,
+      side: THREE.DoubleSide,
+      transparent: true,
+      opacity: config.standard.opacity,
+    });
+  } else {
+    // 基础材质
+    return new THREE.MeshBasicMaterial({
+      color: config.basic.color,
+      side: THREE.DoubleSide,
+      transparent: true,
+      opacity: config.basic.opacity,
+    });
+  }
 }
 
 /**

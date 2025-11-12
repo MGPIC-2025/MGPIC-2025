@@ -10,7 +10,7 @@ import { getAssetUrl } from './resourceLoader.js';
  */
 export const skyboxConfig = {
   // 天空盒图片URL
-  url: getAssetUrl('/ui/Gemini_Generated_Image_gtrehogtrehogtre (1).png'),
+  url: getAssetUrl('@assets/ui/skybox.jpg'),
   
   // 球体半径，足够大以包围整个场景
   radius: 1000,
@@ -147,6 +147,98 @@ export const gridConfig = {
 };
 
 /**
+ * 地图块（网格单元）材质配置
+ */
+export const gridCellMaterialConfig = {
+  // 是否启用地图块材质
+  enabled: true,
+  
+  // 材质类型：'basic' | 'standard' | 'texture'
+  materialType: 'standard',
+  
+  // 基础颜色材质配置（materialType === 'basic' 时使用）
+  basic: {
+    color: 0x4a4a4a,    // 基础颜色
+    opacity: 0.8,       // 透明度
+  },
+  
+  // 标准材质配置（materialType === 'standard' 时使用，支持光照）
+  standard: {
+    color: 0x5a5a6a,    // 基础颜色（偏蓝灰色，更有金属感）
+    roughness: 0.3,     // 粗糙度（降低以增加光泽）
+    metalness: 0.7,     // 金属度（增加以增强金属感）
+    opacity: 0.8,       // 透明度
+  },
+  
+  // 纹理材质配置（materialType === 'texture' 时使用）
+  texture: {
+    url: null,          // 纹理图片URL
+    repeat: { x: 1, y: 1 },  // 纹理重复次数
+  },
+  
+  // 地图块尺寸（相对于网格单元）
+  size: 0.95,           // 0.95 留出网格间隙
+  height: 0.05,         // 地图块高度
+  yOffset: -0.02,       // Y轴偏移（负值降低，避免遮挡血条，进一步降低）
+};
+
+/**
+ * 地板配置
+ */
+export const floorConfig = {
+  // 是否启用地板
+  enabled: false,
+  
+  // 地板尺寸
+  size: 100,            // 地板大小（建议比网格大很多，确保覆盖整个场景）
+  
+  // 材质类型：'texture' | 'color' | 'standard'
+  materialType: 'standard',
+  
+  // 纹理配置（materialType === 'texture' 时使用）
+  texture: {
+    url: null,          // 纹理图片URL，例如：getAssetUrl('@assets/floor_texture.jpg')
+    repeat: {           // 纹理重复次数
+      x: 10,
+      y: 10,
+    },
+    wrapS: 'RepeatWrapping',  // 'RepeatWrapping' | 'ClampToEdgeWrapping'
+    wrapT: 'RepeatWrapping',
+  },
+  
+  // 颜色配置（materialType === 'color' 时使用）
+  color: {
+    value: 0x2a2a2a,    // 地板颜色（深灰色）
+  },
+  
+  // 标准材质配置（materialType === 'standard' 时使用，支持光照）
+  standard: {
+    color: 0x3a3a3a,    // 基础颜色
+    roughness: 0.8,     // 粗糙度（0-1，值越大越粗糙）
+    metalness: 0.1,     // 金属度（0-1，值越大越像金属）
+    // 可选：法线贴图
+    normalMap: null,    // 法线贴图URL
+    normalScale: { x: 1, y: 1 },
+    // 可选：粗糙度贴图
+    roughnessMap: null,
+    // 可选：环境光遮蔽贴图
+    aoMap: null,
+  },
+  
+  // 位置和旋转
+  position: {
+    x: 0,
+    y: 0,
+    z: 0,
+  },
+  rotation: {
+    x: -Math.PI / 2,    // 旋转90度变成水平面
+    y: 0,
+    z: 0,
+  },
+};
+
+/**
  * 获取环境光照配置
  * @returns {Object} 环境光照配置对象
  */
@@ -200,5 +292,21 @@ export function getTestUnitsConfig() {
  */
 export function getGridConfig() {
   return { ...gridConfig };
+}
+
+/**
+ * 获取地板配置
+ * @returns {Object} 地板配置对象
+ */
+export function getFloorConfig() {
+  return { ...floorConfig };
+}
+
+/**
+ * 获取地图块材质配置
+ * @returns {Object} 地图块材质配置对象
+ */
+export function getGridCellMaterialConfig() {
+  return { ...gridCellMaterialConfig };
 }
 
