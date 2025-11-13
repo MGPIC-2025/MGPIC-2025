@@ -233,6 +233,19 @@ function handlePointerLockError() {
   log('[GameScene] 鼠标锁定失败');
 }
 
+// 重置镜头到默认视角
+function resetCameraInternal() {
+  if (!camera) return;
+
+  camera.position.set(0, 10, 15);
+  camera.lookAt(0, 0, 0);
+  yaw = camera.rotation.y;
+  pitch = camera.rotation.x;
+  focusState.focusPosition = null;
+  focusState.focusTarget = null;
+  log('[GameScene] 相机已重置');
+}
+
 // 选中的铜偶信息
 const selectedCopper = ref(null);
 const selectedCopperResources = ref([]);
@@ -301,6 +314,9 @@ const currentCopperId = computed(() => {
 onMounted(async () => {
   log('[GameScene] 组件挂载，初始化场景');
   initScene();
+  if (props.isGameMode) {
+    resetCameraInternal();
+  }
   log('[GameScene] 场景初始化完成，设置消息队列');
   setupMessageQueue();
   log('[GameScene] 消息队列设置完成');
@@ -342,15 +358,7 @@ onMounted(async () => {
       window.cameraFocusHeight = height;
       log(`[GameScene] 相机聚焦参数已更新: 距离=${distance}, 高度=${height}`);
     };
-    window.resetCamera = () => {
-      camera.position.set(0, 10, 15);
-      camera.lookAt(0, 0, 0);
-      yaw = camera.rotation.y;
-      pitch = camera.rotation.x;
-      focusState.focusPosition = null;
-      focusState.focusTarget = null;
-      log('[GameScene] 相机已重置');
-    };
+    window.resetCamera = resetCameraInternal;
     window.toggleAutoFocus = () => {
       window.disableAutoFocus = !window.disableAutoFocus;
       log(`[GameScene] 自动聚焦已${window.disableAutoFocus ? '禁用' : '启用'}`);
@@ -416,6 +424,16 @@ watch(
       }
     } else {
       audioRef.value.pause();
+    }
+  }
+);
+
+// 进入游戏模式时重置一次镜头
+watch(
+  () => props.isGameMode,
+  newVal => {
+    if (newVal) {
+      resetCameraInternal();
     }
   }
 );
@@ -3171,11 +3189,9 @@ function closeResourceDialog() {
   resourceDialogMessage.value = '';
 }
 
-// 重置镜头视角（调用已有的 window.resetCamera）
+// 重置镜头视角
 function resetCameraView() {
-  if (typeof window !== 'undefined' && typeof window.resetCamera === 'function') {
-    window.resetCamera();
-  }
+  resetCameraInternal();
 }
 
 // 背景图片路径（CSS border-image 需要 url() 包裹）
