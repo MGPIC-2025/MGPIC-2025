@@ -1,0 +1,84 @@
+/* 血条样式 */
+.health-bar {
+  position: fixed;
+  left: 20px;
+  bottom: 20px;
+  width: min(360px, 40vw);
+  transform: scale(0.7);
+  transform-origin: left bottom;
+  z-index: 6000;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+}
+
+.health-bar__border {
+  display: flex;
+  width: 100%;
+  align-items: stretch;
+  position: relative;
+}
+
+.health-bar__border-left,
+.health-bar__border-middle,
+.health-bar__border-right {
+  display: flex;
+  align-items: stretch;
+}
+
+.health-bar__border-left,
+.health-bar__border-right {
+  flex-shrink: 0;
+  width: 56px;
+}
+
+.health-bar__border-left img,
+.health-bar__border-right img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+}
+
+.health-bar__border-middle {
+  flex: 1;
+  min-width: 0;
+  background-image: var(--blood-border-middle);
+  background-repeat: repeat-x;
+  background-size: auto 100%;
+  background-position: left center;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+}
+
+.health-bar__fill {
+  position: absolute;
+  left: -10px;
+  top: 0;
+  bottom: 0;
+  height: 100%;
+  background-image: var(--blood-bar);
+  background-repeat: no-repeat;
+  background-size: 100% 100%;
+  background-position: left center;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+  z-index: 1;
+  transition: width 0.3s ease;
+}
+
+.health-bar__text {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 2;
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: bold;
+  white-space: nowrap;
+}
+
+
+
