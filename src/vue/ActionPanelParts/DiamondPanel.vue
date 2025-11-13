@@ -60,7 +60,7 @@ const resources = ref({
 // 获取资源数据（和 ResourcePanel 一样的后端绑定方式）
 async function updateResources() {
   try {
-    const resourceData = await get_resource();
+    const resourceData = get_resource();
     if (resourceData) {
       Object.keys(resources.value).forEach(key => {
         resources.value[key] = resourceData[key] || 0;

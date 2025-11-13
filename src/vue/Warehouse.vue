@@ -162,7 +162,7 @@ const resources = ref([]);
 
 async function updateResources() {
   try {
-    const resourceData = await get_resource();
+    const resourceData = get_resource();
     if (resourceData) {
       resources.value = mapResources(resourceData);
     }
@@ -274,7 +274,7 @@ const puppets = ref([]);
 // 拉取铜偶列表
 onMounted(async () => {
   try {
-    const plainCopper = await get_copper_list();
+    const plainCopper = get_copper_list();
     let arr =
       plainCopper && Array.isArray(plainCopper.coppers)
         ? plainCopper.coppers
@@ -387,7 +387,7 @@ async function onGachaResult(payload) {
     await updateResources();
 
     // 刷新铜偶列表
-    const listPlain = await get_copper_list();
+    const listPlain = get_copper_list();
     const arr = Array.isArray(listPlain?.coppers) ? listPlain.coppers : [];
     puppets.value = mapPuppets(arr);
 
@@ -403,7 +403,7 @@ async function upgradeSelected() {
     return;
   }
   const id = selectedPuppet.value.id;
-  const res = await upgrade_copper(id);
+  const res = upgrade_copper(id);
   if (!res || res.type !== 'success') {
     alert(res && res.content ? res.content : '升级失败');
     return;
@@ -414,7 +414,7 @@ async function upgradeSelected() {
     await updateResources();
 
     // 刷新铜偶列表
-    const listPlain = await get_copper_list();
+    const listPlain = get_copper_list();
     const arr = Array.isArray(listPlain?.coppers) ? listPlain.coppers : [];
     puppets.value = mapPuppets(arr);
 

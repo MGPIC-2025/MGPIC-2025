@@ -52,7 +52,7 @@ async function handleCraft() {
   if (isCrafting.value) return;
   isCrafting.value = true;
   try {
-    const result = await craft();
+    const result = craft();
     // 后端也会通过消息队列推送 craft_success / craft_failed
     // 这里主动刷新资源，确保数值及时更新
     emitEvent(EventTypes.UPDATE_RESOURCES);
@@ -73,7 +73,7 @@ async function handleCraft() {
 
 async function updateResources() {
   try {
-    const resourceData = await get_resource();
+    const resourceData = get_resource();
 
     if (resourceData) {
       // 单次遍历完成：新值赋值 + 变化计算

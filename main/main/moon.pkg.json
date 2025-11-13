@@ -12,6 +12,7 @@
         "get_global",
         "get_global_info",
         "global_gacha",
+        "global_craft",
         "global_get_resource",
         "global_get_copper_list",
         "global_info_subscribe",

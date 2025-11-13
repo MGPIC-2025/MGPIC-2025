@@ -60,7 +60,7 @@ function handleNextCopper() {
 
 async function handleEndRound() {
   const message = JSON.stringify({ type: 'on_game_round_pass' });
-  await eventloop(message);
+  eventloop(message);
   emit('endRound');
 }
 

@@ -178,7 +178,7 @@ async function handleMove() {
     type: eventType,
     content: { id: String(copperInfo.value.id) },
   });
-  await eventloop(message);
+  eventloop(message);
   panelMode.value = 'minimized';
   actionMode.value = 'moving';
   emit('action', { type: 'moveStart', copperId: copperInfo.value.id });
@@ -208,7 +208,7 @@ async function handleAttack() {
     type: eventType,
     content: { id: String(copperInfo.value.id) },
   });
-  await eventloop(message);
+  eventloop(message);
   panelMode.value = 'minimized';
   actionMode.value = 'attacking';
   emit('action', { type: 'attackStart', copperId: copperInfo.value.id });
@@ -229,7 +229,7 @@ async function handleSummon() {
     type: 'on_summon_start',
     content: { id: String(copperInfo.value.id) },
   });
-  await eventloop(message);
+  eventloop(message);
   panelMode.value = 'minimized';
   actionMode.value = 'summoning';
   emit('action', { type: 'summonStart', copperId: copperInfo.value.id });
@@ -269,7 +269,7 @@ async function handleBuildConfirm(structureName) {
     type: 'on_structure_build_start',
     content: { id: String(copperInfo.value.id), name: structureName },
   });
-  await eventloop(startMessage);
+  eventloop(startMessage);
 
   // 最小化面板，进入建造模式
   panelMode.value = 'minimized';
@@ -293,7 +293,7 @@ async function handlePickup(index) {
     type: 'on_copper_pick_up',
     content: { id: String(copperInfo.value.id), index: String(index) },
   });
-  await eventloop(message);
+  eventloop(message);
   await refreshCopperState();
 }
 
@@ -303,7 +303,7 @@ async function handleCraft() {
     type: 'on_copper_craft',
     content: { id: String(copperInfo.value.id) },
   });
-  await eventloop(message);
+  eventloop(message);
   await refreshCopperState();
 }
 
@@ -321,7 +321,7 @@ async function refreshCopperState() {
     type: eventType,
     content: { id: String(copperInfo.value.id) },
   });
-  await eventloop(message);
+  eventloop(message);
 }
 
 function handleWait() {

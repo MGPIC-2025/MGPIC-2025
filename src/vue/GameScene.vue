@@ -305,8 +305,6 @@ onMounted(async () => {
   setupMessageQueue();
   log('[GameScene] 消息队列设置完成');
 
-  // 默认切换到EventLoop模式（隐藏测试模型）
-  const { messageQueue } = await import('../messageQueue.js');
   if (messageQueue.sceneContext?.setTestMode) {
     messageQueue.sceneContext.setTestMode('eventloop');
   }
@@ -317,9 +315,7 @@ onMounted(async () => {
     const ids = window.__ACTUAL_COPPER_IDS__;
     log('[GameScene] 场景准备完成，发送游戏开始消息，ID:', ids);
     const message = JSON.stringify({ type: 'on_game_start', content: { ids } });
-    eventloop(message).catch(e => {
-      log('[GameScene] 发送游戏开始消息失败', e);
-    });
+    eventloop(message);
     // 清除标记
     delete window.__ACTUAL_COPPER_IDS__;
   } else {
@@ -3099,9 +3095,7 @@ async function handleGameOverConfirm() {
 
   // 发送 on_game_over 消息给后端，让后端清空 Game
   const message = JSON.stringify({ type: 'on_game_over' });
-  await eventloop(message).catch(e => {
-    log('[GameScene] 发送 on_game_over 消息失败', e);
-  });
+  await eventloop(message);
 
   // 返回菜单
   emit('back');
@@ -3116,9 +3110,7 @@ async function handleGameSuccessConfirm() {
 
   // 发送 on_game_over 消息给后端，让后端清空 Game
   const message = JSON.stringify({ type: 'on_game_over' });
-  await eventloop(message).catch(e => {
-    log('[GameScene] 发送 on_game_over 消息失败', e);
-  });
+  await eventloop(message);
 
   // 显示制作团队名单
   showCreditsScreen();
@@ -3166,9 +3158,7 @@ async function confirmWithdraw() {
   // 发送 game_over 消息（直接发送 game_over，不需要先经过前端处理）
   // 然后发送 on_game_over 清空 Game
   const message = JSON.stringify({ type: 'on_game_over' });
-  await eventloop(message).catch(e => {
-    log('[GameScene] 发送 on_game_over 消息失败', e);
-  });
+  await eventloop(message);
 
   // 返回菜单
   emit('back');

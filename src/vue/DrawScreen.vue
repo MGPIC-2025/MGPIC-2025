@@ -29,7 +29,7 @@ function showToast(text) {
 
 async function refreshCanDraw() {
   try {
-    const data = await get_resource();
+    const data = get_resource();
     const plain = data;
     const spark = Number(plain?.SpiritalSpark ?? 0);
     canDraw.value = spark >= 10;
@@ -78,7 +78,7 @@ function runDrawSequence() {
     // 初始先展示卡背
     cardFlipped.value = true;
     try {
-      const data = await gacha();
+      const data = gacha();
       if (
         data &&
         data.type === 'success' &&
