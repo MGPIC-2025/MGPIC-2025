@@ -233,6 +233,18 @@ function handlePointerLockError() {
   log('[GameScene] 鼠标锁定失败');
 }
 
+function resetCameraInternal() {
+  if (!camera) return;
+
+  camera.position.set(0, 10, 15);
+  camera.lookAt(0, 0, 0);
+  yaw = camera.rotation.y;
+  pitch = camera.rotation.x;
+  focusState.focusPosition = null;
+  focusState.focusTarget = null;
+  log('[GameScene] 相机已重置');
+}
+
 // 选中的铜偶信息
 const selectedCopper = ref(null);
 const selectedCopperResources = ref([]);
@@ -342,15 +354,7 @@ onMounted(async () => {
       window.cameraFocusHeight = height;
       log(`[GameScene] 相机聚焦参数已更新: 距离=${distance}, 高度=${height}`);
     };
-    window.resetCamera = () => {
-      camera.position.set(0, 10, 15);
-      camera.lookAt(0, 0, 0);
-      yaw = camera.rotation.y;
-      pitch = camera.rotation.x;
-      focusState.focusPosition = null;
-      focusState.focusTarget = null;
-      log('[GameScene] 相机已重置');
-    };
+    window.resetCamera = resetCameraInternal;
     window.toggleAutoFocus = () => {
       window.disableAutoFocus = !window.disableAutoFocus;
       log(`[GameScene] 自动聚焦已${window.disableAutoFocus ? '禁用' : '启用'}`);
@@ -3171,6 +3175,10 @@ function closeResourceDialog() {
   resourceDialogMessage.value = '';
 }
 
+function resetCameraView() {
+  resetCameraInternal();
+}
+
 // 背景图片路径（CSS border-image 需要 url() 包裹）
 const panel7Src = `url('${getAssetUrl('@assets/ui/panel7.png')}')`;
 const panel8Src = `url('${getAssetUrl('@assets/ui/panel8.png')}')`;
@@ -3192,14 +3200,13 @@ const panel8Src = `url('${getAssetUrl('@assets/ui/panel8.png')}')`;
       @selectCopper="handleClickCopper"
     />
 
-    <!-- 撤退按钮 -->
-    <button
-      v-if="isGameMode"
-      class="withdraw-button"
-      @click="openWithdrawDialog"
-    >
-      撤退
-    </button>
+    <!-- 左上角操作按钮：撤退 + 重置镜头 -->
+    <div class="top-left-actions" v-if="isGameMode">
+      <button class="withdraw-button" @click="openWithdrawDialog">撤退</button>
+      <button class="reset-button" @click="resetCameraView" title="重置镜头">
+        重置镜头
+      </button>
+    </div>
 
     <!-- 全局资源面板 -->
     <ResourcePanel v-if="isGameMode" />
@@ -3443,11 +3450,18 @@ const panel8Src = `url('${getAssetUrl('@assets/ui/panel8.png')}')`;
   line-height: 1.5;
 }
 
-/* 撤退按钮 */
-.withdraw-button {
+/* 左上角操作区域：撤退 + 重置镜头 */
+.top-left-actions {
   position: fixed;
   top: 20px;
   left: 20px;
+  display: flex;
+  gap: 12px;
+  z-index: 1500;
+}
+
+.withdraw-button {
+  position: static;
   background: rgba(139, 0, 0, 0.9);
   border: 2px solid rgba(255, 255, 255, 0.3);
   border-radius: 12px;
@@ -3456,7 +3470,6 @@ const panel8Src = `url('${getAssetUrl('@assets/ui/panel8.png')}')`;
   font-weight: 700;
   padding: 12px 24px;
   cursor: pointer;
-  z-index: 1500;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
   transition: all 0.2s;
   backdrop-filter: blur(10px);
@@ -3469,6 +3482,31 @@ const panel8Src = `url('${getAssetUrl('@assets/ui/panel8.png')}')`;
 }
 
 .withdraw-button:active {
+  transform: translateY(0);
+}
+
+.reset-button {
+  position: static;
+  background: rgba(34, 85, 170, 0.9);
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 12px;
+  color: white;
+  font-size: 18px;
+  font-weight: 700;
+  padding: 12px 24px;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+  transition: all 0.2s;
+  backdrop-filter: blur(10px);
+}
+
+.reset-button:hover {
+  background: rgba(46, 109, 199, 0.95);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(46, 109, 199, 0.5);
+}
+
+.reset-button:active {
   transform: translateY(0);
 }
 
