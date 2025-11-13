@@ -44,6 +44,15 @@ const summonImgSrc = computed(
 );
 const closeIconSrc = getAssetUrl('@assets/ui/close.png');
 
+const actionPanelVars = computed(() => ({
+  '--sword-img': swordImgSrc.value,
+  '--red-panel-bg': redPanelBg.value,
+  '--boot-img': bootImgSrc.value,
+  '--green-panel-bg': greenPanelBg.value,
+  '--summon-img': summonImgSrc.value,
+  '--build-img': buildImgSrc.value,
+}));
+
 // 三角操作面板已独立为组件 TriPanel
 
 // 面板状态：'full' = 完整显示, 'minimized' = 最小化到底部
@@ -370,7 +379,7 @@ defineExpose({ cancelAction, handleSelectCopper, showBuildMenu });
 </script>
 
 <template>
-  <div v-if="copper" class="copper-panel-parent">
+  <div v-if="copper" class="copper-panel-parent" :style="actionPanelVars">
     <!-- 菱形属性面板 -->
     <DiamondPanel
       :copper-info="copperInfo"
@@ -499,255 +508,4 @@ defineExpose({ cancelAction, handleSelectCopper, showBuildMenu });
   />
 </template>
 
-<style scoped>
-.copper-panel-parent {
-  position: relative;
-}
-
-.copper-panel {
-  position: fixed;
-  bottom: 80px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: min(400px, 90vw);
-  background: rgba(43, 26, 17, 0.95);
-  backdrop-filter: blur(10px);
-  border-radius: 16px;
-  padding: 20px;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
-  border: 2px solid rgba(255, 200, 100, 0.3);
-  z-index: 5000;
-  color: #fff;
-  animation: slideUp 0.3s ease;
-  transition: all 0.3s ease;
-}
-
-.panel-content {
-  padding-right: 0;
-}
-
-.copper-panel--minimized {
-  bottom: 48px;
-  /* Use 320px (10x of 32px) to keep pixel-art crisp */
-  width: min(300px, 170vw);
-  /* Increase height in 32px multiples for pixel-art clarity */
-  min-height: 100px; /* 32 * 6 */
-  padding: 12px 16px;
-  border-radius: 12px;
-}
-
-/* 边框：攻击 = 红色；移动 = 绿色（仅在最小化时生效） */
-.copper-panel--minimized.copper-panel--min-attack {
-  border: none;
-  /* Two-layer background: top = sword badge, bottom = red panel */
-  background-image: v-bind(swordImgSrc), v-bind(redPanelBg);
-  background-repeat: no-repeat, no-repeat;
-  background-position:
-    8px 8px,
-    center;
-  /* keep red panel slightly expanded to compensate asset margins */
-  background-size:
-    32px 32px,
-    130% 122%;
-  background-origin: padding-box, border-box;
-  background-clip: padding-box, border-box;
-  image-rendering: pixelated;
-}
-
-.copper-panel--minimized.copper-panel--min-move {
-  border: none;
-  /* Two-layer background: top = boot badge, bottom = green panel */
-  background-image: v-bind(bootImgSrc), v-bind(greenPanelBg);
-  background-repeat: no-repeat, no-repeat;
-  background-position:
-    8px 8px,
-    center;
-  /* keep green panel slightly expanded to compensate asset margins */
-  background-size:
-    32px 32px,
-    130% 122%;
-  background-origin: padding-box, border-box;
-  background-clip: padding-box, border-box;
-  image-rendering: pixelated;
-}
-
-.copper-panel--minimized.copper-panel--min-summon {
-  border: none;
-  /* Two-layer background: top = summon badge, bottom = green panel */
-  background-image: v-bind(summonImgSrc), v-bind(greenPanelBg);
-  background-repeat: no-repeat, no-repeat;
-  background-position:
-    8px 8px,
-    center;
-  /* keep green panel slightly expanded to compensate asset margins */
-  background-size:
-    32px 32px,
-    130% 122%;
-  background-origin: padding-box, border-box;
-  background-clip: padding-box, border-box;
-  image-rendering: pixelated;
-}
-
-.copper-panel--minimized.copper-panel--min-build {
-  border: none;
-  /* Two-layer background: top = build badge, bottom = green panel */
-  background-image: v-bind(buildImgSrc), v-bind(greenPanelBg);
-  background-repeat: no-repeat, no-repeat;
-  background-position:
-    8px 8px,
-    center;
-  /* keep green panel slightly expanded to compensate asset margins */
-  background-size:
-    32px 32px,
-    130% 122%;
-  background-origin: padding-box, border-box;
-  background-clip: padding-box, border-box;
-  image-rendering: pixelated;
-}
-
-/* 居中最小化面板文字 */
-.minimized-content {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 8px;
-  position: relative;
-}
-
-.minimized-info {
-  width: 100%;
-  text-align: center;
-  margin-top: 30px;
-}
-
-.minimized-close {
-  position: absolute;
-  top: 0;
-  right: 0;
-  border: none;
-  background: transparent;
-  padding: 0;
-  cursor: pointer;
-}
-
-.minimized-close img {
-  width: 24px;
-  height: 24px;
-  image-rendering: pixelated;
-}
-
-@keyframes slideUp {
-  from {
-    opacity: 0;
-    transform: translateX(-50%) translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(-50%) translateY(0);
-  }
-}
-
-.close-btn {
-  position: absolute;
-  top: 12px;
-  right: 12px;
-  border: none;
-  background: transparent;
-  padding: 0;
-  cursor: pointer;
-}
-
-.close-btn:hover {
-  background: transparent;
-}
-
-.close-btn img {
-  width: 24px;
-  height: 24px;
-  image-rendering: pixelated;
-}
-
-.copper-info {
-  margin-bottom: 16px;
-}
-
-.info-top {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 12px;
-}
-
-.copper-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 12px;
-}
-
-.copper-name {
-  margin: 0;
-  font-size: 20px;
-  font-weight: 800;
-  color: #ffd700;
-}
-
-.copper-level {
-  padding: 4px 12px;
-  background: rgba(255, 215, 0, 0.2);
-  border-radius: 12px;
-  font-size: 14px;
-  font-weight: 700;
-  color: #ffd700;
-}
-
-.resources {
-  padding-top: 16px;
-}
-
-.resources-header {
-  font-size: 14px;
-  font-weight: 700;
-  margin-bottom: 8px;
-  color: #ffd700;
-}
-
-.resources-list {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.resource-item {
-  padding: 8px 12px;
-  background: rgba(255, 200, 100, 0.15);
-  border: 1px solid rgba(255, 200, 100, 0.3);
-  border-radius: 8px;
-  font-size: 13px;
-  cursor: pointer;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  transition: all 0.2s ease;
-}
-
-.resource-item:hover {
-  background: rgba(255, 200, 100, 0.25);
-  border-color: rgba(255, 200, 100, 0.5);
-  transform: translateY(-1px);
-}
-
-.resource-name {
-  flex: 1;
-}
-.resource-count {
-  margin: 0 8px;
-  color: rgba(255, 200, 100, 0.9);
-}
-.resource-pickup {
-  font-size: 14px;
-  opacity: 0.7;
-}
-
-/* TriPanel styles moved into the component */
-</style>
+<style scoped src="../styles/action-panel.css"></style>
