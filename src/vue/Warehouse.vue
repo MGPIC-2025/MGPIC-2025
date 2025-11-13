@@ -264,7 +264,7 @@ onBeforeUnmount(() => {
   if (audioRef.value) {
     audioRef.value.pause();
   }
-  
+
   // 清理资源更新事件监听（和 ResourcePanel 一样的后端绑定方式）
   offEvent(EventTypes.UPDATE_RESOURCES, updateResources);
 });
@@ -605,7 +605,7 @@ const musicUrl = import.meta.env.DEV
                 </div>
               </div>
 
-              <div 
+              <div
                 v-if="selectedPuppet?.stats?.class !== '工匠'"
                 class="skill-section"
               >
@@ -726,7 +726,9 @@ const musicUrl = import.meta.env.DEV
   border-radius: 12px;
   min-width: 100px;
   cursor: pointer;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
 }
 .resource-item:hover {
   transform: translateY(-4px) scale(1.05);
@@ -772,7 +774,9 @@ const musicUrl = import.meta.env.DEV
   white-space: nowrap;
   opacity: 0;
   pointer-events: none;
-  transition: opacity 0.2s ease, transform 0.2s ease;
+  transition:
+    opacity 0.2s ease,
+    transform 0.2s ease;
   z-index: 1000;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
 }

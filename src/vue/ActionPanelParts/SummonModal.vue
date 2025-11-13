@@ -146,7 +146,9 @@ function formatCost(costData) {
 
               <div class="enemy-cost">
                 <span class="cost-label">💰 召唤消耗：</span>
-                <span class="cost-value">{{ formatCost(enemy.summon_cost) }}</span>
+                <span class="cost-value">{{
+                  formatCost(enemy.summon_cost)
+                }}</span>
               </div>
 
               <div class="enemy-desc">{{ enemy.description }}</div>

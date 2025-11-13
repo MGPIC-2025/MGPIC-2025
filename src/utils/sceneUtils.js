@@ -7,8 +7,8 @@ import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
 import log from '../log.js';
-import { 
-  getSkyboxConfig, 
+import {
+  getSkyboxConfig,
   getLightingConfig,
   getCameraConfig,
   getRendererConfig,
@@ -28,11 +28,7 @@ let skyboxMesh = null;
  * @param {Object} options - 配置选项
  */
 export function createDomeSkybox(scene, textureUrl, options = {}) {
-  const {
-    radius = 1000,
-    segments = 32,
-    hemisphere = false,
-  } = options;
+  const { radius = 1000, segments = 32, hemisphere = false } = options;
 
   // 移除旧的天空盒（如果存在）
   if (skyboxMesh) {
@@ -48,12 +44,20 @@ export function createDomeSkybox(scene, textureUrl, options = {}) {
   const textureLoader = new THREE.TextureLoader();
   textureLoader.load(
     textureUrl,
-    (texture) => {
+    texture => {
       texture.colorSpace = THREE.SRGBColorSpace;
-      
+
       // 创建球体几何体
       const geometry = hemisphere
-        ? new THREE.SphereGeometry(radius, segments, segments, 0, Math.PI * 2, 0, Math.PI / 2)
+        ? new THREE.SphereGeometry(
+            radius,
+            segments,
+            segments,
+            0,
+            Math.PI * 2,
+            0,
+            Math.PI / 2
+          )
         : new THREE.SphereGeometry(radius, segments, segments);
 
       // 创建材质，使用BackSide让纹理显示在球体内侧
@@ -66,14 +70,16 @@ export function createDomeSkybox(scene, textureUrl, options = {}) {
       // 创建天空盒网格
       skyboxMesh = new THREE.Mesh(geometry, material);
       skyboxMesh.position.set(0, 0, 0);
-      
+
       // 将天空盒添加到场景
       scene.add(skyboxMesh);
-      
-      log(`[SceneUtils] 圆顶天空盒创建成功（${hemisphere ? '半球' : '完整球体'}，半径：${radius}）`);
+
+      log(
+        `[SceneUtils] 圆顶天空盒创建成功（${hemisphere ? '半球' : '完整球体'}，半径：${radius}）`
+      );
     },
     undefined,
-    (error) => {
+    error => {
       log('[SceneUtils] 圆顶天空盒加载失败，使用默认背景', error);
       scene.background = new THREE.Color(0x222222);
     }
@@ -158,7 +164,7 @@ export function applyLighting(scene, config) {
 export function createCamera(customConfig = {}) {
   const config = { ...getCameraConfig(), ...customConfig };
   const aspect = window.innerWidth / window.innerHeight;
-  
+
   const camera = new THREE.PerspectiveCamera(
     config.fov,
     aspect,
@@ -195,7 +201,7 @@ export function createRenderer(container, customOptions = {}) {
 export function createGLTFLoader(customDracoPath = null) {
   const config = getDracoConfig();
   const dracoPath = customDracoPath || config.decoderPath;
-  
+
   const gltfLoader = new GLTFLoader();
   const dracoLoader = new DRACOLoader();
   dracoLoader.setDecoderPath(dracoPath);
@@ -210,16 +216,26 @@ export function createGLTFLoader(customDracoPath = null) {
  */
 export function createTestUnits(scene, modelsArray) {
   const config = getTestUnitsConfig();
-  
+
   if (!config.enabled) {
     return;
   }
 
   config.units.forEach(unitConfig => {
-    const geometry = new THREE.BoxGeometry(unitConfig.size, unitConfig.size, unitConfig.size);
-    const material = new THREE.MeshStandardMaterial({ color: unitConfig.color });
+    const geometry = new THREE.BoxGeometry(
+      unitConfig.size,
+      unitConfig.size,
+      unitConfig.size
+    );
+    const material = new THREE.MeshStandardMaterial({
+      color: unitConfig.color,
+    });
     const cube = new THREE.Mesh(geometry, material);
-    cube.position.set(unitConfig.position.x, unitConfig.position.y, unitConfig.position.z);
+    cube.position.set(
+      unitConfig.position.x,
+      unitConfig.position.y,
+      unitConfig.position.z
+    );
     scene.add(cube);
 
     modelsArray.push({
@@ -230,7 +246,10 @@ export function createTestUnits(scene, modelsArray) {
     });
   });
 
-  log('[SceneUtils] 创建了测试单位:', modelsArray.map(m => `ID=${m.id}`));
+  log(
+    '[SceneUtils] 创建了测试单位:',
+    modelsArray.map(m => `ID=${m.id}`)
+  );
 }
 
 /**
@@ -241,7 +260,7 @@ export function createTestUnits(scene, modelsArray) {
  */
 export function createFloor(scene, customConfig = {}) {
   const config = { ...getFloorConfig(), ...customConfig };
-  
+
   if (!config.enabled) {
     return null;
   }
@@ -281,7 +300,7 @@ export function createFloor(scene, customConfig = {}) {
 
     // 加载可选贴图
     const textureLoader = new THREE.TextureLoader();
-    
+
     if (config.standard.normalMap) {
       const normalMap = textureLoader.load(config.standard.normalMap);
       normalMap.colorSpace = THREE.SRGBColorSpace;
@@ -311,16 +330,18 @@ export function createFloor(scene, customConfig = {}) {
   const floor = new THREE.Mesh(geometry, material);
   floor.position.set(config.position.x, config.position.y, config.position.z);
   floor.rotation.set(config.rotation.x, config.rotation.y, config.rotation.z);
-  
+
   // 设置渲染顺序，确保地板在血条之前渲染（血条的renderOrder是999）
   // 使用负值确保地板先于血条渲染，但保持深度写入以正确遮挡单位模型
   floor.renderOrder = -200;
-  
+
   // 添加到场景
   scene.add(floor);
-  
-  log(`[SceneUtils] 地板创建成功（材质类型：${config.materialType}，尺寸：${config.size}）`);
-  
+
+  log(
+    `[SceneUtils] 地板创建成功（材质类型：${config.materialType}，尺寸：${config.size}）`
+  );
+
   return floor;
 }
 
@@ -333,7 +354,7 @@ export function createFloor(scene, customConfig = {}) {
  */
 export function createGridCells(scene, positions = [], customConfig = {}) {
   const config = { ...getGridCellMaterialConfig(), ...customConfig };
-  
+
   if (!config.enabled || positions.length === 0) {
     return [];
   }
@@ -347,7 +368,7 @@ export function createGridCells(scene, positions = [], customConfig = {}) {
     cell.rotation.x = -Math.PI / 2; // 水平放置
     cell.position.set(x, config.height, z);
     cell.userData = { position: [x, z], type: 'gridCell' };
-    
+
     scene.add(cell);
     cells.push(cell);
   });
@@ -421,14 +442,12 @@ export function disposeSkybox(scene) {
  * @returns {Object} 场景对象 { scene, camera, renderer, gltfLoader }
  */
 export function initScene(container, options = {}) {
-  const {
-    createTestUnits: shouldCreateTestUnits = false,
-    modelsArray = null,
-  } = options;
+  const { createTestUnits: shouldCreateTestUnits = false, modelsArray = null } =
+    options;
 
   // 创建场景
   const scene = new THREE.Scene();
-  
+
   // 加载圆顶天空盒
   const skyboxCfg = getSkyboxConfig();
   loadSkybox(scene, skyboxCfg);
@@ -460,4 +479,3 @@ export function initScene(container, options = {}) {
     gltfLoader,
   };
 }
-

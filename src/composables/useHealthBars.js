@@ -54,11 +54,11 @@ export function useHealthBars(scene, camera) {
     container.add(background);
     container.add(bar);
     container.renderOrder = 999; // 确保血条在最上层
-    
+
     // 设置渲染顺序，确保前景在背景之上
     background.renderOrder = 999;
     bar.renderOrder = 1000; // 前景血条在背景之上
-    
+
     scene.add(container);
 
     // 存储

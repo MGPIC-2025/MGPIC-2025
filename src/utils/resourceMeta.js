@@ -55,4 +55,3 @@ export function getResourceName(resourceType) {
 export function getResourceIcon(resourceType) {
   return RESOURCE_META[resourceType]?.icon || '';
 }
-

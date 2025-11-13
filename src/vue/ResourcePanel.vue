@@ -1,7 +1,11 @@
 <script setup>
 import { ref, onMounted, onBeforeUnmount } from 'vue';
 import { get_resource, craft } from '../glue.js';
-import { getResourceIcon, getResourceName, RESOURCE_META } from '../utils/resourceMeta.js';
+import {
+  getResourceIcon,
+  getResourceName,
+  RESOURCE_META,
+} from '../utils/resourceMeta.js';
 import { onEvent, offEvent, emitEvent, EventTypes } from '../utils/eventBus.js';
 import { getAssetUrl } from '../utils/resourceLoader.js';
 
@@ -67,7 +71,6 @@ async function handleCraft() {
   }
 }
 
-
 async function updateResources() {
   try {
     const resourceData = await get_resource();
@@ -128,7 +131,10 @@ defineExpose({ updateResources });
     <div class="resource-list">
       <div class="resource-layout">
         <div class="row row-top">
-          <div class="resource-slot small" :title="getResourceName('RecallGear')">
+          <div
+            class="resource-slot small"
+            :title="getResourceName('RecallGear')"
+          >
             <img
               v-if="getResourceIcon('RecallGear')"
               :src="getResourceIcon('RecallGear')"
@@ -136,21 +142,33 @@ defineExpose({ updateResources });
               class="resource-icon"
             />
             <div class="resource-count">{{ resources.RecallGear || 0 }}</div>
-            <div class="resource-tooltip">{{ getResourceName('RecallGear') }}</div>
+            <div class="resource-tooltip">
+              {{ getResourceName('RecallGear') }}
+            </div>
           </div>
-          <div class="resource-slot small" :title="getResourceName('HeartCrystalDust')">
+          <div
+            class="resource-slot small"
+            :title="getResourceName('HeartCrystalDust')"
+          >
             <img
               v-if="getResourceIcon('HeartCrystalDust')"
               :src="getResourceIcon('HeartCrystalDust')"
               :alt="getResourceName('HeartCrystalDust')"
               class="resource-icon"
             />
-            <div class="resource-count">{{ resources.HeartCrystalDust || 0 }}</div>
-            <div class="resource-tooltip">{{ getResourceName('HeartCrystalDust') }}</div>
+            <div class="resource-count">
+              {{ resources.HeartCrystalDust || 0 }}
+            </div>
+            <div class="resource-tooltip">
+              {{ getResourceName('HeartCrystalDust') }}
+            </div>
           </div>
         </div>
         <div class="row row-middle">
-          <div class="resource-slot large" :title="getResourceName('SpiritalSpark')">
+          <div
+            class="resource-slot large"
+            :title="getResourceName('SpiritalSpark')"
+          >
             <img
               v-if="getResourceIcon('SpiritalSpark')"
               :src="getResourceIcon('SpiritalSpark')"
@@ -158,21 +176,33 @@ defineExpose({ updateResources });
               class="resource-icon"
             />
             <div class="resource-count">{{ resources.SpiritalSpark || 0 }}</div>
-            <div class="resource-tooltip">{{ getResourceName('SpiritalSpark') }}</div>
+            <div class="resource-tooltip">
+              {{ getResourceName('SpiritalSpark') }}
+            </div>
           </div>
         </div>
         <div class="row row-bottom">
-          <div class="resource-slot small" :title="getResourceName('ResonantCrystal')">
+          <div
+            class="resource-slot small"
+            :title="getResourceName('ResonantCrystal')"
+          >
             <img
               v-if="getResourceIcon('ResonantCrystal')"
               :src="getResourceIcon('ResonantCrystal')"
               :alt="getResourceName('ResonantCrystal')"
               class="resource-icon"
             />
-            <div class="resource-count">{{ resources.ResonantCrystal || 0 }}</div>
-            <div class="resource-tooltip">{{ getResourceName('ResonantCrystal') }}</div>
+            <div class="resource-count">
+              {{ resources.ResonantCrystal || 0 }}
+            </div>
+            <div class="resource-tooltip">
+              {{ getResourceName('ResonantCrystal') }}
+            </div>
           </div>
-          <div class="resource-slot small" :title="getResourceName('RefinedCopper')">
+          <div
+            class="resource-slot small"
+            :title="getResourceName('RefinedCopper')"
+          >
             <img
               v-if="getResourceIcon('RefinedCopper')"
               :src="getResourceIcon('RefinedCopper')"
@@ -180,18 +210,16 @@ defineExpose({ updateResources });
               class="resource-icon"
             />
             <div class="resource-count">{{ resources.RefinedCopper || 0 }}</div>
-            <div class="resource-tooltip">{{ getResourceName('RefinedCopper') }}</div>
+            <div class="resource-tooltip">
+              {{ getResourceName('RefinedCopper') }}
+            </div>
           </div>
         </div>
       </div>
     </div>
     <div class="crafting-section">
       <div class="crafting-grid">
-        <div
-          class="craft-slot"
-          v-for="(itemType, i) in recipeItems"
-          :key="i"
-        >
+        <div class="craft-slot" v-for="(itemType, i) in recipeItems" :key="i">
           <img
             v-if="RESOURCE_META[itemType]?.icon"
             :src="RESOURCE_META[itemType].icon"
@@ -386,7 +414,9 @@ defineExpose({ updateResources });
   width: 36px;
   height: 36px;
   image-rendering: pixelated;
-  transition: transform 0.2s ease, filter 0.2s ease;
+  transition:
+    transform 0.2s ease,
+    filter 0.2s ease;
 }
 
 .resource-name {
@@ -451,7 +481,9 @@ defineExpose({ updateResources });
   object-fit: contain;
   padding: 4px;
   box-sizing: border-box;
-  transition: transform 0.2s ease, filter 0.2s ease;
+  transition:
+    transform 0.2s ease,
+    filter 0.2s ease;
 }
 
 .craft-count {
@@ -479,7 +511,10 @@ defineExpose({ updateResources });
   height: 28px;
   image-rendering: pixelated;
   cursor: pointer;
-  transition: transform 0.15s ease, filter 0.15s ease, opacity 0.15s ease;
+  transition:
+    transform 0.15s ease,
+    filter 0.15s ease,
+    opacity 0.15s ease;
   transform: rotate(90deg);
 }
 .craft-arrow-img:hover {
@@ -525,7 +560,9 @@ defineExpose({ updateResources });
   width: 100%;
   height: 100%;
   object-fit: contain;
-  transition: transform 0.2s ease, filter 0.2s ease;
+  transition:
+    transform 0.2s ease,
+    filter 0.2s ease;
 }
 
 .craft-button-mc {

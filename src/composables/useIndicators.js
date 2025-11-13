@@ -23,7 +23,7 @@ export function useIndicators(scene) {
    */
   function createCellMaterial(customConfig = {}) {
     const config = { ...cellMaterialConfig, ...customConfig };
-    
+
     if (!config.enabled) {
       // 如果未启用，返回透明材质
       return new THREE.MeshBasicMaterial({
@@ -89,7 +89,7 @@ export function useIndicators(scene) {
     const height = cellMaterialConfig.height || 0.08;
 
     const geometry = new THREE.PlaneGeometry(size, size);
-    
+
     // 创建指示器材质（保持原有的半透明效果）
     const material = new THREE.MeshBasicMaterial({
       color: config.color,
