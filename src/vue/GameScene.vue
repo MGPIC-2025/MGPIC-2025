@@ -313,6 +313,9 @@ const currentCopperId = computed(() => {
 onMounted(async () => {
   log('[GameScene] 组件挂载，初始化场景');
   initScene();
+  if (props.isGameMode) {
+    resetCameraInternal();
+  }
   log('[GameScene] 场景初始化完成，设置消息队列');
   setupMessageQueue();
   log('[GameScene] 消息队列设置完成');
