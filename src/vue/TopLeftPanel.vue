@@ -109,48 +109,4 @@ const emit = defineEmits(['back', 'open-settings', 'toggle-music']);
   </div>
 </template>
 
-<style scoped>
-.panel {
-  position: absolute;
-  top: 16px;
-  right: 56px;
-  display: flex;
-  gap: 12px;
-  z-index: 40000;
-  user-select: none;
-  -webkit-user-select: none;
-  background: transparent;
-  backdrop-filter: none;
-  -webkit-backdrop-filter: none;
-  padding: 8px 10px;
-  border-radius: 10px;
-  box-shadow: none;
-  pointer-events: auto;
-}
-.btn {
-  width: 48px;
-  height: 48px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 10px;
-  background: #3a2519;
-  border: 1px solid rgba(255, 255, 255, 0.18);
-  cursor: pointer;
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.25);
-}
-.btn:hover {
-  background: #2f1e14;
-}
-.sr-only {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: -1px;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  white-space: nowrap;
-  border: 0;
-}
-</style>
+<style scoped src="../styles/top-left-panel.css"></style>
