@@ -46,6 +46,12 @@ function openOverlay(type) {
   isPaused.value = true;
 }
 
+function openTutorial() {
+  // 直接在新标签页打开B站教程视频
+  window.open('https://www.bilibili.com/video/BV19UCwBzE1Z/', '_blank');
+  log('[App] 打开新手教程视频');
+}
+
 function onStartMenuStarted() {
   showStartMenu.value = false;
   // StartMenu隐藏时自动暂停渲染，不需要手动调用pause
@@ -297,7 +303,7 @@ onBeforeUnmount(() => {
         "
         @startGame="openOverlay('start')"
         @openWarehouse="openOverlay('warehouse')"
-        @openTutorial="openOverlay('tutorial')"
+        @openTutorial="openTutorial"
         @openEncyclopedia="openOverlay('encyclopedia')"
         @toggle-music="onToggleMusic"
       />

@@ -2,7 +2,7 @@
 // release: 只输出关键信息
 // debug: 输出关键信息和调试信息
 
-const LOG_LEVEL = 'debug';
+const LOG_LEVEL = 'release';
 
 function log(...args) {
   switch (LOG_LEVEL) {
