@@ -1,0 +1,373 @@
+.game-scene {
+  position: fixed;
+  inset: 0;
+  background: #000;
+  z-index: 9999;
+}
+
+.scene-container {
+  width: 100%;
+  height: 100%;
+}
+
+.info-panel {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  padding: 16px 20px;
+  background: rgba(43, 26, 17, 0.9);
+  color: white;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  z-index: 10000;
+  backdrop-filter: blur(10px);
+  max-width: 300px;
+}
+
+.info-panel h3 {
+  margin: 0 0 12px 0;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.info-panel p {
+  margin: 6px 0;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+/* 撤退按钮 */
+.withdraw-button {
+  position: fixed;
+  top: 20px;
+  left: 20px;
+  background: rgba(139, 0, 0, 0.9);
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 12px;
+  color: white;
+  font-size: 18px;
+  font-weight: 700;
+  padding: 12px 24px;
+  cursor: pointer;
+  z-index: 1500;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+  transition: all 0.2s;
+  backdrop-filter: blur(10px);
+}
+
+.withdraw-button:hover {
+  background: rgba(178, 34, 34, 0.95);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(178, 34, 34, 0.5);
+}
+
+.withdraw-button:active {
+  transform: translateY(0);
+}
+
+/* 游戏结束对话框样式 */
+.game-over-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 20000;
+  animation: fadeIn 0.3s ease-out;
+}
+
+.game-over-dialog {
+  box-sizing: border-box;
+  border-style: solid;
+  border-width: 12px;
+  border-image-source: var(--panel7-src);
+  border-image-slice: 8 fill;
+  border-image-width: 12px;
+  border-image-outset: 0;
+  border-image-repeat: stretch;
+  background-color: transparent;
+  padding: 40px 60px;
+  text-align: center;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+  animation: scaleIn 0.3s ease-out;
+}
+
+.game-over-title {
+  font-size: 48px;
+  font-weight: 900;
+  color: #ff4444;
+  margin: 0 0 20px 0;
+  text-shadow: 0 4px 8px rgba(255, 68, 68, 0.4);
+}
+
+.withdraw-title {
+  font-size: 24px;
+  font-weight: 900;
+  letter-spacing: 2px;
+  color: #ef4444;
+  text-shadow: 0 2px 0 rgba(120, 0, 0, 0.35);
+  margin: 0 0 20px 0;
+}
+
+.game-over-message {
+  font-size: 14px;
+  font-weight: 900;
+  letter-spacing: 2px;
+  color: #6a4931;
+  margin: 0 0 40px 0;
+}
+
+.game-over-button {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border: none;
+  border-radius: 12px;
+  color: white;
+  font-size: 20px;
+  font-weight: 700;
+  padding: 16px 48px;
+  cursor: pointer;
+  box-shadow: 0 8px 16px rgba(102, 126, 234, 0.4);
+  transition: all 0.2s;
+}
+
+.game-over-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 24px rgba(102, 126, 234, 0.6);
+}
+
+.game-over-button:active {
+  transform: translateY(0);
+}
+
+/* 对话框按钮组 */
+.dialog-buttons {
+  display: flex;
+  gap: 100px;
+  justify-content: center;
+}
+
+.dialog-button {
+  padding: 14px 32px;
+  box-sizing: border-box;
+  border-style: solid;
+  border-width: 12px;
+  border-image-slice: 8 fill;
+  border-image-width: 12px;
+  border-image-outset: 0;
+  border-image-repeat: stretch;
+  background-color: transparent;
+  color: #fff3ef;
+  font-size: 14px;
+  font-weight: 900;
+  letter-spacing: 2px;
+  cursor: pointer;
+  transition: all 0.2s;
+  min-width: 140px;
+}
+
+.cancel-button {
+  border-image-source: var(--panel8-src);
+}
+
+.cancel-button:hover {
+  opacity: 0.9;
+}
+
+.confirm-button {
+  border-image-source: var(--panel7-src);
+  box-shadow: 0 6px 16px rgba(245, 158, 11, 0.3);
+}
+
+.confirm-button:hover {
+  opacity: 0.9;
+}
+
+.dialog-button:active {
+  transform: translateY(0);
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    transform: scale(0.8);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* 游戏成功对话框样式 */
+.success-dialog {
+  background: linear-gradient(135deg, #1a2b11 0%, #0f1f0c 100%) !important;
+  border: 3px solid rgba(100, 255, 100, 0.5) !important;
+}
+
+.success-title {
+  font-size: 52px;
+  font-weight: 900;
+  color: #44ff44;
+  margin: 0 0 20px 0;
+  text-shadow:
+    0 4px 8px rgba(68, 255, 68, 0.6),
+    0 0 20px rgba(68, 255, 68, 0.4);
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+.success-button {
+  background: linear-gradient(135deg, #44ff44 0%, #22aa22 100%) !important;
+  box-shadow: 0 8px 16px rgba(68, 255, 68, 0.4) !important;
+}
+
+.success-button:hover {
+  box-shadow: 0 12px 24px rgba(68, 255, 68, 0.6) !important;
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+}
+
+/* 制作团队名单样式 */
+.credits-overlay {
+  position: fixed;
+  inset: 0;
+  background: linear-gradient(180deg, #000000 0%, #1a1a2e 50%, #000000 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 25000;
+  animation: fadeIn 0.5s ease-out;
+}
+
+.credits-container {
+  width: 100%;
+  max-width: 800px;
+  padding: 40px;
+  text-align: center;
+  animation: creditsScroll 5s ease-in-out;
+}
+
+.credits-title {
+  font-size: 64px;
+  font-weight: 900;
+  color: #ffd700;
+  margin: 0 0 60px 0;
+  text-shadow: 0 4px 12px rgba(255, 215, 0, 0.6);
+  letter-spacing: 8px;
+}
+
+.credits-content {
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+}
+
+.credits-section {
+  opacity: 0;
+  animation: fadeInUp 0.8s ease-out forwards;
+}
+
+.credits-section:nth-child(1) {
+  animation-delay: 0.2s;
+}
+
+.credits-section:nth-child(2) {
+  animation-delay: 0.6s;
+}
+
+.credits-section:nth-child(3) {
+  animation-delay: 1s;
+}
+
+.credits-section:nth-child(4) {
+  animation-delay: 1.4s;
+}
+
+.credits-section:nth-child(5) {
+  animation-delay: 1.8s;
+}
+
+.credits-section h2 {
+  font-size: 32px;
+  font-weight: 700;
+  color: #88ccff;
+  margin: 0 0 16px 0;
+  text-shadow: 0 2px 8px rgba(136, 204, 255, 0.4);
+}
+
+.credits-section p {
+  font-size: 24px;
+  color: #ffffff;
+  margin: 8px 0;
+  opacity: 0.9;
+}
+
+.skip-credits-button {
+  position: fixed;
+  bottom: 40px;
+  right: 40px;
+  background: rgba(255, 255, 255, 0.2);
+  border: 2px solid rgba(255, 255, 255, 0.4);
+  border-radius: 12px;
+  color: white;
+  font-size: 18px;
+  font-weight: 700;
+  padding: 12px 32px;
+  cursor: pointer;
+  transition: all 0.2s;
+  backdrop-filter: blur(10px);
+}
+
+.skip-credits-button:hover {
+  background: rgba(255, 255, 255, 0.3);
+  border-color: rgba(255, 255, 255, 0.6);
+  transform: translateY(-2px);
+}
+
+@keyframes creditsScroll {
+  0% {
+    transform: translateY(100px);
+    opacity: 0;
+  }
+  20% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+  80% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-50px);
+    opacity: 1;
+  }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+
