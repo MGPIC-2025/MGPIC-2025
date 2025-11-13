@@ -25,7 +25,7 @@ let refined_copper_ingot : MaterialBase = {
 
 ///|
 let resonant_star_crystal : MaterialBase = {
-  name: "共鸣星晶",
+  name: "谐振星晶",
   resource_type: ResourceType::ResonantCrystal,
   model_url: "/assets/resource/resonant_star_crystal/resonant_star_crystal.glb",
 }
