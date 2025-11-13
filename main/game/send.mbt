@@ -130,7 +130,7 @@ fn clear_state(id : Int) -> Unit {
 }
 
 ///|
-/// 把视角转移  到一个单位身上
+/// 把视角转移到一个单位身上
 fn animate_move(id : Int) -> Unit {
   @global_msg.msg_info.broadcast({
     type_msg: "animate_move",

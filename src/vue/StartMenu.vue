@@ -280,11 +280,16 @@ onMounted(() => {
   isReady.value = false;
 
   // 检测 Electron 环境
-  isElectron.value = 
-    typeof window !== 'undefined' && 
+  isElectron.value =
+    typeof window !== 'undefined' &&
     (window.navigator.userAgent.toLowerCase().includes('electron') ||
-     window.process?.type === 'renderer' ||
-     !!(window.require && window.process && window.process.versions && window.process.versions.electron));
+      window.process?.type === 'renderer' ||
+      !!(
+        window.require &&
+        window.process &&
+        window.process.versions &&
+        window.process.versions.electron
+      ));
 
   log('[StartMenu] 组件挂载，开始加载...');
   log('[StartMenu] Electron 环境:', isElectron.value);
@@ -446,7 +451,11 @@ onBeforeUnmount(() => {
   left: 0;
   right: 0;
   z-index: 10; /* 在所有元素之上 */
-  background: linear-gradient(135deg, rgba(102, 126, 234, 0.95) 0%, rgba(118, 75, 162, 0.95) 100%);
+  background: linear-gradient(
+    135deg,
+    rgba(102, 126, 234, 0.95) 0%,
+    rgba(118, 75, 162, 0.95) 100%
+  );
   backdrop-filter: blur(10px);
   padding: 12px 20px;
   display: flex;
@@ -507,12 +516,12 @@ onBeforeUnmount(() => {
     gap: 8px;
     padding: 10px 16px;
   }
-  
+
   .download-banner__text {
     font-size: 12px;
     text-align: center;
   }
-  
+
   .download-banner__link {
     font-size: 12px;
     padding: 5px 14px;

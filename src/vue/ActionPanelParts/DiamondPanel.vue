@@ -29,7 +29,8 @@ const emit = defineEmits(['inventory-click']);
 const copperName = computed(() => (props.copperInfo?.name || '').trim());
 const isEnemyUnit = computed(
   () =>
-    props.copperInfo?.isOwnedEnemy === true || props.copperInfo?.isEnemy === true
+    props.copperInfo?.isOwnedEnemy === true ||
+    props.copperInfo?.isEnemy === true
 );
 const shouldShowCopperName = computed(
   () => isEnemyUnit.value && copperName.value !== ''
@@ -59,7 +60,7 @@ const resources = ref({
 // 获取资源数据（和 ResourcePanel 一样的后端绑定方式）
 async function updateResources() {
   try {
-    const resourceData = await get_resource();
+    const resourceData = get_resource();
     if (resourceData) {
       Object.keys(resources.value).forEach(key => {
         resources.value[key] = resourceData[key] || 0;
@@ -88,7 +89,7 @@ const diamondPanelRef = ref(null);
 onMounted(async () => {
   // 加载资源数据
   updateResources();
-  
+
   // 监听资源更新事件（和 ResourcePanel 一样的后端绑定方式）
   onEvent(EventTypes.UPDATE_RESOURCES, updateResources);
 
@@ -144,9 +145,17 @@ onMounted(async () => {
     </div>
     <div class="diamond-row diamond-row--top">
       <div
-        :class="['diamond', 'border-blue', { 'diamond--disabled': isInventoryDisabled }]"
+        :class="[
+          'diamond',
+          'border-blue',
+          { 'diamond--disabled': isInventoryDisabled },
+        ]"
         @click="handleInventoryClick"
-        :title="isInventoryDisabled ? '敌人单位，无法查看资源与装备' : '打开资源面板（全局资源）'"
+        :title="
+          isInventoryDisabled
+            ? '敌人单位，无法查看资源与装备'
+            : '打开资源面板（全局资源）'
+        "
         :aria-disabled="isInventoryDisabled ? 'true' : 'false'"
       >
         <div class="diamond-content">

@@ -60,7 +60,7 @@ function handleNextCopper() {
 
 async function handleEndRound() {
   const message = JSON.stringify({ type: 'on_game_round_pass' });
-  await eventloop(message);
+  eventloop(message);
   emit('endRound');
 }
 
@@ -458,7 +458,9 @@ onMounted(async () => {
     text-shadow: 0 2px 0 rgba(120, 0, 0, 0.35);
   }
   50% {
-    text-shadow: 0 2px 4px rgba(180, 0, 0, 0.5), 0 0 8px rgba(255, 200, 0, 0.3);
+    text-shadow:
+      0 2px 4px rgba(180, 0, 0, 0.5),
+      0 0 8px rgba(255, 200, 0, 0.3);
   }
   100% {
     text-shadow: 0 2px 0 rgba(120, 0, 0, 0.35);

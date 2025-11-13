@@ -890,11 +890,11 @@ export function registerAllHandlers() {
       data.missing.length > 0
     ) {
       const resourceNames = {
-        HeartCrystalDust: '心晶尘',
+        HeartCrystalDust: '心源晶尘',
         RecallGear: '回响齿轮',
         SpiritalSpark: '灵性火花',
         RefinedCopper: '精炼铜锭',
-        ResonantCrystal: '共鸣星晶',
+        ResonantCrystal: '谐振星晶',
       };
 
       const missingList = data.missing

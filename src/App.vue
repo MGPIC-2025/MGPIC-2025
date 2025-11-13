@@ -168,7 +168,7 @@ function onToggleMusic() {
 async function onDownloadSave() {
   try {
     log('[App] 开始导出存档...');
-    const saveData = await export_save();
+    const saveData = export_save();
 
     if (saveData.type === 'error') {
       log('[App] 导出存档失败:', saveData.content);
@@ -213,7 +213,7 @@ async function onFileChange(ev) {
         const saveData = JSON.parse(saveDataStr);
 
         log('[App] 存档文件解析成功，准备导入...');
-        await import_save(saveDataStr);
+        import_save(saveDataStr);
         log('[App] 存档导入完成');
         alert('存档导入成功！');
       } catch (error) {

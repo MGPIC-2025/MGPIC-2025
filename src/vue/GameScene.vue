@@ -24,9 +24,9 @@ import { onEvent, offEvent, emitEvent, EventTypes } from '../utils/eventBus.js';
 import { useHealthBars } from '../composables/useHealthBars.js';
 import { useIndicators } from '../composables/useIndicators.js';
 import { useEffects } from '../composables/useEffects.js';
-import { 
-  getControlConfig, 
-  getSkyboxConfig, 
+import {
+  getControlConfig,
+  getSkyboxConfig,
   getLightingConfig,
   getGridCellMaterialConfig,
 } from '../utils/sceneConfig.js';
@@ -83,10 +83,10 @@ const enemyHurtSoundUrl = getSoundUrl('enemyHurt');
 let scene, camera, renderer, controls;
 let models = [];
 const controlCfgForFocus = getControlConfig();
-let focusState = { 
-  focusPosition: null, 
-  focusTarget: null, 
-  lerpFactor: controlCfgForFocus.focusLerpFactor 
+let focusState = {
+  focusPosition: null,
+  focusTarget: null,
+  lerpFactor: controlCfgForFocus.focusLerpFactor,
 };
 let raycaster = null;
 let mouse = new THREE.Vector2();
@@ -301,6 +301,10 @@ const showCredits = ref(false);
 // 撤退确认对话框
 const showWithdrawDialog = ref(false);
 
+// 资源不足提示对话框
+const showResourceDialog = ref(false);
+const resourceDialogMessage = ref('');
+
 const currentCopperId = computed(() => {
   if (
     playerCoppers.value.length === 0 ||
@@ -320,8 +324,6 @@ onMounted(async () => {
   setupMessageQueue();
   log('[GameScene] 消息队列设置完成');
 
-  // 默认切换到EventLoop模式（隐藏测试模型）
-  const { messageQueue } = await import('../messageQueue.js');
   if (messageQueue.sceneContext?.setTestMode) {
     messageQueue.sceneContext.setTestMode('eventloop');
   }
@@ -332,9 +334,7 @@ onMounted(async () => {
     const ids = window.__ACTUAL_COPPER_IDS__;
     log('[GameScene] 场景准备完成，发送游戏开始消息，ID:', ids);
     const message = JSON.stringify({ type: 'on_game_start', content: { ids } });
-    eventloop(message).catch(e => {
-      log('[GameScene] 发送游戏开始消息失败', e);
-    });
+    eventloop(message);
     // 清除标记
     delete window.__ACTUAL_COPPER_IDS__;
   } else {
@@ -490,7 +490,7 @@ onBeforeUnmount(() => {
 function initScene() {
   // 创建场景
   scene = new THREE.Scene();
-  
+
   // 加载圆顶天空盒（使用工具函数）
   const skyboxCfg = getSkyboxConfig();
   loadSkybox(scene, skyboxCfg);
@@ -952,7 +952,10 @@ function setupMessageQueue() {
       );
 
       // 保存 can_build 状态到 Map（供游戏开始时的状态圈显示使用）
-      if (copper.copper?.copper_type === 'CraftsMan' && copper.id !== undefined) {
+      if (
+        copper.copper?.copper_type === 'CraftsMan' &&
+        copper.id !== undefined
+      ) {
         copperCanBuildMap.set(copper.id, copper.can_build === true);
       }
 
@@ -1003,7 +1006,7 @@ function setupMessageQueue() {
     // 移动开始时的回调（用于跟踪敌人移动）
     onMoveStart: (id, model) => {
       if (!props.isGameMode) return;
-      
+
       // 如果是野生敌人（type === 'enemy' 且 isOwned === false）且正在跟踪敌人移动，将其添加到跟踪列表
       if (isEnemyMoving.value && model?.type === 'enemy' && !model?.isOwned) {
         log(`[GameScene] 开始跟踪野生敌人 ${id} 的移动`);
@@ -1037,7 +1040,7 @@ function setupMessageQueue() {
         if (isEnemyMoving.value && pendingEnemyMoves.value.has(id)) {
           log(`[GameScene] 野生敌人 ${id} 移动完成`);
           pendingEnemyMoves.value.delete(id);
-          
+
           // 检查是否所有敌人都移动完成
           if (pendingEnemyMoves.value.size === 0) {
             log('[GameScene] 所有野生敌人移动完成，允许按钮点击');
@@ -1104,7 +1107,8 @@ function setupMessageQueue() {
     // 资源不足回调
     onResourceNotEnough: message => {
       log(`[GameScene] 资源不足: ${message}`);
-      alert(`❌ ${message}`);
+      resourceDialogMessage.value = message;
+      showResourceDialog.value = true;
       // 清除所有操作模式
       currentActionMode.value = null;
       currentBuildingName.value = null;
@@ -1967,7 +1971,7 @@ function setupMessageQueue() {
 
       // 获取地图块材质配置
       const cellConfig = getGridCellMaterialConfig();
-      
+
       if (!cellConfig.enabled) {
         // 如果未启用，不创建地图块
         return;
@@ -1987,46 +1991,49 @@ function setupMessageQueue() {
         texture.colorSpace = THREE.SRGBColorSpace;
         texture.wrapS = THREE.RepeatWrapping;
         texture.wrapT = THREE.RepeatWrapping;
-        texture.repeat.set(cellConfig.texture.repeat.x, cellConfig.texture.repeat.y);
+        texture.repeat.set(
+          cellConfig.texture.repeat.x,
+          cellConfig.texture.repeat.y
+        );
 
         // 纹理材质
         // 强制设置为不透明，避免透明对象渲染顺序问题导致遮挡血条
-        const opacity = 1.0;  // 强制不透明
+        const opacity = 1.0; // 强制不透明
         material = new THREE.MeshStandardMaterial({
           map: texture,
-          transparent: false,  // 强制不透明
+          transparent: false, // 强制不透明
           opacity: opacity,
-          depthTest: true,   // 明确启用深度测试
-          depthWrite: true,  // 允许写入深度（用于遮挡单位模型）
+          depthTest: true, // 明确启用深度测试
+          depthWrite: true, // 允许写入深度（用于遮挡单位模型）
         });
       } else if (cellConfig.materialType === 'standard') {
         // 标准材质（支持光照）
         // 强制设置为不透明，避免透明对象渲染顺序问题导致遮挡血条
-        const opacity = 1.0;  // 强制不透明
+        const opacity = 1.0; // 强制不透明
         material = new THREE.MeshStandardMaterial({
           color: cellConfig.standard.color,
           roughness: cellConfig.standard.roughness,
           metalness: cellConfig.standard.metalness,
-          transparent: false,  // 强制不透明
+          transparent: false, // 强制不透明
           opacity: opacity,
-          depthTest: true,   // 明确启用深度测试
-          depthWrite: true,  // 允许写入深度（用于遮挡单位模型）
+          depthTest: true, // 明确启用深度测试
+          depthWrite: true, // 允许写入深度（用于遮挡单位模型）
         });
       } else {
         // 基础材质
         // 强制设置为不透明，避免透明对象渲染顺序问题导致遮挡血条
-        const opacity = 1.0;  // 强制不透明
+        const opacity = 1.0; // 强制不透明
         material = new THREE.MeshBasicMaterial({
           color: cellConfig.basic.color,
-          transparent: false,  // 强制不透明
+          transparent: false, // 强制不透明
           opacity: opacity,
-          depthTest: true,   // 明确启用深度测试
-          depthWrite: true,  // 允许写入深度（用于遮挡单位模型）
+          depthTest: true, // 明确启用深度测试
+          depthWrite: true, // 允许写入深度（用于遮挡单位模型）
         });
       }
 
       const block = new THREE.Mesh(geometry, material);
-      
+
       // 设置渲染顺序，确保地图块在血条之前渲染（血条的renderOrder是9999）
       // 使用负值确保地图块先于血条渲染，但保持深度写入以正确遮挡单位模型
       block.renderOrder = -100;
@@ -3094,9 +3101,7 @@ function endRound() {
   log(`[GameScene] 进入回合 ${currentRound.value}`);
 
   // 检查是否有野生敌人
-  const wildEnemies = models.filter(
-    m => m.type === 'enemy' && !m.isOwned
-  );
+  const wildEnemies = models.filter(m => m.type === 'enemy' && !m.isOwned);
   log(`[GameScene] 检测到 ${wildEnemies.length} 个野生敌人`);
 
   if (wildEnemies.length === 0) {
@@ -3137,7 +3142,6 @@ function endRound() {
       }
     }, 1000);
   }
-
 }
 
 // 处理游戏结束对话框确定按钮
@@ -3149,9 +3153,7 @@ async function handleGameOverConfirm() {
 
   // 发送 on_game_over 消息给后端，让后端清空 Game
   const message = JSON.stringify({ type: 'on_game_over' });
-  await eventloop(message).catch(e => {
-    log('[GameScene] 发送 on_game_over 消息失败', e);
-  });
+  await eventloop(message);
 
   // 返回菜单
   emit('back');
@@ -3166,9 +3168,7 @@ async function handleGameSuccessConfirm() {
 
   // 发送 on_game_over 消息给后端，让后端清空 Game
   const message = JSON.stringify({ type: 'on_game_over' });
-  await eventloop(message).catch(e => {
-    log('[GameScene] 发送 on_game_over 消息失败', e);
-  });
+  await eventloop(message);
 
   // 显示制作团队名单
   showCreditsScreen();
@@ -3216,12 +3216,17 @@ async function confirmWithdraw() {
   // 发送 game_over 消息（直接发送 game_over，不需要先经过前端处理）
   // 然后发送 on_game_over 清空 Game
   const message = JSON.stringify({ type: 'on_game_over' });
-  await eventloop(message).catch(e => {
-    log('[GameScene] 发送 on_game_over 消息失败', e);
-  });
+  await eventloop(message);
 
   // 返回菜单
   emit('back');
+}
+
+// 关闭资源不足提示
+function closeResourceDialog() {
+  log('[GameScene] 关闭资源不足提示');
+  showResourceDialog.value = false;
+  resourceDialogMessage.value = '';
 }
 
 // 背景图片路径（CSS border-image 需要 url() 包裹）
@@ -3257,14 +3262,6 @@ const panel8Src = `url('${getAssetUrl('@assets/ui/panel8.png')}')`;
     <!-- 全局资源面板 -->
     <ResourcePanel v-if="isGameMode" />
 
-    <!-- 虚拟摇杆控制（手机模式） -->
-    <VirtualControls
-      v-if="isGameMode"
-      :visible="true"
-      @move="handleVirtualMove"
-      @rotate="handleVirtualRotate"
-      @verticalMove="handleVirtualVerticalMove"
-    />
 
     <!-- 铜偶操作面板（仅游戏模式显示） -->
     <ActionPanel
@@ -3407,6 +3404,22 @@ const panel8Src = `url('${getAssetUrl('@assets/ui/panel8.png')}')`;
         </div>
 
         <button class="skip-credits-button" @click="skipCredits">跳过</button>
+      </div>
+    </div>
+
+    <!-- 资源不足对话框 -->
+    <div v-if="showResourceDialog" class="game-over-overlay">
+      <div class="game-over-dialog">
+        <h2 class="withdraw-title">资源不足</h2>
+        <p class="game-over-message">{{ resourceDialogMessage }}</p>
+        <div class="dialog-buttons">
+          <button
+            class="dialog-button confirm-button"
+            @click="closeResourceDialog"
+          >
+            知道了
+          </button>
+        </div>
       </div>
     </div>
 

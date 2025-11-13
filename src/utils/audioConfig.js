@@ -41,4 +41,3 @@ export function getMusicUrl(key) {
 export function getSoundUrl(key) {
   return soundConfig[key] || '';
 }
-

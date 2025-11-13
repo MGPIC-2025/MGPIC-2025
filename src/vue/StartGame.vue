@@ -241,7 +241,7 @@ async function loadCoppers() {
   loading.value = true;
   error.value = '';
   try {
-    const plain = await get_copper_list();
+    const plain = get_copper_list();
     const arr = Array.isArray(plain?.coppers) ? plain.coppers : [];
     copperList.value = (arr || []).map((c, i) => {
       const modelUrl = c?.copper_info?.model_url;

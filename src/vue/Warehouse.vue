@@ -162,7 +162,7 @@ const resources = ref([]);
 
 async function updateResources() {
   try {
-    const resourceData = await get_resource();
+    const resourceData = get_resource();
     if (resourceData) {
       resources.value = mapResources(resourceData);
     }
@@ -264,7 +264,7 @@ onBeforeUnmount(() => {
   if (audioRef.value) {
     audioRef.value.pause();
   }
-  
+
   // 清理资源更新事件监听（和 ResourcePanel 一样的后端绑定方式）
   offEvent(EventTypes.UPDATE_RESOURCES, updateResources);
 });
@@ -274,7 +274,7 @@ const puppets = ref([]);
 // 拉取铜偶列表
 onMounted(async () => {
   try {
-    const plainCopper = await get_copper_list();
+    const plainCopper = get_copper_list();
     let arr =
       plainCopper && Array.isArray(plainCopper.coppers)
         ? plainCopper.coppers
@@ -387,7 +387,7 @@ async function onGachaResult(payload) {
     await updateResources();
 
     // 刷新铜偶列表
-    const listPlain = await get_copper_list();
+    const listPlain = get_copper_list();
     const arr = Array.isArray(listPlain?.coppers) ? listPlain.coppers : [];
     puppets.value = mapPuppets(arr);
 
@@ -403,7 +403,7 @@ async function upgradeSelected() {
     return;
   }
   const id = selectedPuppet.value.id;
-  const res = await upgrade_copper(id);
+  const res = upgrade_copper(id);
   if (!res || res.type !== 'success') {
     alert(res && res.content ? res.content : '升级失败');
     return;
@@ -414,7 +414,7 @@ async function upgradeSelected() {
     await updateResources();
 
     // 刷新铜偶列表
-    const listPlain = await get_copper_list();
+    const listPlain = get_copper_list();
     const arr = Array.isArray(listPlain?.coppers) ? listPlain.coppers : [];
     puppets.value = mapPuppets(arr);
 
@@ -605,7 +605,7 @@ const musicUrl = import.meta.env.DEV
                 </div>
               </div>
 
-              <div 
+              <div
                 v-if="selectedPuppet?.stats?.class !== '工匠'"
                 class="skill-section"
               >
@@ -726,7 +726,9 @@ const musicUrl = import.meta.env.DEV
   border-radius: 12px;
   min-width: 100px;
   cursor: pointer;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
 }
 .resource-item:hover {
   transform: translateY(-4px) scale(1.05);
@@ -772,7 +774,9 @@ const musicUrl = import.meta.env.DEV
   white-space: nowrap;
   opacity: 0;
   pointer-events: none;
-  transition: opacity 0.2s ease, transform 0.2s ease;
+  transition:
+    opacity 0.2s ease,
+    transform 0.2s ease;
   z-index: 1000;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
 }

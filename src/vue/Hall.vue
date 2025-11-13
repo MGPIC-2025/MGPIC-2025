@@ -32,11 +32,19 @@ function openTutorial() {
   emit('openTutorial');
 }
 function openEncyclopedia() {
-  emit('openEncyclopedia');
+  const encyclopediaUrl = 'https://mgpic-2025.github.io/CopperPuppetry-Wiki/';
+  log(`[Hall] 打开游戏百科: ${encyclopediaUrl}`);
+  if (window?.open) {
+    window.open(encyclopediaUrl, '_blank', 'noopener');
+  } else {
+    window.location.href = encyclopediaUrl;
+  }
 }
 
 const bgStart = ref(getAssetUrl('@assets/frontend_resource/start_game.png'));
-const bgWarehouse = ref(getAssetUrl('@assets/frontend_resource/copper_warehouse.png'));
+const bgWarehouse = ref(
+  getAssetUrl('@assets/frontend_resource/copper_warehouse.png')
+);
 const bgWiki = ref(getAssetUrl('@assets/frontend_resource/game_wiki.png'));
 const bgTutorial = ref(getAssetUrl('@assets/frontend_resource/Tutorial.png'));
 // 使用 Vite 的静态资源导入方式

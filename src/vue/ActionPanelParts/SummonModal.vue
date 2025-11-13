@@ -1,6 +1,7 @@
 <script setup>
 import { ref, computed } from 'vue';
 import { getAssetUrl } from '../../utils/resourceLoader.js';
+import { getItemName, RESOURCE_META } from '../../utils/resourceMeta.js';
 import log from '../../log.js';
 
 // 背景图片路径（CSS border-image 需要 url() 包裹）
@@ -60,6 +61,30 @@ function getEnemyTypeLabel(type) {
   };
   return typeMap[type] || type;
 }
+
+// 格式化资源成本（参考 BuildModal.vue）
+function formatCost(costData) {
+  if (!costData) return '无消耗';
+
+  // 处理后端的格式: { cost: [["RefinedCopper", 10], ...] }
+  const costArray = costData.cost || costData;
+  if (!Array.isArray(costArray) || costArray.length === 0) return '无消耗';
+
+  return costArray
+    .map(item => {
+      // 如果是数组格式 ["RefinedCopper", 10]
+      if (Array.isArray(item)) {
+        const resourceType = item[0];
+        const count = item[1];
+        // 直接从 RESOURCE_META 获取中文名
+        const resourceName = RESOURCE_META[resourceType]?.name || resourceType;
+        return `${resourceName} x${count}`;
+      }
+      // 如果是对象格式 { item_type: "RefinedCopper", count: 10 }
+      return `${getItemName(item)} x${item.count}`;
+    })
+    .join(', ');
+}
 </script>
 
 <template>
@@ -74,14 +99,6 @@ function getEnemyTypeLabel(type) {
         <div class="modal-info">
           <p class="info-text">
             <span class="copper-name">{{ copperName }}</span> 正在施展召唤术
-          </p>
-          <p class="cost-text">
-            <img
-              class="cost-icon"
-              :src="getAssetUrl('resource/spiritual_spark.png')"
-              alt="心源火花"
-            />
-            消耗：<strong>1 个心源火花</strong>
           </p>
         </div>
 
@@ -125,6 +142,13 @@ function getEnemyTypeLabel(type) {
                   <span class="stat-label">👟</span>
                   <span class="stat-value">{{ enemy.move_range }}</span>
                 </div>
+              </div>
+
+              <div class="enemy-cost">
+                <span class="cost-label">💰 召唤消耗：</span>
+                <span class="cost-value">{{
+                  formatCost(enemy.summon_cost)
+                }}</span>
               </div>
 
               <div class="enemy-desc">{{ enemy.description }}</div>
@@ -264,23 +288,6 @@ function getEnemyTypeLabel(type) {
   color: #6a4931;
 }
 
-.cost-text {
-  margin: 0;
-  font-size: 14px;
-  font-weight: 900;
-  letter-spacing: 2px;
-  color: #6a4931;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.cost-icon {
-  width: 24px;
-  height: 24px;
-  object-fit: contain;
-}
-
 .modal-body {
   flex: 1;
   overflow-y: auto;
@@ -375,6 +382,27 @@ function getEnemyTypeLabel(type) {
   letter-spacing: 2px;
 }
 
+.enemy-cost {
+  margin-bottom: 8px;
+  padding: 8px;
+  background: rgba(255, 215, 0, 0.1);
+  border-radius: 8px;
+  font-size: 13px;
+}
+
+.cost-label {
+  color: #6a4931;
+  font-weight: 900;
+  letter-spacing: 2px;
+}
+
+.cost-value {
+  color: #1a0f00;
+  font-weight: 900;
+  letter-spacing: 1px;
+  margin-left: 4px;
+}
+
 .enemy-desc {
   font-size: 14px;
   font-weight: 900;
@@ -387,6 +415,7 @@ function getEnemyTypeLabel(type) {
   text-overflow: ellipsis;
   display: -webkit-box;
   -webkit-line-clamp: 3;
+  line-clamp: 3;
   -webkit-box-orient: vertical;
 }
 

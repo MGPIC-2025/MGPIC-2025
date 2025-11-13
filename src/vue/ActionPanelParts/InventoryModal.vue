@@ -33,8 +33,6 @@ function close() {
   <!-- 资源弹窗 -->
   <div v-if="visible" class="inventory-modal" @click.self="close">
     <div class="minecraft-inventory">
-      
-
       <div class="inventory-layout">
         <!-- 装备区域 -->
         <div class="inventory-section">
@@ -49,9 +47,11 @@ function close() {
               v-for="(item, index) in 2"
               :key="index"
               class="inv-slot"
-              :class="{ 
-                'has-item': index < equipmentItems.length && equipmentItems[index]?.equipped,
-                'slot-locked': equipmentItems[index]?.locked
+              :class="{
+                'has-item':
+                  index < equipmentItems.length &&
+                  equipmentItems[index]?.equipped,
+                'slot-locked': equipmentItems[index]?.locked,
               }"
             >
               <template v-if="index < equipmentItems.length">
@@ -85,12 +85,17 @@ function close() {
                     class="equipment-icon"
                   />
                   <!-- 其他情况显示文本图标 -->
-                  <span v-else class="equipment-icon">{{ equipmentItems[index]?.icon || '＋' }}</span>
+                  <span v-else class="equipment-icon">{{
+                    equipmentItems[index]?.icon || '＋'
+                  }}</span>
                 </div>
                 <!-- 装备名称提示 -->
                 <div class="slot-tooltip">
                   <div class="tooltip-name">
-                    {{ equipmentItems[index]?.name || (equipmentItems[index]?.locked ? '未解锁' : '空槽') }}
+                    {{
+                      equipmentItems[index]?.name ||
+                      (equipmentItems[index]?.locked ? '未解锁' : '空槽')
+                    }}
                   </div>
                 </div>
               </template>
