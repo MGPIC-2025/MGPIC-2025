@@ -3171,6 +3171,13 @@ function closeResourceDialog() {
   resourceDialogMessage.value = '';
 }
 
+// 重置镜头视角（调用已有的 window.resetCamera）
+function resetCameraView() {
+  if (typeof window !== 'undefined' && typeof window.resetCamera === 'function') {
+    window.resetCamera();
+  }
+}
+
 // 背景图片路径（CSS border-image 需要 url() 包裹）
 const panel7Src = `url('${getAssetUrl('@assets/ui/panel7.png')}')`;
 const panel8Src = `url('${getAssetUrl('@assets/ui/panel8.png')}')`;
@@ -3196,14 +3203,7 @@ const styleVars = computed(() => ({
       @selectCopper="handleClickCopper"
     />
 
-    <!-- 撤退按钮 -->
-    <button
-      v-if="isGameMode"
-      class="withdraw-button"
-      @click="openWithdrawDialog"
-    >
-      撤退
-    </button>
+    
 
     <!-- 全局资源面板 -->
     <ResourcePanel v-if="isGameMode" />
@@ -3366,6 +3366,12 @@ const styleVars = computed(() => ({
           </button>
         </div>
       </div>
+    </div>
+
+    <!-- 左上角操作按钮：撤退 + 重置镜头 -->
+    <div class="top-left-actions" v-if="isGameMode">
+      <button class="withdraw-button" @click="openWithdrawDialog">撤退</button>
+      <button class="reset-button" @click="resetCameraView" title="重置镜头">重置镜头</button>
     </div>
 
     <!-- 撤退确认对话框 -->

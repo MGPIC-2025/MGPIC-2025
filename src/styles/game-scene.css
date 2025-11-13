@@ -36,11 +36,18 @@
   line-height: 1.5;
 }
 
-/* 撤退按钮 */
-.withdraw-button {
+/* 左上角操作区域：撤退 + 重置镜头 */
+.top-left-actions {
   position: fixed;
   top: 20px;
   left: 20px;
+  display: flex;
+  gap: 12px;
+  z-index: 1500;
+}
+
+.withdraw-button {
+  position: static;
   background: rgba(139, 0, 0, 0.9);
   border: 2px solid rgba(255, 255, 255, 0.3);
   border-radius: 12px;
@@ -49,7 +56,6 @@
   font-weight: 700;
   padding: 12px 24px;
   cursor: pointer;
-  z-index: 1500;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
   transition: all 0.2s;
   backdrop-filter: blur(10px);
@@ -62,6 +68,30 @@
 }
 
 .withdraw-button:active {
+  transform: translateY(0);
+}
+
+/* 重置镜头按钮 */
+.reset-button {
+  position: static;
+  background: rgba(34, 85, 170, 0.9);
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 12px;
+  color: white;
+  font-size: 18px;
+  font-weight: 700;
+  padding: 12px 24px;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+  transition: all 0.2s;
+  backdrop-filter: blur(10px);
+}
+.reset-button:hover {
+  background: rgba(46, 109, 199, 0.95);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(46, 109, 199, 0.5);
+}
+.reset-button:active {
   transform: translateY(0);
 }
 
