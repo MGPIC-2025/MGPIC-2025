@@ -299,8 +299,11 @@ onMounted(() => {
   // 自动播放音乐（如果音乐开关是开启的且未暂停）
   if (props.musicOn && !props.paused && audioRef.value) {
     const tryPlay = () => {
-      if (audioRef.value.readyState >= 2) {
-        audioRef.value
+      const audioEl = audioRef.value;
+      if (!audioEl) return;
+
+      if (audioEl.readyState >= 2) {
+        audioEl
           .play()
           .then(() => {
             log('[StartGame] 音乐播放成功');
@@ -310,17 +313,19 @@ onMounted(() => {
           });
       } else {
         const onCanPlay = () => {
-          audioRef.value
-            .play()
+          const el = audioRef.value;
+          if (!el) return;
+
+          el.play()
             .then(() => {
               log('[StartGame] 音频加载完成，播放成功');
             })
             .catch(err => {
               log('[StartGame] 播放失败:', err);
             });
-          audioRef.value.removeEventListener('canplay', onCanPlay);
+          el.removeEventListener('canplay', onCanPlay);
         };
-        audioRef.value.addEventListener('canplay', onCanPlay, { once: true });
+        audioEl.addEventListener('canplay', onCanPlay, { once: true });
       }
     };
 
@@ -333,24 +338,27 @@ onMounted(() => {
 watch(
   () => props.musicOn,
   newVal => {
-    if (!audioRef.value) return;
+    const audioEl = audioRef.value;
+    if (!audioEl) return;
 
     if (newVal && !props.paused) {
-      if (audioRef.value.readyState >= 2) {
-        audioRef.value.play().catch(err => {
+      if (audioEl.readyState >= 2) {
+        audioEl.play().catch(err => {
           log('[StartGame] 播放音乐失败:', err);
         });
       } else {
         const playWhenReady = () => {
-          audioRef.value.play().catch(err => {
+          const el = audioRef.value;
+          if (!el) return;
+          el.play().catch(err => {
             log('[StartGame] 播放音乐失败:', err);
           });
-          audioRef.value.removeEventListener('canplay', playWhenReady);
+          el.removeEventListener('canplay', playWhenReady);
         };
-        audioRef.value.addEventListener('canplay', playWhenReady);
+        audioEl.addEventListener('canplay', playWhenReady);
       }
     } else {
-      audioRef.value.pause();
+      audioEl.pause();
     }
   }
 );
@@ -359,26 +367,29 @@ watch(
 watch(
   () => props.paused,
   newVal => {
-    if (!audioRef.value) return;
+    const audioEl = audioRef.value;
+    if (!audioEl) return;
 
     if (newVal) {
       // 暂停音乐
-      audioRef.value.pause();
+      audioEl.pause();
       log('[StartGame] 音乐已暂停（游戏场景打开）');
     } else if (props.musicOn) {
       // 恢复播放（如果音乐开关是开启的）
-      if (audioRef.value.readyState >= 2) {
-        audioRef.value.play().catch(err => {
+      if (audioEl.readyState >= 2) {
+        audioEl.play().catch(err => {
           log('[StartGame] 恢复播放失败:', err);
         });
       } else {
         const playWhenReady = () => {
-          audioRef.value.play().catch(err => {
+          const el = audioRef.value;
+          if (!el) return;
+          el.play().catch(err => {
             log('[StartGame] 恢复播放失败:', err);
           });
-          audioRef.value.removeEventListener('canplay', playWhenReady);
+          el.removeEventListener('canplay', playWhenReady);
         };
-        audioRef.value.addEventListener('canplay', playWhenReady);
+        audioEl.addEventListener('canplay', playWhenReady);
       }
       log('[StartGame] 音乐已恢复播放');
     }
