@@ -3,6 +3,7 @@ import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
 import { getAssetUrl } from '../../utils/resourceLoader.js';
 import { get_resource } from '../../glue.js';
 import { onEvent, offEvent, EventTypes } from '../../utils/eventBus.js';
+import './DiamondPanel.css';
 
 // 边框资源（返回完整的url()格式）
 const borderBlueSrc = `url('${getAssetUrl('ui/border-blue.png')}')`;
@@ -205,143 +206,13 @@ onMounted(async () => {
 </template>
 
 <style scoped>
-/* 菱形属性面板 */
-.diamond-panel {
-  position: fixed;
-  left: 20px;
-  bottom: 80px;
-  z-index: 6000;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  transform: scale(1.15);
-  transform-origin: left bottom;
-  /* 边框切片默认值 */
-  --border-blue-slice: 8;
-  --border-green-slice: 8;
-  --border-orange-red-slice: 8;
-}
-
 .diamond-name {
-  color: #fff3ef;
-  font-weight: 900;
-  letter-spacing: 2px;
-  text-shadow: 0 2px 0 rgba(0, 0, 0, 0.4);
-  text-align: center;
-  font-size: 14px;
-  padding: 4px 10px;
-  margin-bottom: 2px;
-  transform: translateY(-8px);
-  align-self: center;
-  min-width: 120px;
-  box-sizing: border-box;
-  border-style: solid;
-  border-width: 8px;
   border-image-source: v-bind(namePanelSrc);
-  border-image-slice: 8 fill;
-  border-image-width: 8px;
-  border-image-outset: 0;
-  border-image-repeat: stretch;
-  background-color: transparent;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
 }
-
-.diamond-row {
-  display: flex;
-  gap: 4px;
-}
-
-.diamond-row--top,
-.diamond-row--bottom {
-  justify-content: center;
-}
-
-.diamond {
-  width: 60px;
-  height: 60px;
-  background: #2a2a2c;
-  transform: rotate(45deg);
-  border-radius: 0;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  position: relative;
-  box-sizing: border-box;
-  border-style: solid;
-  border-image-outset: 0;
-  border-image-repeat: stretch;
-  image-rendering: pixelated;
-}
-
 .diamond.border-blue {
-  border-width: var(--border-blue-slice, 8px);
   border-image-source: v-bind(borderBlueSrc);
-  border-image-slice: var(--border-blue-slice, 8) fill;
-  border-image-width: var(--border-blue-slice, 8);
 }
-
-.diamond.border-green {
-  border-width: var(--border-green-slice, 8px);
-  border-image-source: v-bind(borderGreenSrc);
-  border-image-slice: var(--border-green-slice, 8) fill;
-  border-image-width: var(--border-green-slice, 8);
-}
-
 .diamond.border-orange-red {
-  border-width: var(--border-orange-red-slice, 8px);
   border-image-source: v-bind(borderOrangeRedSrc);
-  border-image-slice: var(--border-orange-red-slice, 8) fill;
-  border-image-width: var(--border-orange-red-slice, 8);
-}
-
-.diamond:hover {
-  background: #3a3a3c;
-  transform: rotate(45deg) scale(1.05);
-}
-
-.diamond--disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.diamond--disabled:hover {
-  background: #2a2a2c;
-  transform: rotate(45deg);
-}
-
-.diamond-content {
-  transform: rotate(-45deg);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 100%;
-  height: 100%;
-}
-
-.diamond-text {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 2px;
-}
-
-.diamond-label {
-  font-size: 9px;
-  color: #ffffff;
-  font-weight: 900;
-  text-transform: uppercase;
-  letter-spacing: 2px;
-}
-
-.diamond-value {
-  font-size: 11px;
-  color: #ffffff;
-  font-weight: 900;
-  letter-spacing: 2px;
 }
 </style>

@@ -19,6 +19,7 @@ import {
   info_subscribe,
 } from '../glue.js';
 import { onEvent, offEvent, EventTypes } from '../utils/eventBus.js';
+import './Warehouse.css';
 
 const props = defineProps({
   musicOn: {

@@ -1,0 +1,231 @@
+/* 抽卡全屏界面 */
+.draw-screen {
+  position: relative;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  padding-top: 8px;
+}
+.draw-screen__header {
+  display: none;
+}
+.draw-back {
+  display: none;
+}
+.draw-screen__body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+.draw-card {
+  width: 520px;
+  height: 520px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+.draw-card__img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+}
+.draw-card.is-shaking {
+  animation: shake 0.5s ease-in-out;
+}
+.draw-cost {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  justify-content: center;
+}
+.draw-cost__icon {
+  width: 64px;
+  height: 64px;
+  object-fit: contain;
+}
+.draw-cost__times {
+  color: #fff;
+  font-size: 22px;
+  font-weight: 700;
+}
+.draw-action {
+  margin-top: 6px;
+  background: #3a2519;
+  color: #fff;
+  border: none;
+  border-radius: 16px;
+  padding: 12px 44px;
+  font-size: 26px;
+  cursor: pointer;
+}
+.draw-action:hover {
+  background: #5a3525;
+}
+
+.toast {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.8);
+  color: #fff;
+  padding: 10px 16px;
+  border-radius: 8px;
+  font-size: 14px;
+  z-index: 2200;
+}
+
+/* 临时卡片展示（出现动画，覆盖在卡包上方） */
+.draw-temp {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: auto;
+  z-index: 2000;
+}
+.dim-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+}
+.temp-stack {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  pointer-events: none;
+  perspective: 1000px;
+  box-sizing: border-box;
+}
+.card {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  transform-style: preserve-3d;
+  animation: appear 0.6s ease forwards;
+  cursor: pointer;
+  pointer-events: auto;
+}
+.card-face {
+  position: absolute;
+  inset: 0;
+  border-radius: 14px;
+  backface-visibility: hidden;
+  transition: transform 0.5s ease;
+}
+.card-back {
+  background: #4b2e1f;
+  transform: rotateY(180deg);
+  overflow: hidden;
+}
+.card-back img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.card-front {
+  background: #000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-weight: 800;
+}
+.card.flipped .card-back {
+  transform: rotateY(0deg);
+}
+.card.flipped .card-front {
+  transform: rotateY(180deg);
+}
+.card-icon {
+  font-size: 52px;
+}
+.card-title {
+  font-size: 18px;
+}
+.card-front-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.card-name-overlay {
+  display: none;
+}
+.card-name-below {
+  pointer-events: none;
+  color: #fff;
+  font-weight: 900;
+  letter-spacing: 0.5px;
+  font-size: 22px;
+  opacity: 0;
+  transform: translateY(6px);
+  transition:
+    opacity 0.3s ease,
+    transform 0.3s ease;
+  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.9);
+}
+.card-name-below.show {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.result-info {
+  position: absolute;
+  bottom: -56px;
+  left: 50%;
+  transform: translateX(-50%) translateY(10px);
+  background: rgba(0, 0, 0, 0.65);
+  color: #fff;
+  padding: 8px 14px;
+  border-radius: 12px;
+  opacity: 0;
+  transition:
+    opacity 0.3s ease,
+    transform 0.3s ease;
+  font-weight: 700;
+}
+.result-info.show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+@keyframes shake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  10%,
+  30%,
+  50%,
+  70%,
+  90% {
+    transform: translateX(-6px);
+  }
+  20%,
+  40%,
+  60%,
+  80% {
+    transform: translateX(6px);
+  }
+}
+
+@keyframes appear {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
